@@ -13,6 +13,8 @@
 
 #include "os/os_time.h"
 
+#include <string.h>
+
 #include "util/u_handles.h"
 #include "util/u_trace_marker.h"
 
@@ -30,7 +32,7 @@
 #define UUID_STR_SIZE (XRT_UUID_SIZE * 3 + 1)
 
 static void
-snprint_luid(char *str, size_t size, xrt_luid_t *luid)
+snprint_luid(char *str, size_t size, const xrt_luid_t *luid)
 {
 	for (size_t i = 0, offset = 0; i < ARRAY_SIZE(luid->data) && offset < size; i++, offset += 3) {
 		snprintf(str + offset, size - offset, "%02x ", luid->data[i]);
@@ -38,7 +40,7 @@ snprint_luid(char *str, size_t size, xrt_luid_t *luid)
 }
 
 static void
-snprint_uuid(char *str, size_t size, xrt_uuid_t *uuid)
+snprint_uuid(char *str, size_t size, const xrt_uuid_t *uuid)
 {
 	for (size_t i = 0, offset = 0; i < ARRAY_SIZE(uuid->data) && offset < size; i++, offset += 3) {
 		snprintf(str + offset, size - offset, "%02x ", uuid->data[i]);
@@ -97,6 +99,65 @@ get_device_uuid(struct vk_bundle *vk, int gpu_index, xrt_uuid_t *uuid)
 	memcpy(uuid->data, pdidp.deviceUUID, ARRAY_SIZE(uuid->data));
 
 	return true;
+}
+
+static VkResult
+resolve_selected_gpu_index(struct vk_bundle *vk, const struct comp_vulkan_arguments *vk_args, int *out_index)
+{
+	if (!vk_args->lookup_with_uuid) {
+		*out_index = vk_args->selected_gpu_index;
+		return VK_SUCCESS;
+	}
+
+	VkPhysicalDevice *phys = NULL;
+	uint32_t gpu_count = 0;
+	VkResult ret;
+
+	ret = vk_enumerate_physical_devices( //
+	    vk,                              // vk_bundle
+	    &gpu_count,                      // out_physical_device_count
+	    &phys);                          // out_physical_devices
+	if (ret != VK_SUCCESS) {
+		VK_ERROR_RET(vk, "vk_enumerate_physical_devices", "Failed to enumerate physical devices.", ret);
+		return ret;
+	}
+	if (gpu_count == 0) {
+		VK_ERROR(vk, "vk_enumerate_physical_devices: Returned zero physical devices!");
+		free(phys);
+		return VK_ERROR_DEVICE_LOST;
+	}
+
+	for (uint32_t i = 0; i < gpu_count; i++) {
+		VkPhysicalDeviceIDProperties pdidp = {
+		    .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ID_PROPERTIES,
+		};
+
+		VkPhysicalDeviceProperties2 pdp2 = {
+		    .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2,
+		    .pNext = &pdidp,
+		};
+
+		vk->vkGetPhysicalDeviceProperties2(phys[i], &pdp2);
+
+		if (memcmp(pdidp.deviceUUID, vk_args->selected_gpu_uuid.data, XRT_UUID_SIZE) == 0) {
+			char uuid_str[UUID_STR_SIZE] = {0};
+			snprint_uuid(uuid_str, ARRAY_SIZE(uuid_str), &vk_args->selected_gpu_uuid);
+
+			VK_DEBUG(vk, "Matched Vulkan device %u with uuid: %s", i, uuid_str);
+			*out_index = (int)i;
+			free(phys);
+			return VK_SUCCESS;
+		}
+	}
+
+	{
+		char uuid_str[UUID_STR_SIZE] = {0};
+		snprint_uuid(uuid_str, ARRAY_SIZE(uuid_str), &vk_args->selected_gpu_uuid);
+		VK_ERROR(vk, "No Vulkan device found matching uuid: %s", uuid_str);
+	}
+
+	free(phys);
+	return VK_ERROR_DEVICE_LOST;
 }
 
 static bool
@@ -268,6 +329,12 @@ create_device(struct vk_bundle *vk, const struct comp_vulkan_arguments *vk_args)
 	};
 
 	const bool only_compute_queue = vk_args->only_compute_queue;
+	int gpu_index = -1;
+
+	ret = resolve_selected_gpu_index(vk, vk_args, &gpu_index);
+	if (ret != VK_SUCCESS) {
+		return ret;
+	}
 
 	struct vk_device_features device_features = {
 	    .shader_image_gather_extended = true,
@@ -293,7 +360,7 @@ create_device(struct vk_bundle *vk, const struct comp_vulkan_arguments *vk_args)
 	for (size_t i = 0; i < ARRAY_SIZE(prios); i++) {
 		ret = vk_create_device(                  //
 		    vk,                                  //
-		    vk_args->selected_gpu_index,         //
+		    gpu_index,                           //
 		    only_compute_queue,                  // compute_only
 		    prios[i],                            // global_priority
 		    vk_args->required_device_extensions, //

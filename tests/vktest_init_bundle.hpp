@@ -131,17 +131,22 @@ vktest_init_bundle(struct vk_bundle *vk)
 	    u_extension_list_create_from_array(optional_device_extensions, ARRAY_SIZE(optional_device_extensions))};
 
 	U_ZERO(vk);
-	comp_vulkan_arguments args{VK_MAKE_VERSION(1, 0, 0),
-	                           vkGetInstanceProcAddr,
-	                           required_instance_ext_list.get(),
-	                           optional_instance_ext_list.get(),
-	                           required_device_extension_list.get(),
-	                           optional_device_extension_list.get(),
-	                           U_LOGGING_TRACE,
-	                           false /* only_compute_queue */,
-	                           true /*timeline_semaphore*/,
-	                           -1,
-	                           -1};
+	comp_vulkan_arguments args{
+	    VK_MAKE_VERSION(1, 0, 0),
+	    vkGetInstanceProcAddr,
+	    required_instance_ext_list.get(),
+	    optional_instance_ext_list.get(),
+	    required_device_extension_list.get(),
+	    optional_device_extension_list.get(),
+	    U_LOGGING_TRACE,
+	    false /* only_compute_queue */,
+	    true /*timeline_semaphore*/,
+	    -1,
+	    false,
+	    xrt_uuid_t{},
+	    -1,
+	};
+
 	comp_vulkan_results results{};
 	bool success = comp_vulkan_init_bundle(vk, &args, &results);
 

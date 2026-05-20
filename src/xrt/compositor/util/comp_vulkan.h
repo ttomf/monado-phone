@@ -59,6 +59,12 @@ struct comp_vulkan_arguments
 	//! Vulkan physical device to be selected, -1 for auto.
 	int selected_gpu_index;
 
+	//! When true, select the physical device whose UUID matches @ref selected_gpu_uuid.
+	bool lookup_with_uuid;
+
+	//! Vulkan physical device UUID to select when @ref lookup_with_uuid is true.
+	xrt_uuid_t selected_gpu_uuid;
+
 	//! Vulkan physical device index for clients to use, -1 for auto.
 	int client_gpu_index;
 };

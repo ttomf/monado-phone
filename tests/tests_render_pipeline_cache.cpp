@@ -97,6 +97,8 @@ struct MinimalVulkanContext
 		    .only_compute_queue = false,
 		    .timeline_semaphore = false,
 		    .selected_gpu_index = -1,
+		    .lookup_with_uuid = false,
+		    .selected_gpu_uuid = {},
 		    .client_gpu_index = -1,
 		};
 
