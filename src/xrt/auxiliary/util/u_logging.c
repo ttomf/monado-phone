@@ -30,10 +30,13 @@
  */
 
 /*
- * Avoid 4K stack variables.
- * https://learn.microsoft.com/en-us/windows/win32/devnotes/-win32-chkstk
+ * Try to make the buffer size as small as possible, but not too small,
+ * this stays within the "fast" stack variables limits on x64 bit builds on
+ * Windows, but not on 32 bit builds.
+ *
+ * See https://learn.microsoft.com/en-us/windows/win32/devnotes/-win32-chkstk
  */
-#define LOG_BUFFER_SIZE (3 * 1024)
+#define LOG_BUFFER_SIZE (7 * 1024)
 
 /*
  * 16MB max binary data
