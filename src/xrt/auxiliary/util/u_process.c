@@ -67,7 +67,7 @@ u_process_create_if_not_running(void)
 		if (errno == EEXIST) {
 			U_LOG_E("Monado is already running, pid %d", otherpid);
 		}
-		U_LOG_E("Failed to create pidfile: %s", strerror(errno));
+		U_LOG_E("Failed to create pidfile %s: %s", tmp, strerror(errno));
 		return NULL;
 	}
 
