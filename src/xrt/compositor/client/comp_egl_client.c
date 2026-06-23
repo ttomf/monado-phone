@@ -658,7 +658,7 @@ xrt_gfx_provider_create_gl_egl(struct xrt_compositor_native *xcn,
                                EGLContext context,
                                PFNEGLGETPROCADDRESSPROC get_gl_procaddr,
                                bool renderdoc_enabled,
-                               struct xrt_compositor_gl **out_xcgl)
+                               struct xrt_compositor **out_xc)
 {
 	log_level = debug_get_log_option_egl_log();
 	xrt_result_t xret;
@@ -781,9 +781,9 @@ xrt_gfx_provider_create_gl_egl(struct xrt_compositor_native *xcn,
 		return XRT_ERROR_OPENGL;
 	}
 
-	ceglc->base.base.base.destroy = client_egl_compositor_destroy;
+	ceglc->base.base.destroy = client_egl_compositor_destroy;
 	restore_context(&old);
-	*out_xcgl = &ceglc->base.base;
+	*out_xc = &ceglc->base.base;
 
 	return XRT_SUCCESS;
 }

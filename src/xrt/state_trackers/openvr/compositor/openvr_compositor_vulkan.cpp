@@ -449,13 +449,13 @@ Compositor::setupVulkanCompositor(openvr_logger &logger, vr::VRVulkanTextureData
 	    .meta_body_tracking_fidelity_enabled = false,
 	    .android_face_tracking_enabled = false,
 	};
-	xrt_result_t xret = xrt_comp_begin_session(&this->xc_vk->base, &bsi);
+	xrt_result_t xret = xrt_comp_begin_session(this->xc_vk, &bsi);
 
 	if (xret != XRT_SUCCESS) {
 		OPENVR_LOG_ERROR_XRET(logger, "Failed to begin Vulkan compositor session", xret);
 
 		// Destroy the compositor we created, since it's not usable.
-		struct xrt_compositor *xc = &this->xc_vk->base;
+		struct xrt_compositor *xc = this->xc_vk;
 		xrt_comp_destroy(&xc);
 		this->xc_vk = nullptr;
 
@@ -463,7 +463,7 @@ Compositor::setupVulkanCompositor(openvr_logger &logger, vr::VRVulkanTextureData
 	}
 
 	// We've created an active compositor, and begun the session.
-	this->active_compositor = &this->xc_vk->base;
+	this->active_compositor = this->xc_vk;
 
 	client_vk_compositor *c = (client_vk_compositor *)this->xc_vk;
 

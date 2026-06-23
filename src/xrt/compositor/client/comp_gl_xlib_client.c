@@ -203,7 +203,7 @@ client_gl_xlib_compositor_create(struct xrt_compositor_native *xcn,
 		return NULL;
 	}
 
-	c->base.base.base.destroy = client_gl_xlib_compositor_destroy;
+	c->base.base.destroy = client_gl_xlib_compositor_destroy;
 
 	return c;
 }

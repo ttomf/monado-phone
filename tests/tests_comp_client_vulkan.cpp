@@ -89,18 +89,17 @@ using unique_string_list =
     std::unique_ptr<u_extension_list, xrt::deleters::ptr_ptr_deleter<u_extension_list, &u_extension_list_destroy>>;
 
 static void
-xrt_comp_vk_destroy(struct xrt_compositor_vk **ptr_xcvk)
+xrt_comp_vk_destroy(struct xrt_compositor **ptr_xc)
 {
-	if (!ptr_xcvk) {
+	if (!ptr_xc) {
 		return;
 	}
-	xrt_compositor *xc = &(*ptr_xcvk)->base;
+	xrt_compositor *xc = *ptr_xc;
 	xrt_comp_destroy(&xc);
 }
 
 using unique_compositor_vk =
-    std::unique_ptr<struct xrt_compositor_vk,
-                    xrt::deleters::ptr_ptr_deleter<struct xrt_compositor_vk, &xrt_comp_vk_destroy>>;
+    std::unique_ptr<struct xrt_compositor, xrt::deleters::ptr_ptr_deleter<struct xrt_compositor, &xrt_comp_vk_destroy>>;
 
 TEST_CASE("client_compositor", "[.][needgpu]")
 {
@@ -133,11 +132,11 @@ TEST_CASE("client_compositor", "[.][needgpu]")
 	vk_bundle *vk = &vk_bundle_storage;
 	comp_vulkan_results results{};
 	REQUIRE(comp_vulkan_init_bundle(vk, &args, &results));
-	struct xrt_compositor_vk *xcvk = xrt_gfx_vk_provider_create( //
-	    xcn,                                                     //
-	    vk->instance,                                            //
-	    vkGetInstanceProcAddr,                                   //
-	    vk->physical_device,                                     //
+	struct xrt_compositor *xcvk = xrt_gfx_vk_provider_create( //
+	    xcn,                                                  //
+	    vk->instance,                                         //
+	    vkGetInstanceProcAddr,                                //
+	    vk->physical_device,                                  //
 	    vk->device,
 #if defined(XRT_GRAPHICS_SYNC_HANDLE_IS_FD)          //
 	    vk->external.fence_sync_fd,              //
@@ -155,7 +154,7 @@ TEST_CASE("client_compositor", "[.][needgpu]")
 	    false,                         // renderdoc_enabled
 	    vk->main_queue->family_index,  //
 	    vk->main_queue->index);
-	struct xrt_compositor *xc = &xcvk->base;
+	struct xrt_compositor *xc = xcvk;
 
 	SECTION("CreateSwapchain calls native create")
 	{

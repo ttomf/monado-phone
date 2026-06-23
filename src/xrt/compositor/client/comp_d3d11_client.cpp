@@ -102,11 +102,11 @@ static constexpr auto kFenceTimeout = 500ms;
  * Wraps the real compositor providing a D3D11 based interface.
  *
  * @ingroup comp_client
- * @implements xrt_compositor_d3d11
+ * @implements xrt_compositor
  */
 struct client_d3d11_compositor
 {
-	struct xrt_compositor_d3d11 base = {};
+	struct xrt_compositor base = {};
 
 	//! Owning reference to the backing native compositor
 	struct xrt_compositor_native *xcn{nullptr};
@@ -840,7 +840,7 @@ client_d3d11_compositor_init_try_internal_blocking(struct client_d3d11_composito
 	c->fence = std::move(fence);
 }
 
-struct xrt_compositor_d3d11 *
+struct xrt_compositor *
 client_d3d11_compositor_create(struct xrt_compositor_native *xcn, ID3D11Device *device)
 try {
 	std::unique_ptr<struct client_d3d11_compositor> c = std::make_unique<struct client_d3d11_compositor>();
@@ -883,27 +883,27 @@ try {
 	if (!c->fence) {
 		D3D_WARN(c, "No sync mechanism for D3D11 was successful!");
 	}
-	c->base.base.get_swapchain_create_properties = client_d3d11_compositor_get_swapchain_create_properties;
-	c->base.base.create_swapchain = client_d3d11_create_swapchain;
-	c->base.base.create_passthrough = client_d3d11_compositor_passthrough_create;
-	c->base.base.create_passthrough_layer = client_d3d11_compositor_passthrough_layer_create;
-	c->base.base.destroy_passthrough = client_d3d11_compositor_passthrough_destroy;
-	c->base.base.begin_session = client_d3d11_compositor_begin_session;
-	c->base.base.end_session = client_d3d11_compositor_end_session;
-	c->base.base.wait_frame = client_d3d11_compositor_wait_frame;
-	c->base.base.begin_frame = client_d3d11_compositor_begin_frame;
-	c->base.base.discard_frame = client_d3d11_compositor_discard_frame;
-	c->base.base.layer_begin = client_d3d11_compositor_layer_begin;
-	c->base.base.layer_projection = client_d3d11_compositor_layer_projection;
-	c->base.base.layer_projection_depth = client_d3d11_compositor_layer_projection_depth;
-	c->base.base.layer_quad = client_d3d11_compositor_layer_quad;
-	c->base.base.layer_cube = client_d3d11_compositor_layer_cube;
-	c->base.base.layer_cylinder = client_d3d11_compositor_layer_cylinder;
-	c->base.base.layer_equirect1 = client_d3d11_compositor_layer_equirect1;
-	c->base.base.layer_equirect2 = client_d3d11_compositor_layer_equirect2;
-	c->base.base.layer_passthrough = client_d3d11_compositor_layer_passthrough;
-	c->base.base.layer_commit = client_d3d11_compositor_layer_commit;
-	c->base.base.destroy = client_d3d11_compositor_destroy;
+	c->base.get_swapchain_create_properties = client_d3d11_compositor_get_swapchain_create_properties;
+	c->base.create_swapchain = client_d3d11_create_swapchain;
+	c->base.create_passthrough = client_d3d11_compositor_passthrough_create;
+	c->base.create_passthrough_layer = client_d3d11_compositor_passthrough_layer_create;
+	c->base.destroy_passthrough = client_d3d11_compositor_passthrough_destroy;
+	c->base.begin_session = client_d3d11_compositor_begin_session;
+	c->base.end_session = client_d3d11_compositor_end_session;
+	c->base.wait_frame = client_d3d11_compositor_wait_frame;
+	c->base.begin_frame = client_d3d11_compositor_begin_frame;
+	c->base.discard_frame = client_d3d11_compositor_discard_frame;
+	c->base.layer_begin = client_d3d11_compositor_layer_begin;
+	c->base.layer_projection = client_d3d11_compositor_layer_projection;
+	c->base.layer_projection_depth = client_d3d11_compositor_layer_projection_depth;
+	c->base.layer_quad = client_d3d11_compositor_layer_quad;
+	c->base.layer_cube = client_d3d11_compositor_layer_cube;
+	c->base.layer_cylinder = client_d3d11_compositor_layer_cylinder;
+	c->base.layer_equirect1 = client_d3d11_compositor_layer_equirect1;
+	c->base.layer_equirect2 = client_d3d11_compositor_layer_equirect2;
+	c->base.layer_passthrough = client_d3d11_compositor_layer_passthrough;
+	c->base.layer_commit = client_d3d11_compositor_layer_commit;
+	c->base.destroy = client_d3d11_compositor_destroy;
 
 
 	// Passthrough our formats from the native compositor to the client.
@@ -925,9 +925,9 @@ try {
 			continue;
 		}
 
-		c->base.base.info.formats[count++] = f;
+		c->base.info.formats[count++] = f;
 	}
-	c->base.base.info.format_count = count;
+	c->base.info.format_count = count;
 
 	return &(c.release()->base);
 } catch (wil::ResultException const &e) {

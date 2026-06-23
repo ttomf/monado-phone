@@ -140,7 +140,7 @@ private: // Fields
 
 #ifdef XRT_HAVE_VULKAN
 	//! The active Vulkan compositor.
-	struct xrt_compositor_vk *xc_vk{nullptr};
+	struct xrt_compositor *xc_vk{nullptr};
 
 	//! The vk_bundle for the compositor.
 	vk_bundle *vk{nullptr};
