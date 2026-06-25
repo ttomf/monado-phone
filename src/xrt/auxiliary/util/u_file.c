@@ -28,6 +28,37 @@
 #define PATH_MAX 4096
 #endif
 
+#ifdef XRT_OS_WINDOWS
+typedef DWORD(WINAPI *PFN_GetTempPath2A)(DWORD, LPSTR);
+typedef DWORD(WINAPI *PFN_GetTempPath2W)(DWORD, LPWSTR);
+
+static DWORD
+get_temp_path_a(DWORD out_path_size, LPSTR out_path)
+{
+	HMODULE kernel32 = GetModuleHandleW(L"kernel32.dll");
+	PFN_GetTempPath2A get_temp_path2 =
+	    kernel32 != NULL ? (PFN_GetTempPath2A)GetProcAddress(kernel32, "GetTempPath2A") : NULL;
+	if (get_temp_path2 != NULL) {
+		return get_temp_path2(out_path_size, out_path);
+	}
+
+	return GetTempPathA(out_path_size, out_path);
+}
+
+static DWORD
+get_temp_path_w(DWORD out_path_size, LPWSTR out_path)
+{
+	HMODULE kernel32 = GetModuleHandleW(L"kernel32.dll");
+	PFN_GetTempPath2W get_temp_path2 =
+	    kernel32 != NULL ? (PFN_GetTempPath2W)GetProcAddress(kernel32, "GetTempPath2W") : NULL;
+	if (get_temp_path2 != NULL) {
+		return get_temp_path2(out_path_size, out_path);
+	}
+
+	return GetTempPathW(out_path_size, out_path);
+}
+#endif
+
 #ifdef XRT_OS_LINUX
 #include <sys/stat.h>
 #include <linux/limits.h>
@@ -214,19 +245,11 @@ u_file_get_runtime_dir(char *out_path, size_t out_path_size)
 	}
 
 #ifdef XRT_OS_WINDOWS
-#ifndef UNICODE     // If Unicode support is disabled, use ANSI functions directly into out_path
-#ifdef GetTempPath2 // GetTempPath2 is only available on Windows 11 >= 22000, fallback to GetTempPath for older versions
-	return (int)GetTempPath2A(out_path_size, out_path);
-#else
-	return (int)GetTempPathA(out_path_size, out_path);
-#endif
+#ifndef UNICODE // If Unicode support is disabled, use ANSI functions directly into out_path
+	return (int)get_temp_path_a((DWORD)out_path_size, out_path);
 #else
 	WCHAR temp[MAX_PATH] = {0};
-#ifdef GetTempPath2 // GetTempPath2 is only available on Windows 11 >= 22000, fallback to GetTempPath for older versions
-	GetTempPath2W(sizeof(temp), temp);
-#else               // GetTempPath2
-	GetTempPathW(sizeof(temp), temp);
-#endif
+	get_temp_path_w((DWORD)(sizeof(temp) / sizeof(temp[0])), temp);
 	return wcstombs(out_path, temp, out_path_size);
 #endif // UNICODE
 #else
