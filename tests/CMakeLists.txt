@@ -32,7 +32,13 @@ if(XRT_HAVE_D3D12)
 	list(APPEND tests tests_aux_d3d_d3d12 tests_comp_client_d3d12)
 endif()
 if(XRT_HAVE_VULKAN)
-	list(APPEND tests tests_comp_client_vulkan tests_uv_to_tangent)
+	list(
+		APPEND
+		tests
+		tests_comp_client_vulkan
+		tests_uv_to_tangent
+		tests_render_pipeline_cache
+		)
 endif()
 if(XRT_FEATURE_OPENXR)
 	list(APPEND tests tests_input_transform)
@@ -100,6 +106,20 @@ if(XRT_HAVE_VULKAN)
 		tests_comp_client_vulkan PRIVATE comp_client comp_mock comp_util aux_vk
 		)
 	target_link_libraries(tests_uv_to_tangent PRIVATE aux_render)
+	target_link_libraries(
+		tests_render_pipeline_cache
+		PRIVATE
+			aux_render_cache
+			comp_util
+			aux_vk
+			aux_shaders
+			xrt-interfaces
+		)
+	target_include_directories(
+		tests_render_pipeline_cache SYSTEM
+		PRIVATE ${CMAKE_BINARY_DIR}/src/xrt/auxiliary/render/shaders
+		)
+	add_dependencies(tests_render_pipeline_cache aux_shaders render_shader_specialization)
 endif()
 
 if(XRT_FEATURE_OPENXR)
