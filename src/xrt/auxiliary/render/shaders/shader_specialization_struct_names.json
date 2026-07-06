@@ -1,0 +1,6 @@
+{
+	"distortion": {
+		"struct": "render_distortion_spec",
+		"short_name": "render_distortion"
+	}
+}

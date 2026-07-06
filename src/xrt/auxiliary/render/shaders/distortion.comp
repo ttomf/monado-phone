@@ -9,18 +9,18 @@
 
 
 // The size of the distortion texture dimensions in texels.
-layout(constant_id = 0) const int distortion_texel_count = 2;
+layout(constant_id = 0) const int k_distortion_texel_count = 2;
 
 // Should we do timewarp.
-layout(constant_id = 1) const bool do_timewarp = false;
+layout(constant_id = 1) const bool k_do_timewarp = false;
 
 // Number of views (1 = mono, 2 = stereo). Sized at pipeline creation.
-layout(constant_id = 2) const int view_count = 2;
+layout(constant_id = 2) const int k_view_count = 2;
 
 layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
 
-layout(set = 0, binding = 0) uniform sampler2D source[view_count];
-layout(set = 0, binding = 1) uniform sampler2D distortion[3 * view_count];
+layout(set = 0, binding = 0) uniform sampler2D source[k_view_count];
+layout(set = 0, binding = 1) uniform sampler2D distortion[3 * k_view_count];
 layout(set = 0, binding = 2) uniform writeonly restrict image2D target;
 layout(set = 0, binding = 3, std140) uniform restrict Config
 {
@@ -55,7 +55,7 @@ vec2 position_to_uv(ivec2 extent, uint ix, uint iy)
 	// texels away from the first texel. So we need to scale [0 .. 1] to
 	// [0 .. size - 1].
 
-#define DIM (float(distortion_texel_count))
+#define DIM (float(k_distortion_texel_count))
 #define STRETCH ((DIM - 1.0) / DIM)
 #define OFFSET (1.0 / (DIM * 2.0))
 
@@ -97,7 +97,7 @@ vec2 transform_uv_timewarp(vec2 uv, uint iz)
 
 vec2 transform_uv(vec2 uv, uint iz)
 {
-	if (do_timewarp) {
+	if (k_do_timewarp) {
 		uv = transform_uv_timewarp(uv, iz);
 	}
 
@@ -119,9 +119,9 @@ void main()
 
 	vec2 dist_uv = position_to_uv(extent, ix, iy);
 
-	vec2 r_uv = texture(distortion[view_count * 0 + iz], dist_uv).xy;
-	vec2 g_uv = texture(distortion[view_count * 1 + iz], dist_uv).xy;
-	vec2 b_uv = texture(distortion[view_count * 2 + iz], dist_uv).xy;
+	vec2 r_uv = texture(distortion[k_view_count * 0 + iz], dist_uv).xy;
+	vec2 g_uv = texture(distortion[k_view_count * 1 + iz], dist_uv).xy;
+	vec2 b_uv = texture(distortion[k_view_count * 2 + iz], dist_uv).xy;
 
 	// Do any transformation needed.
 	r_uv = transform_uv(r_uv, iz);
