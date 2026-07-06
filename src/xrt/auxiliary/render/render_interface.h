@@ -1,5 +1,5 @@
 // Copyright 2019-2023, Collabora, Ltd.
-// Copyright 2025, NVIDIA CORPORATION.
+// Copyright 2025-2026, NVIDIA CORPORATION.
 // SPDX-License-Identifier: BSL-1.0
 /*!
  * @file
@@ -18,6 +18,9 @@
 #include "vk/vk_cmd_pool.h"
 
 #include "shaders/render_shaders_interface.h"
+
+
+struct render_distortion_pipeline_cache;
 
 
 #ifdef __cplusplus
@@ -500,11 +503,14 @@ struct render_resources
 			//! Pipeline layout used for compute distortion, shared with clear.
 			VkPipelineLayout pipeline_layout;
 
-			//! Doesn't depend on target so is static.
+			//! Cached non-timewarp variant from @ref pipeline_cache.
 			VkPipeline pipeline;
 
-			//! Doesn't depend on target so is static.
+			//! Cached timewarp variant from @ref pipeline_cache.
 			VkPipeline timewarp_pipeline;
+
+			//! Get-or-create cache for distortion.comp specialization variants.
+			struct render_distortion_pipeline_cache *pipeline_cache;
 
 			//! Target info.
 			struct render_buffer ubo;

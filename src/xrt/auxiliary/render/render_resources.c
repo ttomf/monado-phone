@@ -1,4 +1,5 @@
 // Copyright 2019-2023, Collabora, Ltd.
+// Copyright 2026, NVIDIA CORPORATION.
 // SPDX-License-Identifier: BSL-1.0
 /*!
  * @file
@@ -17,6 +18,9 @@
 #include "vk/vk_mini_helpers.h"
 
 #include "render/render_interface.h"
+
+#include "cache/render_compute_pipeline_cache.h"
+#include "cache/render_shader_specialization_helpers.h"
 
 
 #include <stdio.h>
@@ -295,13 +299,6 @@ struct compute_layer_params
 	uint32_t image_array_size;
 };
 
-struct compute_distortion_params
-{
-	uint32_t distortion_texel_count;
-	VkBool32 do_timewarp;
-	uint32_t view_count;
-};
-
 XRT_CHECK_RESULT static VkResult
 create_compute_layer_pipeline(struct vk_bundle *vk,
                               VkPipelineCache pipeline_cache,
@@ -339,45 +336,6 @@ create_compute_layer_pipeline(struct vk_bundle *vk,
 	    &specialization_info,          // specialization_info
 	    out_compute_pipeline);         // out_compute_pipeline
 }
-
-XRT_CHECK_RESULT static VkResult
-create_compute_distortion_pipeline(struct vk_bundle *vk,
-                                   VkPipelineCache pipeline_cache,
-                                   VkShaderModule shader,
-                                   VkPipelineLayout pipeline_layout,
-                                   const struct compute_distortion_params *params,
-                                   VkPipeline *out_compute_pipeline)
-{
-#define ENTRY(ID, FIELD)                                                                                               \
-	{                                                                                                              \
-	    .constantID = ID,                                                                                          \
-	    .offset = offsetof(struct compute_distortion_params, FIELD),                                               \
-	    sizeof(params->FIELD),                                                                                     \
-	}
-
-	VkSpecializationMapEntry entries[3] = {
-	    ENTRY(0, distortion_texel_count),
-	    ENTRY(1, do_timewarp),
-	    ENTRY(2, view_count),
-	};
-#undef ENTRY
-
-	VkSpecializationInfo specialization_info = {
-	    .mapEntryCount = ARRAY_SIZE(entries),
-	    .pMapEntries = entries,
-	    .dataSize = sizeof(*params),
-	    .pData = params,
-	};
-
-	return vk_create_compute_pipeline( //
-	    vk,                            // vk_bundle
-	    pipeline_cache,                // pipeline_cache
-	    shader,                        // shader
-	    pipeline_layout,               // pipeline_layout
-	    &specialization_info,          // specialization_info
-	    out_compute_pipeline);         // out_compute_pipeline
-}
-
 
 /*
  *
@@ -513,6 +471,7 @@ render_resources_init(struct render_resources *r,
                       struct xrt_device *xdev)
 {
 	VkResult ret;
+	xrt_result_t xret;
 	bool bret;
 
 	/*
@@ -954,37 +913,44 @@ render_resources_init(struct render_resources *r,
 	VK_NAME_PIPELINE_LAYOUT(vk, r->compute.distortion.pipeline_layout,
 	                        "render_resources compute distortion pipeline layout");
 
-	struct compute_distortion_params distortion_params = {
-	    .distortion_texel_count = RENDER_DISTORTION_IMAGE_DIMENSIONS,
-	    .do_timewarp = false,
-	    .view_count = r->view_count,
+	xret = render_distortion_pipeline_cache_create("render_resources compute distortion",
+	                                               &r->compute.distortion.pipeline_cache);
+	XVK_CHK_WITH_RET(xret, "render_distortion_pipeline_cache_create", false);
+
+	xret = render_distortion_pipeline_cache_init( //
+	    r->compute.distortion.pipeline_cache,     //
+	    r->shaders->distortion_comp,              //
+	    r->compute.distortion.pipeline_layout,    //
+	    r->pipeline_cache);                       //
+	XVK_CHK_WITH_RET(xret, "render_distortion_pipeline_cache_init", false);
+
+	const struct render_distortion_spec distortion_variants[] = {
+	    render_make_distortion_spec(RENDER_DISTORTION_IMAGE_DIMENSIONS, VK_FALSE, r->view_count),
+	    render_make_distortion_spec(RENDER_DISTORTION_IMAGE_DIMENSIONS, VK_TRUE, r->view_count),
 	};
 
-	ret = create_compute_distortion_pipeline(  //
-	    vk,                                    // vk_bundle
-	    r->pipeline_cache,                     // pipeline_cache
-	    r->shaders->distortion_comp,           // shader
-	    r->compute.distortion.pipeline_layout, // pipeline_layout
-	    &distortion_params,                    // params
-	    &r->compute.distortion.pipeline);      // out_compute_pipeline
-	VK_CHK_WITH_RET(ret, "create_compute_distortion_pipeline", false);
+	xret = render_distortion_pipeline_cache_prewarm( //
+	    r->compute.distortion.pipeline_cache,        //
+	    vk,                                          //
+	    distortion_variants,                         //
+	    ARRAY_SIZE(distortion_variants));            //
+	XVK_CHK_WITH_RET(xret, "render_distortion_pipeline_cache_prewarm", false);
+
+	xret = render_distortion_pipeline_cache_get( //
+	    r->compute.distortion.pipeline_cache,    //
+	    vk,                                      //
+	    &distortion_variants[0],                 //
+	    &r->compute.distortion.pipeline);        //
+	XVK_CHK_WITH_RET(xret, "render_distortion_pipeline_cache_get", false);
 
 	VK_NAME_PIPELINE(vk, r->compute.distortion.pipeline, "render_resources compute distortion pipeline");
 
-	struct compute_distortion_params distortion_timewarp_params = {
-	    .distortion_texel_count = RENDER_DISTORTION_IMAGE_DIMENSIONS,
-	    .do_timewarp = true,
-	    .view_count = r->view_count,
-	};
-
-	ret = create_compute_distortion_pipeline(      //
-	    vk,                                        // vk_bundle
-	    r->pipeline_cache,                         // pipeline_cache
-	    r->shaders->distortion_comp,               // shader
-	    r->compute.distortion.pipeline_layout,     // pipeline_layout
-	    &distortion_timewarp_params,               // params
-	    &r->compute.distortion.timewarp_pipeline); // out_compute_pipeline
-	VK_CHK_WITH_RET(ret, "create_compute_distortion_pipeline", false);
+	xret = render_distortion_pipeline_cache_get(   //
+	    r->compute.distortion.pipeline_cache,      //
+	    vk,                                        //
+	    &distortion_variants[1],                   //
+	    &r->compute.distortion.timewarp_pipeline); //
+	XVK_CHK_WITH_RET(xret, "render_distortion_pipeline_cache_get", false);
 
 	VK_NAME_PIPELINE(vk, r->compute.distortion.timewarp_pipeline,
 	                 "render_resources compute distortion timewarp pipeline");
@@ -1125,8 +1091,11 @@ render_resources_fini(struct render_resources *r)
 	D(PipelineLayout, r->compute.layer.pipeline_layout);
 
 	D(DescriptorSetLayout, r->compute.distortion.descriptor_set_layout);
-	D(Pipeline, r->compute.distortion.pipeline);
-	D(Pipeline, r->compute.distortion.timewarp_pipeline);
+	if (r->compute.distortion.pipeline_cache != NULL) {
+		r->compute.distortion.pipeline = VK_NULL_HANDLE;
+		r->compute.distortion.timewarp_pipeline = VK_NULL_HANDLE;
+		render_distortion_pipeline_cache_destroy(&r->compute.distortion.pipeline_cache, vk);
+	}
 	D(PipelineLayout, r->compute.distortion.pipeline_layout);
 
 	D(Pipeline, r->compute.clear.pipeline);
