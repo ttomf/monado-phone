@@ -376,9 +376,11 @@ euroc_recorder_create(struct xrt_frame_context *xfctx, const char *record_path, 
 		er->writer_sinks[i].push_frame = euroc_recorder_save_cam[i];
 	}
 
-	er->cloner_queues.imu = &er->cloner_imu_sink;
+	er->cloner_queues.imu_count = 1;
+	er->writer_queues.imu_count = 1;
+	er->cloner_queues.imus[0] = &er->cloner_imu_sink;
 	er->cloner_imu_sink.push_imu = euroc_recorder_receive_imu;
-	er->writer_queues.imu = nullptr; // We use a std::queue instead
+	er->writer_queues.imus[0] = nullptr; // We use a std::queue instead
 	er->writer_imu_sink.push_imu = euroc_recorder_save_imu;
 
 	er->cloner_queues.gt = &er->cloner_gt_sink;

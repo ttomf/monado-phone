@@ -673,7 +673,7 @@ partial_imu_sample_push(struct rs_source *rs, timepoint_ns ts, struct xrt_vec3 v
 	bool should_submit = (rs->gyro_fps > rs->accel_fps) == is_gyro;
 	if (should_submit) {
 		struct xrt_imu_sample sample = {ts, {accel.x, accel.y, accel.z}, {gyro.x, gyro.y, gyro.z}};
-		xrt_sink_push_imu(rs->in_sinks.imu, &sample);
+		xrt_sink_push_imu(rs->in_sinks.imus[0], &sample);
 	}
 
 	os_mutex_unlock(&rs->partial_imu_sample.mutex);
@@ -946,8 +946,8 @@ receive_imu_sample(struct xrt_imu_sink *sink, struct xrt_imu_sample *s)
 	m_ff_vec3_f32_push(rs->gyro_ff, &gyro, ts);
 	m_ff_vec3_f32_push(rs->accel_ff, &accel, ts);
 
-	if (rs->out_sinks.imu) {
-		xrt_sink_push_imu(rs->out_sinks.imu, s);
+	if (rs->out_sinks.imus[0]) {
+		xrt_sink_push_imu(rs->out_sinks.imus[0], s);
 	}
 }
 
@@ -1097,7 +1097,8 @@ rs_source_create(struct xrt_frame_context *xfctx, int device_idx)
 	rs->in_sinks.cam_count = 2;
 	rs->in_sinks.cams[0] = &rs->left_sink;
 	rs->in_sinks.cams[1] = &rs->right_sink;
-	rs->in_sinks.imu = &rs->imu_sink;
+	rs->in_sinks.imu_count = 1;
+	rs->in_sinks.imus[0] = &rs->imu_sink;
 
 	// Prepare UI
 	u_sink_debug_init(&rs->ui_left_sink);

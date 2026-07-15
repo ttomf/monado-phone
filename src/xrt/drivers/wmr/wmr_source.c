@@ -149,8 +149,8 @@ receive_imu_sample(struct xrt_imu_sink *sink, struct xrt_imu_sample *s)
 	m_ff_vec3_f32_push(ws->gyro_ff, &gyro, ts);
 	m_ff_vec3_f32_push(ws->accel_ff, &accel, ts);
 
-	if (ws->out_sinks.imu) {
-		xrt_sink_push_imu(ws->out_sinks.imu, s);
+	if (ws->out_sinks.imus[WMR_HMD_IMU_INDEX]) {
+		xrt_sink_push_imu(ws->out_sinks.imus[WMR_HMD_IMU_INDEX], s);
 	}
 }
 
@@ -325,7 +325,8 @@ wmr_source_create(struct xrt_frame_context *xfctx, struct xrt_prober_device *dev
 	for (int i = 0; i < cfg.tcam_count; i++) {
 		ws->in_sinks.cams[i] = &ws->cam_sinks[i];
 	}
-	ws->in_sinks.imu = &ws->imu_sink;
+	ws->in_sinks.imu_count = 1;
+	ws->in_sinks.imus[WMR_HMD_IMU_INDEX] = &ws->imu_sink;
 
 	struct wmr_camera_open_config options = {
 	    .dev_holo = dev_holo,

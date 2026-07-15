@@ -19,6 +19,7 @@
 /* Increase this number if anyone releases a headset with
  * more cameras */
 #define WMR_MAX_CAMERAS 4
+#define WMR_HMD_IMU_INDEX 0
 
 /* Increase this number if anyone releases a controller with
  * more tracking LEDs */

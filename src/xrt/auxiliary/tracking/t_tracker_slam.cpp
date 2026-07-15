@@ -53,6 +53,10 @@
 //! @todo Get preferred system from systems found at build time
 #define PREFERRED_VIT_SYSTEM_LIBRARY "libbasalt.so"
 
+// If you want to increase number of IMUs, look where these macros are used
+#define IMU_COUNT 1
+#define IMU_SINK_IDX 0
+
 #define SLAM_TRACE(...) U_LOG_IFL_T(t.log_level, __VA_ARGS__)
 #define SLAM_DEBUG(...) U_LOG_IFL_D(t.log_level, __VA_ARGS__)
 #define SLAM_INFO(...) U_LOG_IFL_I(t.log_level, __VA_ARGS__)
@@ -1244,7 +1248,7 @@ t_slam_receive_imu(struct xrt_imu_sink *sink, struct xrt_imu_sample *s)
 		t.vit.tracker_push_imu_sample(t.tracker, &sample);
 	}
 
-	xrt_sink_push_imu(t.euroc_recorder->imu, s);
+	xrt_sink_push_imu(t.euroc_recorder->imus[IMU_SINK_IDX], s);
 
 	struct xrt_vec3 gyro = {(float)w.x, (float)w.y, (float)w.z};
 	struct xrt_vec3 accel = {(float)a.x, (float)a.y, (float)a.z};
@@ -1504,8 +1508,9 @@ t_slam_create(struct xrt_frame_context *xfctx,
 		t.sinks.cams[i] = &t.cam_sinks[i];
 	}
 
+	t.sinks.imu_count = IMU_COUNT;
 	t.imu_sink.push_imu = t_slam_receive_imu;
-	t.sinks.imu = &t.imu_sink;
+	t.sinks.imus[IMU_SINK_IDX] = &t.imu_sink;
 
 	t.gt_sink.push_pose = t_slam_gt_sink_push;
 	t.sinks.gt = &t.gt_sink;

@@ -49,6 +49,8 @@ DEBUG_GET_ONCE_BOOL_OPTION(play_from_start, "EUROC_PLAY_FROM_START", false)
 DEBUG_GET_ONCE_BOOL_OPTION(print_progress, "EUROC_PRINT_PROGRESS", false)
 
 #define EUROC_PLAYER_STR "Euroc Player"
+#define IMU_COUNT 1
+#define IMU_SINK_IDX 0
 
 //! Match max cameras to slam sinks max camera count
 #define EUROC_MAX_CAMS XRT_TRACKING_MAX_CAMS
@@ -503,7 +505,7 @@ euroc_player_push_next_imu(struct euroc_player *ep)
 {
 	xrt_imu_sample sample = ep->imus->at(ep->imu_seq++);
 	sample.timestamp_ns = euroc_player_mapped_playback_ts(ep, sample.timestamp_ns);
-	xrt_sink_push_imu(ep->in_sinks.imu, &sample);
+	xrt_sink_push_imu(ep->in_sinks.imus[IMU_SINK_IDX], &sample);
 }
 
 static void
@@ -717,8 +719,8 @@ receive_imu_sample(struct xrt_imu_sink *sink, struct xrt_imu_sample *s)
 
 	// Trace log
 	EUROC_TRACE(ep, "imu t=%ld ax=%f ay=%f az=%f wx=%f wy=%f wz=%f", ts, a.x, a.y, a.z, w.x, w.y, w.z);
-	if (ep->out_sinks.imu) {
-		xrt_sink_push_imu(ep->out_sinks.imu, s);
+	if (ep->out_sinks.imus[IMU_SINK_IDX]) {
+		xrt_sink_push_imu(ep->out_sinks.imus[IMU_SINK_IDX], s);
 	}
 }
 
@@ -999,7 +1001,8 @@ euroc_player_create(struct xrt_frame_context *xfctx, const char *path, struct eu
 		ep->in_sinks.cams[i] = &ep->cam_sinks[i];
 	}
 	ep->imu_sink.push_imu = receive_imu_sample;
-	ep->in_sinks.imu = &ep->imu_sink;
+	ep->in_sinks.imu_count = IMU_COUNT;
+	ep->in_sinks.imus[IMU_SINK_IDX] = &ep->imu_sink;
 
 	struct xrt_fs *xfs = &ep->base;
 	xfs->enumerate_modes = euroc_player_enumerate_modes;

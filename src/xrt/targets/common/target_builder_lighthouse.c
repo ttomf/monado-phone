@@ -441,8 +441,9 @@ valve_index_setup_visual_trackers(struct lighthouse_system *lhs,
 
 	struct xrt_slam_sinks entry_sinks = {
 	    .cam_count = 1,
+	    .imu_count = 1,
 	    .cams = {entry_sbs_sink},
-	    .imu = slam_enabled ? slam_sinks->imu : NULL,
+	    .imus = {slam_enabled ? slam_sinks->imus[0] : NULL},
 	    .gt = slam_enabled ? slam_sinks->gt : NULL,
 	};
 

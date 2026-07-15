@@ -12,6 +12,7 @@
 
 #define XRT_TRACKING_NAME_LEN 256
 #define XRT_TRACKING_MAX_CAMS 5
+#define XRT_TRACKING_MAX_IMUS 3
 
 #include "xrt/xrt_defines.h"
 
@@ -208,8 +209,9 @@ struct xrt_hand_masks_sink
 struct xrt_slam_sinks
 {
 	int cam_count;
+	int imu_count;
 	struct xrt_frame_sink *cams[XRT_TRACKING_MAX_CAMS];
-	struct xrt_imu_sink *imu;
+	struct xrt_imu_sink *imus[XRT_TRACKING_MAX_IMUS];
 	struct xrt_pose_sink *gt; //!< Can receive ground truth poses if available
 	struct xrt_hand_masks_sink *hand_masks;
 };
