@@ -692,6 +692,9 @@ DEFINE_RECEIVE_CAM(1)
 DEFINE_RECEIVE_CAM(2)
 DEFINE_RECEIVE_CAM(3)
 DEFINE_RECEIVE_CAM(4)
+DEFINE_RECEIVE_CAM(5)
+DEFINE_RECEIVE_CAM(6)
+DEFINE_RECEIVE_CAM(7)
 
 //! Be sure to define the same number of definition as EUROC_MAX_CAMS and to add them to `receive_cam`.
 static void (*receive_cam[EUROC_MAX_CAMS])(struct xrt_frame_sink *, struct xrt_frame *) = {
@@ -700,6 +703,9 @@ static void (*receive_cam[EUROC_MAX_CAMS])(struct xrt_frame_sink *, struct xrt_f
     receive_cam2, //
     receive_cam3, //
     receive_cam4, //
+    receive_cam5, //
+    receive_cam6, //
+    receive_cam7  //
 };
 
 static void

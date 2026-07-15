@@ -1350,6 +1350,9 @@ DEFINE_RECEIVE_CAM(1)
 DEFINE_RECEIVE_CAM(2)
 DEFINE_RECEIVE_CAM(3)
 DEFINE_RECEIVE_CAM(4)
+DEFINE_RECEIVE_CAM(5)
+DEFINE_RECEIVE_CAM(6)
+DEFINE_RECEIVE_CAM(7)
 
 //! Define a function for each XRT_TRACKING_MAX_CAMS and reference it in this array
 void (*t_slam_receive_cam[XRT_TRACKING_MAX_CAMS])(xrt_frame_sink *, xrt_frame *) = {
@@ -1358,6 +1361,9 @@ void (*t_slam_receive_cam[XRT_TRACKING_MAX_CAMS])(xrt_frame_sink *, xrt_frame *)
     t_slam_receive_cam2, //
     t_slam_receive_cam3, //
     t_slam_receive_cam4, //
+    t_slam_receive_cam5, //
+    t_slam_receive_cam6, //
+    t_slam_receive_cam7, //
 };
 
 

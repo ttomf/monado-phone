@@ -243,6 +243,9 @@ DEFINE_SAVE_CAM(1)
 DEFINE_SAVE_CAM(2)
 DEFINE_SAVE_CAM(3)
 DEFINE_SAVE_CAM(4)
+DEFINE_SAVE_CAM(5)
+DEFINE_SAVE_CAM(6)
+DEFINE_SAVE_CAM(7)
 
 //! Be sure to define the same number of defined functions as
 //! XRT_TRACKING_MAX_CAMS and to add them to to euroc_recorder_save_cam
@@ -253,6 +256,9 @@ static void (*euroc_recorder_save_cam[XRT_TRACKING_MAX_CAMS])(struct xrt_frame_s
     euroc_recorder_save_cam2, //
     euroc_recorder_save_cam3, //
     euroc_recorder_save_cam4, //
+    euroc_recorder_save_cam5, //
+    euroc_recorder_save_cam6, //
+    euroc_recorder_save_cam7, //
 };
 
 
@@ -344,6 +350,9 @@ DEFINE_RECEIVE_CAM(1)
 DEFINE_RECEIVE_CAM(2)
 DEFINE_RECEIVE_CAM(3)
 DEFINE_RECEIVE_CAM(4)
+DEFINE_RECEIVE_CAM(5)
+DEFINE_RECEIVE_CAM(6)
+DEFINE_RECEIVE_CAM(7)
 
 //! Be sure to define the same number of defined functions as
 //! XRT_TRACKING_MAX_CAMS and to add them to to euroc_recorder_receive_cam
@@ -354,6 +363,9 @@ static void (*euroc_recorder_receive_cam[XRT_TRACKING_MAX_CAMS])(struct xrt_fram
     euroc_recorder_receive_cam2, //
     euroc_recorder_receive_cam3, //
     euroc_recorder_receive_cam4, //
+    euroc_recorder_receive_cam5, //
+    euroc_recorder_receive_cam6, //
+    euroc_recorder_receive_cam7, //
 };
 
 

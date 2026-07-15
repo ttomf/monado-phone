@@ -15,10 +15,9 @@
 
 #include "util/u_logging.h"
 #include "util/u_distortion_mesh.h"
+#include "xrt/xrt_tracking.h"
 
-/* Increase this number if anyone releases a headset with
- * more cameras */
-#define WMR_MAX_CAMERAS 4
+#define WMR_MAX_CAMERAS XRT_TRACKING_MAX_CAMS
 #define WMR_HMD_IMU_INDEX 0
 
 /* Increase this number if anyone releases a controller with

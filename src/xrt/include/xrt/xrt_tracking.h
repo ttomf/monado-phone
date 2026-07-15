@@ -11,7 +11,7 @@
 #pragma once
 
 #define XRT_TRACKING_NAME_LEN 256
-#define XRT_TRACKING_MAX_CAMS 5
+#define XRT_TRACKING_MAX_CAMS 8
 #define XRT_TRACKING_MAX_IMUS 3
 
 #include "xrt/xrt_defines.h"

@@ -104,6 +104,10 @@ DEFINE_RECEIVE_CAM(0)
 DEFINE_RECEIVE_CAM(1)
 DEFINE_RECEIVE_CAM(2)
 DEFINE_RECEIVE_CAM(3)
+DEFINE_RECEIVE_CAM(4)
+DEFINE_RECEIVE_CAM(5)
+DEFINE_RECEIVE_CAM(6)
+DEFINE_RECEIVE_CAM(7)
 
 //! Define a function for each WMR_MAX_CAMERAS and reference it in this array
 void (*receive_cam[WMR_MAX_CAMERAS])(struct xrt_frame_sink *, struct xrt_frame *) = {
@@ -111,6 +115,10 @@ void (*receive_cam[WMR_MAX_CAMERAS])(struct xrt_frame_sink *, struct xrt_frame *
     receive_cam1, //
     receive_cam2, //
     receive_cam3, //
+    receive_cam4, //
+    receive_cam5, //
+    receive_cam6, //
+    receive_cam7, //
 };
 
 static void
