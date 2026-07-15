@@ -45,6 +45,7 @@ struct euroc_recorder
 	string path_prefix; //!< Path for the dataset without datetime suffix
 	string path;        //!< Full path of the current dataset being recorded or empty string if none
 	int cam_count = -1;
+	int imu_count = -1;
 
 	bool recording;                    //!< Whether samples are being recorded
 	struct u_var_button recording_btn; //!< UI button to start/stop `recording`
@@ -53,25 +54,25 @@ struct euroc_recorder
 
 	// Cloner sinks: copy frame to heap for quick release of the original
 	struct xrt_slam_sinks cloner_queues; //!< Queue sinks that write into cloner sinks
-	struct xrt_imu_sink cloner_imu_sink;
+	struct xrt_imu_sink cloner_imu_sinks[XRT_TRACKING_MAX_IMUS];
 	struct xrt_pose_sink cloner_gt_sink;
 	struct xrt_frame_sink cloner_sinks[XRT_TRACKING_MAX_CAMS];
 
 	// Writer sinks: write copied frame to disk
 	struct xrt_slam_sinks writer_queues; //!< Queue sinks that write into writer sinks
-	struct xrt_imu_sink writer_imu_sink;
+	struct xrt_imu_sink writer_imu_sinks[XRT_TRACKING_MAX_IMUS];
 	struct xrt_pose_sink writer_gt_sink;
 	struct xrt_frame_sink writer_sinks[XRT_TRACKING_MAX_CAMS];
 
-	queue<xrt_imu_sample> imu_queue{}; //!< IMU pushes get saved here and are delayed until left_frame pushes
-	mutex imu_queue_lock{};            //!< Lock for imu_queue
+	vector<queue<xrt_imu_sample>> imu_queues{}; //!< IMU pushes are delayed here until cam0 push
+	vector<mutex> imu_queue_locks{}; //!< Lock for each imu_queues[i], vector doesn't need lock, it's only read
 
 	queue<xrt_pose_sample> gt_queue{}; //!< GT pushes get saved here and are delayed until left_frame pushes
 	mutex gt_queue_lock{};             //!< Lock for gt_queue
 
 	// CSV file handles, ofstream implementation is already buffered.
 	// Using pointers because of `container_of`
-	ofstream *imu_csv = nullptr;
+	ofstream *imus_csv[XRT_TRACKING_MAX_IMUS] = {};
 	ofstream *gt_csv = nullptr;
 	ofstream *cams_csv[XRT_TRACKING_MAX_CAMS] = {};
 };
@@ -88,11 +89,15 @@ euroc_recorder_mkfiles(struct euroc_recorder *er)
 {
 	string path = er->path;
 
-	create_directories(path + "/mav0/imu0");
-	er->imu_csv = new ofstream{path + "/mav0/imu0/data.csv"};
-	*er->imu_csv << std::fixed << std::setprecision(CSV_PRECISION);
-	*er->imu_csv << "#timestamp [ns],w_RS_S_x [rad s^-1],w_RS_S_y [rad s^-1],w_RS_S_z [rad s^-1],"
-	                "a_RS_S_x [m s^-2],a_RS_S_y [m s^-2],a_RS_S_z [m s^-2]" CSV_EOL;
+	for (int i = 0; i < er->imu_count; i++) {
+
+		string data_path = path + "/mav0/imu" + to_string(i);
+		create_directories(data_path);
+		er->imus_csv[i] = new ofstream{data_path + "/data.csv"};
+		*er->imus_csv[i] << std::fixed << std::setprecision(CSV_PRECISION);
+		*er->imus_csv[i] << "#timestamp [ns],w_RS_S_x [rad s^-1],w_RS_S_y [rad s^-1],w_RS_S_z [rad s^-1],"
+		                    "a_RS_S_x [m s^-2],a_RS_S_y [m s^-2],a_RS_S_z [m s^-2]" CSV_EOL;
+	}
 
 	create_directories(path + "/mav0/gt");
 	er->gt_csv = new ofstream{path + "/mav0/gt/data.csv"};
@@ -111,21 +116,25 @@ euroc_recorder_mkfiles(struct euroc_recorder *er)
 static void
 euroc_recorder_flush(struct euroc_recorder *er)
 {
-	// Flush IMU samples
-	vector<xrt_imu_sample> imu_samples;
+	for (int i = 0; i < er->imu_count; i++) {
 
-	{ // Move samples out of imu_queue into vector to minimize mutex contention
-		lock_guard lock{er->imu_queue_lock};
-		imu_samples.reserve(er->imu_queue.size());
-		while (!er->imu_queue.empty()) {
-			imu_samples.push_back(er->imu_queue.front());
-			er->imu_queue.pop();
+		// Flush IMU samples
+		vector<xrt_imu_sample> imu_samples;
+
+		{ // Move samples out of imu_queue into vector to minimize mutex contention
+			lock_guard lock{er->imu_queue_locks[i]};
+			queue<xrt_imu_sample> &imu_queue = er->imu_queues[i];
+			imu_samples.reserve(imu_queue.size());
+			while (!imu_queue.empty()) {
+				imu_samples.push_back(imu_queue.front());
+				imu_queue.pop();
+			}
 		}
-	}
 
-	// Write queued IMU samples to csv stream.
-	for (xrt_imu_sample &sample : imu_samples) {
-		xrt_sink_push_imu(&er->writer_imu_sink, &sample);
+		// Write queued IMU samples to csv stream.
+		for (xrt_imu_sample &sample : imu_samples) {
+			xrt_sink_push_imu(&er->writer_imu_sinks[i], &sample);
+		}
 	}
 
 	// Flush groundtruth samples
@@ -146,26 +155,47 @@ euroc_recorder_flush(struct euroc_recorder *er)
 	}
 
 	// Flush csv streams. Not necessary, doing it only to increase flush frequency
-	er->imu_csv->flush();
+	for (int i = 0; i < er->imu_count; i++) {
+		er->imus_csv[i]->flush();
+	}
 	er->gt_csv->flush();
 	for (int i = 0; i < er->cam_count; i++) {
 		er->cams_csv[i]->flush();
 	}
 }
 
-extern "C" void
-euroc_recorder_save_imu(xrt_imu_sink *sink, struct xrt_imu_sample *sample)
+static void
+euroc_recorder_save_imu_sample(struct euroc_recorder *er, struct xrt_imu_sample *sample, int imu_index)
 {
-	euroc_recorder *er = container_of(sink, euroc_recorder, writer_imu_sink);
-
 	timepoint_ns ts = sample->timestamp_ns;
 	xrt_vec3_f64 a = sample->accel_m_s2;
 	xrt_vec3_f64 w = sample->gyro_rad_secs;
 
-	*er->imu_csv << ts << ",";
-	*er->imu_csv << w.x << "," << w.y << "," << w.z << ",";
-	*er->imu_csv << a.x << "," << a.y << "," << a.z << CSV_EOL;
+	*er->imus_csv[imu_index] << ts << ",";
+	*er->imus_csv[imu_index] << w.x << "," << w.y << "," << w.z << ",";
+	*er->imus_csv[imu_index] << a.x << "," << a.y << "," << a.z << CSV_EOL;
 }
+
+#define DEFINE_SAVE_IMU(imu_id)                                                                                        \
+	extern "C" void euroc_recorder_save_imu##imu_id(struct xrt_imu_sink *sink, struct xrt_imu_sample *sample)      \
+	{                                                                                                              \
+		euroc_recorder *er = container_of(sink, euroc_recorder, writer_imu_sinks[imu_id]);                     \
+		euroc_recorder_save_imu_sample(er, sample, imu_id);                                                    \
+	}
+
+DEFINE_SAVE_IMU(0)
+DEFINE_SAVE_IMU(1)
+DEFINE_SAVE_IMU(2)
+
+
+//! Be sure to define the same number of defined functions as
+//! XRT_TRACKING_MAX_IMUS and to add them to to euroc_recorder_save_imu
+static void (*euroc_recorder_save_imu[XRT_TRACKING_MAX_IMUS])(struct xrt_imu_sink *sink,
+                                                              struct xrt_imu_sample *sample) = {
+    euroc_recorder_save_imu0, //
+    euroc_recorder_save_imu1, //
+    euroc_recorder_save_imu2, //
+};
 
 extern "C" void
 euroc_recorder_save_gt(xrt_pose_sink *sink, struct xrt_pose_sample *sample)
@@ -232,23 +262,42 @@ static void (*euroc_recorder_save_cam[XRT_TRACKING_MAX_CAMS])(struct xrt_frame_s
  *
  */
 
-extern "C" void
-euroc_recorder_receive_imu(xrt_imu_sink *sink, struct xrt_imu_sample *sample)
+static void
+euroc_recorder_receive_imu_sample(struct euroc_recorder *er, struct xrt_imu_sample *sample, int i)
 {
 	// Contrary to frame sinks, we don't have separately threaded queues for IMU
 	// sinks so we use an std::queue to temporarily store IMU samples, later we
 	// write them to disk when writing left frames.
-	euroc_recorder *er = container_of(sink, euroc_recorder, cloner_imu_sink);
 
 	if (!er->recording) {
 		return;
 	}
 
 	{
-		lock_guard lock{er->imu_queue_lock};
-		er->imu_queue.push(*sample);
+		lock_guard lock{er->imu_queue_locks[i]};
+		er->imu_queues[i].push(*sample);
 	}
 }
+
+#define DEFINE_RECEIVE_IMU(imu_id)                                                                                     \
+	extern "C" void euroc_recorder_receive_imu##imu_id(struct xrt_imu_sink *sink, struct xrt_imu_sample *sample)   \
+	{                                                                                                              \
+		euroc_recorder *er = container_of(sink, euroc_recorder, cloner_imu_sinks[imu_id]);                     \
+		euroc_recorder_receive_imu_sample(er, sample, imu_id);                                                 \
+	}
+
+DEFINE_RECEIVE_IMU(0)
+DEFINE_RECEIVE_IMU(1)
+DEFINE_RECEIVE_IMU(2)
+
+//! Be sure to define the same number of defined functions as
+//! XRT_TRACKING_MAX_IMUS and to add them to to euroc_recorder_receive_imu
+static void (*euroc_recorder_receive_imu[XRT_TRACKING_MAX_IMUS])(struct xrt_imu_sink *sink,
+                                                                 struct xrt_imu_sample *sample) = {
+    euroc_recorder_receive_imu0, //
+    euroc_recorder_receive_imu1, //
+    euroc_recorder_receive_imu2, //
+};
 
 extern "C" void
 euroc_recorder_receive_gt(xrt_pose_sink *sink, struct xrt_pose_sample *sample)
@@ -322,7 +371,9 @@ extern "C" void
 euroc_recorder_node_destroy(struct xrt_frame_node *node)
 {
 	struct euroc_recorder *er = container_of(node, struct euroc_recorder, node);
-	delete er->imu_csv;
+	for (int i = 0; i < er->imu_count; i++) {
+		delete er->imus_csv[i];
+	}
 	delete er->gt_csv;
 	for (int i = 0; i < er->cam_count; i++) {
 		delete er->cams_csv[i];
@@ -338,11 +389,13 @@ euroc_recorder_node_destroy(struct xrt_frame_node *node)
  */
 
 extern "C" xrt_slam_sinks *
-euroc_recorder_create(struct xrt_frame_context *xfctx, const char *record_path, int cam_count, bool record_from_start)
+euroc_recorder_create(
+    struct xrt_frame_context *xfctx, const char *record_path, int cam_count, int imu_count, bool record_from_start)
 {
 	struct euroc_recorder *er = new euroc_recorder{};
 
 	er->cam_count = cam_count;
+	er->imu_count = imu_count;
 	er->path_prefix = record_path == nullptr ? "euroc_recording" : record_path;
 	er->path = record_path == nullptr ? "" : record_path;
 
@@ -367,8 +420,8 @@ euroc_recorder_create(struct xrt_frame_context *xfctx, const char *record_path, 
 	for (int i = 0; i < er->cam_count; i++) {
 
 		// If any of these asserts failed see docs on euroc_recorder_receive/save_cam
-		assert(euroc_recorder_receive_cam[ARRAY_SIZE(euroc_recorder_receive_cam) - 1] != nullptr);
-		assert(euroc_recorder_save_cam[ARRAY_SIZE(euroc_recorder_save_cam) - 1] != nullptr);
+		assert(euroc_recorder_receive_cam[i] != nullptr);
+		assert(euroc_recorder_save_cam[i] != nullptr);
 
 		u_sink_queue_create(xfctx, 0, &er->cloner_sinks[i], &er->cloner_queues.cams[i]);
 		er->cloner_sinks[i].push_frame = euroc_recorder_receive_cam[i];
@@ -376,12 +429,18 @@ euroc_recorder_create(struct xrt_frame_context *xfctx, const char *record_path, 
 		er->writer_sinks[i].push_frame = euroc_recorder_save_cam[i];
 	}
 
-	er->cloner_queues.imu_count = 1;
-	er->writer_queues.imu_count = 1;
-	er->cloner_queues.imus[0] = &er->cloner_imu_sink;
-	er->cloner_imu_sink.push_imu = euroc_recorder_receive_imu;
-	er->writer_queues.imus[0] = nullptr; // We use a std::queue instead
-	er->writer_imu_sink.push_imu = euroc_recorder_save_imu;
+	er->cloner_queues.imu_count = er->imu_count;
+	er->writer_queues.imu_count = er->imu_count;
+	er->imu_queues = vector<queue<xrt_imu_sample>>(er->imu_count);
+	er->imu_queue_locks = vector<mutex>(er->imu_count);
+	for (int i = 0; i < er->imu_count; i++) {
+		assert(euroc_recorder_receive_imu[i] != nullptr);
+		assert(euroc_recorder_save_imu[i] != nullptr);
+		er->cloner_queues.imus[i] = &er->cloner_imu_sinks[i];
+		er->cloner_imu_sinks[i].push_imu = euroc_recorder_receive_imu[i];
+		er->writer_queues.imus[i] = nullptr; // We use a std::queue instead
+		er->writer_imu_sinks[i].push_imu = euroc_recorder_save_imu[i];
+	}
 
 	er->cloner_queues.gt = &er->cloner_gt_sink;
 	er->cloner_gt_sink.push_pose = euroc_recorder_receive_gt;

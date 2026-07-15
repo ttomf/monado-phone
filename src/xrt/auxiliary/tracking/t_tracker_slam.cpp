@@ -1526,7 +1526,7 @@ t_slam_create(struct xrt_frame_context *xfctx,
 
 	xrt_frame_context_add(xfctx, &t.node);
 
-	t.euroc_recorder = euroc_recorder_create(xfctx, NULL, t.cam_count, false);
+	t.euroc_recorder = euroc_recorder_create(xfctx, NULL, t.cam_count, IMU_COUNT, false);
 
 	t.last_imu_ts = INT64_MIN;
 	t.last_cam_ts = vector<timepoint_ns>(t.cam_count, INT64_MIN);
