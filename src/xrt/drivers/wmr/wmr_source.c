@@ -63,8 +63,8 @@ struct wmr_source
 	// Sinks (head tracking)
 	struct xrt_frame_sink cam_sinks[WMR_MAX_CAMERAS]; //!< Intermediate sinks for camera frames
 	struct xrt_imu_sink imu_sink;                     //!< Intermediate sink for IMU samples
-	struct xrt_slam_sinks in_sinks;                   //!< Pointers to intermediate sinks
-	struct xrt_slam_sinks out_sinks;                  //!< Pointers to downstream sinks
+	struct xrt_slam_sinks in_sinks;                   //!< Pointers to intermediate sinks (SLAM and controller)
+	struct xrt_slam_sinks out_sinks;                  //!< Pointers to downstream sinks (only SLAM)
 
 	// UI Sinks (head tracking)
 	struct u_sink_debug ui_cam_sinks[WMR_MAX_CAMERAS]; //!< Sink to display camera frames in UI
@@ -281,7 +281,7 @@ wmr_source_node_destroy(struct xrt_frame_node *node)
 
 	struct wmr_source *ws = container_of(node, struct wmr_source, node);
 	WMR_DEBUG(ws, "Destroying WMR source");
-	for (int i = 0; i < ws->config.tcam_count; i++) {
+	for (int i = 0; i < ws->config.sinks_count; i++) {
 		u_sink_debug_destroy(&ws->ui_cam_sinks[i]);
 	}
 	m_ff_vec3_f32_free(&ws->gyro_ff);
@@ -329,8 +329,8 @@ wmr_source_create(struct xrt_frame_context *xfctx, struct xrt_prober_device *dev
 	}
 	ws->imu_sink.push_imu = receive_imu_sample;
 
-	ws->in_sinks.cam_count = cfg.tcam_count;
-	for (int i = 0; i < cfg.tcam_count; i++) {
+	ws->in_sinks.cam_count = cfg.sinks_count;
+	for (int i = 0; i < cfg.sinks_count; i++) {
 		ws->in_sinks.cams[i] = &ws->cam_sinks[i];
 	}
 	ws->in_sinks.imu_count = 1;
@@ -349,7 +349,7 @@ wmr_source_create(struct xrt_frame_context *xfctx, struct xrt_prober_device *dev
 	ws->config = cfg;
 
 	// Setup UI
-	for (int i = 0; i < cfg.tcam_count; i++) {
+	for (int i = 0; i < cfg.sinks_count; i++) {
 		u_sink_debug_init(&ws->ui_cam_sinks[i]);
 	}
 	m_ff_vec3_f32_alloc(&ws->gyro_ff, 1000);
@@ -358,7 +358,7 @@ wmr_source_create(struct xrt_frame_context *xfctx, struct xrt_prober_device *dev
 	u_var_add_log_level(ws, &ws->log_level, "Log Level");
 	u_var_add_ro_ff_vec3_f32(ws, ws->gyro_ff, "Gyroscope");
 	u_var_add_ro_ff_vec3_f32(ws, ws->accel_ff, "Accelerometer");
-	for (int i = 0; i < cfg.tcam_count; i++) {
+	for (int i = 0; i < cfg.sinks_count; i++) {
 		char label[] = "Camera NNNNNNNNNNN";
 		(void)snprintf(label, sizeof(label), "Camera %d", i);
 		u_var_add_sink_debug(ws, &ws->ui_cam_sinks[i], label);

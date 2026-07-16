@@ -161,6 +161,7 @@ struct wmr_hmd_config
 	struct wmr_camera_config *tcams[WMR_MAX_CAMERAS]; //!< Pointers to tracking cameras in `cameras`
 	int tcam_count;                                   //!< Number of tracking cameras
 	int slam_cam_count;                               //!< Number of tracking cameras to use for SLAM
+	int sinks_count;                                  //!< 2x @ref tcam_count to split SLAM and camera streams
 };
 
 bool

@@ -1509,7 +1509,7 @@ t_slam_create(struct xrt_frame_context *xfctx,
 
 	SLAM_ASSERT(t_slam_receive_cam[ARRAY_SIZE(t_slam_receive_cam) - 1] != nullptr, "See `cam_sink_push` docs");
 	t.sinks.cam_count = config->cam_count;
-	for (int i = 0; i < XRT_TRACKING_MAX_CAMS; i++) {
+	for (int i = 0; i < t.sinks.cam_count; i++) {
 		t.cam_sinks[i].push_frame = t_slam_receive_cam[i];
 		t.sinks.cams[i] = &t.cam_sinks[i];
 	}

@@ -459,6 +459,12 @@ wmr_config_parse_calibration(struct wmr_hmd_config *c, cJSON *calib_info, enum u
 			return false;
 	}
 	c->slam_cam_count = MIN(c->tcam_count, (int)debug_get_num_option_wmr_max_slam_cams());
+	c->sinks_count = c->tcam_count * 2; // Double sinks to split SLAM and controller frames
+
+	if (c->sinks_count > WMR_MAX_CAMERAS) {
+		WMR_ERROR(log_level, "Too many camera entries. Enlarge WMR_MAX_CAMERAS");
+		return false;
+	}
 
 	return true;
 }
