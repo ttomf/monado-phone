@@ -527,13 +527,15 @@ wmr_controller_base_init(struct wmr_controller_base *wcb,
                          struct wmr_controller_connection *conn,
                          enum xrt_device_type controller_type,
                          enum u_logging_level log_level,
-                         u_device_destroy_function_t destroy_fn)
+                         u_device_destroy_function_t destroy_fn,
+                         struct xrt_fs *src)
 {
 	DRV_TRACE_MARKER();
 
 	wcb->log_level = log_level;
 	wcb->wcc = conn;
 	wcb->receive_bytes = receive_bytes;
+	wcb->source = src;
 
 	if (controller_type == XRT_DEVICE_TYPE_LEFT_HAND_CONTROLLER) {
 		snprintf(wcb->base.str, ARRAY_SIZE(wcb->base.str), "WMR Left Controller");

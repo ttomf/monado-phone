@@ -62,14 +62,14 @@ struct wmr_source
 
 	// Sinks (head tracking)
 	struct xrt_frame_sink cam_sinks[WMR_MAX_CAMERAS]; //!< Intermediate sinks for camera frames
-	struct xrt_imu_sink imu_sink;                     //!< Intermediate sink for IMU samples
+	struct xrt_imu_sink imu_sinks[WMR_MAX_IMUS];      //!< Intermediate sink for IMU samples
 	struct xrt_slam_sinks in_sinks;                   //!< Pointers to intermediate sinks (SLAM and controller)
 	struct xrt_slam_sinks out_sinks;                  //!< Pointers to downstream sinks (only SLAM)
 
 	// UI Sinks (head tracking)
 	struct u_sink_debug ui_cam_sinks[WMR_MAX_CAMERAS]; //!< Sink to display camera frames in UI
-	struct m_ff_vec3_f32 *gyro_ff;                     //!< Queue of gyroscope data to display in UI
-	struct m_ff_vec3_f32 *accel_ff;                    //!< Queue of accelerometer data to display in UI
+	struct m_ff_vec3_f32 *gyro_ffs[WMR_MAX_IMUS];      //!< Queue of gyroscope data to display in UI
+	struct m_ff_vec3_f32 *accel_ffs[WMR_MAX_IMUS];     //!< Queue of accelerometer data to display in UI
 
 	bool is_running;              //!< Whether the device is streaming
 	bool first_imu_received;      //!< Don't send frames until first IMU sample
@@ -121,46 +121,62 @@ void (*receive_cam[WMR_MAX_CAMERAS])(struct xrt_frame_sink *, struct xrt_frame *
     receive_cam7, //
 };
 
-static void
-receive_imu_sample(struct xrt_imu_sink *sink, struct xrt_imu_sample *s)
-{
-	struct wmr_source *ws = container_of(sink, struct wmr_source, imu_sink);
-
-	// Convert hardware timestamp into monotonic clock. Update offset estimate hw2mono.
-	// Note this is only done with IMU samples as they have the smallest USB transmission time.
-	const float IMU_FREQ = 250.f; //!< @todo use 1000 if "average_imus" is false
-	timepoint_ns now_hw = s->timestamp_ns;
-	timepoint_ns now_mono = (timepoint_ns)os_monotonic_get_ns();
-	timepoint_ns ts = m_clock_offset_a2b(IMU_FREQ, now_hw, now_mono, &ws->hw2mono);
-
-	/*
-	 * Check if the timepoint does time travel, we get one or two
-	 * old samples when the device has not been cleanly shut down.
-	 */
-	if (ws->last_imu_ns > ts) {
-		WMR_WARN(ws, "Received sample from the past, new: %" PRIu64 ", last: %" PRIu64 ", diff: %" PRIu64, ts,
-		         s->timestamp_ns, ts - s->timestamp_ns);
-		return;
+#define DEFINE_RECEIVE_IMU(imu_id)                                                                                     \
+	static void receive_imu##imu_id(struct xrt_imu_sink *sink, struct xrt_imu_sample *s)                           \
+	{                                                                                                              \
+		struct wmr_source *ws = container_of(sink, struct wmr_source, imu_sinks[imu_id]);                      \
+		struct xrt_vec3_f64 a = s->accel_m_s2;                                                                 \
+		struct xrt_vec3_f64 w = s->gyro_rad_secs;                                                              \
+		struct xrt_vec3 gyro = {(float)w.x, (float)w.y, (float)w.z};                                           \
+		struct xrt_vec3 accel = {(float)a.x, (float)a.y, (float)a.z};                                          \
+		timepoint_ns now_hw = s->timestamp_ns;                                                                 \
+		timepoint_ns ts = -1;                                                                                  \
+                                                                                                                       \
+		if (imu_id == WMR_HMD_IMU_INDEX) {                                                                     \
+			/* Convert hardware timestamp into monotonic clock. Update offset estimate hw2mono.*/          \
+			/* Note this is only done with IMU samples as they have the smallest USB transmission time.*/  \
+			const float IMU_FREQ = 250.f; /* @todo use 1000 if "average_imus" is false */                  \
+			timepoint_ns now_mono = (timepoint_ns)os_monotonic_get_ns();                                   \
+			ts = m_clock_offset_a2b(IMU_FREQ, now_hw, now_mono, &ws->hw2mono);                             \
+                                                                                                                       \
+			/* Check if the timepoint does time travel, we get one or two */                               \
+			/* old samples when the device has not been cleanly shut down. */                              \
+			if (ws->last_imu_ns > ts) {                                                                    \
+				WMR_WARN(ws,                                                                           \
+				         "Received sample from the past, new: %" PRIu64 ", last: %" PRIu64             \
+				         ", diff: %" PRIu64,                                                           \
+				         ts, s->timestamp_ns, ts - s->timestamp_ns);                                   \
+				return;                                                                                \
+			}                                                                                              \
+                                                                                                                       \
+			ws->first_imu_received = true;                                                                 \
+			ws->last_imu_ns = ts;                                                                          \
+		} else { /* Controller IMU */                                                                          \
+			ts = now_hw + ws->hw2mono;                                                                     \
+		}                                                                                                      \
+                                                                                                                       \
+		s->timestamp_ns = ts;                                                                                  \
+                                                                                                                       \
+		m_ff_vec3_f32_push(ws->gyro_ffs[imu_id], &gyro, ts);                                                   \
+		m_ff_vec3_f32_push(ws->accel_ffs[imu_id], &accel, ts);                                                 \
+		WMR_TRACE(ws, "imu[%" PRId32 "] t=%" PRId64 " a=(%f %f %f) w=(%f %f %f)", imu_id, ts, a.x, a.y, a.z,   \
+		          w.x, w.y, w.z);                                                                              \
+                                                                                                                       \
+		if (ws->out_sinks.imus[imu_id]) {                                                                      \
+			xrt_sink_push_imu(ws->out_sinks.imus[imu_id], s);                                              \
+		}                                                                                                      \
 	}
 
-	ws->first_imu_received = true;
-	ws->last_imu_ns = ts;
-	s->timestamp_ns = ts;
+DEFINE_RECEIVE_IMU(0)
+DEFINE_RECEIVE_IMU(1)
+DEFINE_RECEIVE_IMU(2)
 
-	struct xrt_vec3_f64 a = s->accel_m_s2;
-	struct xrt_vec3_f64 w = s->gyro_rad_secs;
-	WMR_TRACE(ws, "imu t=%" PRId64 " a=(%f %f %f) w=(%f %f %f)", ts, a.x, a.y, a.z, w.x, w.y, w.z);
-
-	// Push to debug UI
-	struct xrt_vec3 gyro = {(float)w.x, (float)w.y, (float)w.z};
-	struct xrt_vec3 accel = {(float)a.x, (float)a.y, (float)a.z};
-	m_ff_vec3_f32_push(ws->gyro_ff, &gyro, ts);
-	m_ff_vec3_f32_push(ws->accel_ff, &accel, ts);
-
-	if (ws->out_sinks.imus[WMR_HMD_IMU_INDEX]) {
-		xrt_sink_push_imu(ws->out_sinks.imus[WMR_HMD_IMU_INDEX], s);
-	}
-}
+//! Define a function for each WMR_MAX_IMUS and reference it in this array
+void (*receive_imu[WMR_MAX_IMUS])(struct xrt_imu_sink *, struct xrt_imu_sample *) = {
+    receive_imu0, //
+    receive_imu1, //
+    receive_imu2, //
+};
 
 
 /*
@@ -284,8 +300,10 @@ wmr_source_node_destroy(struct xrt_frame_node *node)
 	for (int i = 0; i < ws->config.sinks_count; i++) {
 		u_sink_debug_destroy(&ws->ui_cam_sinks[i]);
 	}
-	m_ff_vec3_f32_free(&ws->gyro_ff);
-	m_ff_vec3_f32_free(&ws->accel_ff);
+	for (int i = 0; i < WMR_MAX_IMUS; i++) {
+		m_ff_vec3_f32_free(&ws->gyro_ffs[i]);
+		m_ff_vec3_f32_free(&ws->accel_ffs[i]);
+	}
 	u_var_remove_root(ws);
 	if (ws->camera != NULL) { // It could be null if XRT_HAVE_LIBUSB is not defined
 		wmr_camera_free(ws->camera);
@@ -327,14 +345,18 @@ wmr_source_create(struct xrt_frame_context *xfctx, struct xrt_prober_device *dev
 	for (int i = 0; i < WMR_MAX_CAMERAS; i++) {
 		ws->cam_sinks[i].push_frame = receive_cam[i];
 	}
-	ws->imu_sink.push_imu = receive_imu_sample;
+	for (int i = 0; i < WMR_MAX_IMUS; i++) {
+		ws->imu_sinks[i].push_imu = receive_imu[i];
+	}
 
 	ws->in_sinks.cam_count = cfg.sinks_count;
 	for (int i = 0; i < cfg.sinks_count; i++) {
 		ws->in_sinks.cams[i] = &ws->cam_sinks[i];
 	}
-	ws->in_sinks.imu_count = 1;
-	ws->in_sinks.imus[WMR_HMD_IMU_INDEX] = &ws->imu_sink;
+	ws->in_sinks.imu_count = WMR_MAX_IMUS;
+	for (int i = 0; i < WMR_MAX_IMUS; i++) {
+		ws->in_sinks.imus[i] = &ws->imu_sinks[i];
+	}
 
 	struct wmr_camera_open_config options = {
 	    .dev_holo = dev_holo,
@@ -352,12 +374,20 @@ wmr_source_create(struct xrt_frame_context *xfctx, struct xrt_prober_device *dev
 	for (int i = 0; i < cfg.sinks_count; i++) {
 		u_sink_debug_init(&ws->ui_cam_sinks[i]);
 	}
-	m_ff_vec3_f32_alloc(&ws->gyro_ff, 1000);
-	m_ff_vec3_f32_alloc(&ws->accel_ff, 1000);
+	for (int i = 0; i < WMR_MAX_IMUS; i++) {
+		m_ff_vec3_f32_alloc(&ws->gyro_ffs[i], 1000);
+		m_ff_vec3_f32_alloc(&ws->accel_ffs[i], 1000);
+	}
 	u_var_add_root(ws, WMR_SOURCE_STR, false);
 	u_var_add_log_level(ws, &ws->log_level, "Log Level");
-	u_var_add_ro_ff_vec3_f32(ws, ws->gyro_ff, "Gyroscope");
-	u_var_add_ro_ff_vec3_f32(ws, ws->accel_ff, "Accelerometer");
+	for (int i = 0; i < WMR_MAX_IMUS; i++) {
+		char glabel[] = "Gyroscope NNNNNNNNNNN";
+		char alabel[] = "Accelerometer NNNNNNNNNNN";
+		(void)snprintf(glabel, sizeof(glabel), "Gyroscope %d", i);
+		(void)snprintf(alabel, sizeof(alabel), "Accelerometer %d", i);
+		u_var_add_ro_ff_vec3_f32(ws, ws->gyro_ffs[i], glabel);
+		u_var_add_ro_ff_vec3_f32(ws, ws->accel_ffs[i], alabel);
+	}
 	for (int i = 0; i < cfg.sinks_count; i++) {
 		char label[] = "Camera NNNNNNNNNNN";
 		(void)snprintf(label, sizeof(label), "Camera %d", i);
@@ -376,12 +406,13 @@ wmr_source_create(struct xrt_frame_context *xfctx, struct xrt_prober_device *dev
 }
 
 void
-wmr_source_push_imu_packet(struct xrt_fs *xfs, timepoint_ns t, struct xrt_vec3 accel, struct xrt_vec3 gyro)
+wmr_source_push_imu_packet(
+    struct xrt_fs *xfs, uint32_t imu_index, timepoint_ns t, struct xrt_vec3 accel, struct xrt_vec3 gyro)
 {
 	DRV_TRACE_MARKER();
 	struct wmr_source *ws = wmr_source_from_xfs(xfs);
 	struct xrt_vec3_f64 accel_f64 = {accel.x, accel.y, accel.z};
 	struct xrt_vec3_f64 gyro_f64 = {gyro.x, gyro.y, gyro.z};
 	struct xrt_imu_sample sample = {.timestamp_ns = t, .accel_m_s2 = accel_f64, .gyro_rad_secs = gyro_f64};
-	xrt_sink_push_imu(&ws->imu_sink, &sample);
+	xrt_sink_push_imu(&ws->imu_sinks[imu_index], &sample);
 }

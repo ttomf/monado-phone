@@ -420,7 +420,7 @@ hololens_handle_sensors_avg(struct wmr_hmd *wh, const unsigned char *buffer, int
 	os_mutex_unlock(&wh->fusion.mutex);
 
 	// SLAM tracking
-	wmr_source_push_imu_packet(wh->tracking.source, t, avg_raw_accel, avg_raw_gyro);
+	wmr_source_push_imu_packet(wh->tracking.source, WMR_HMD_IMU_INDEX, t, avg_raw_accel, avg_raw_gyro);
 }
 
 static void
@@ -470,7 +470,7 @@ hololens_handle_sensors_all(struct wmr_hmd *wh, const unsigned char *buffer, int
 	// SLAM tracking
 	for (int i = 0; i < IMU_SAMPLES_PER_PACKET; i++) {
 		timepoint_ns t = wh->packet.gyro_timestamp[i] * WMR_MS_HOLOLENS_NS_PER_TICK;
-		wmr_source_push_imu_packet(wh->tracking.source, t, raw_accel[i], raw_gyro[i]);
+		wmr_source_push_imu_packet(wh->tracking.source, WMR_HMD_IMU_INDEX, t, raw_accel[i], raw_gyro[i]);
 	}
 }
 

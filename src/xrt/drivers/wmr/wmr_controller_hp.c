@@ -21,6 +21,7 @@
 #include <errno.h>
 
 #include "wmr_controller.h"
+#include "wmr_source.h"
 
 #define WMR_TRACE(ctrl, ...) U_LOG_XDEV_IFL_T(&ctrl->base.base, ctrl->base.log_level, __VA_ARGS__)
 #define WMR_TRACE_HEX(ctrl, ...) U_LOG_XDEV_IFL_T_HEX(&ctrl->base.base, ctrl->base.log_level, __VA_ARGS__)
@@ -306,6 +307,17 @@ handle_input_packet(struct wmr_controller_base *wcb, uint64_t time_ns, uint8_t *
 
 		wcb->last_imu_timestamp_ns = time_ns;
 		wcb->last_angular_velocity = ctrl->last_inputs.imu.gyro;
+
+		if (wcb->source) { // Redirect IMU sample to WMR data source
+			assert(wcb->base.device_type == XRT_DEVICE_TYPE_LEFT_HAND_CONTROLLER ||
+			       wcb->base.device_type == XRT_DEVICE_TYPE_RIGHT_HAND_CONTROLLER);
+			wmr_source_push_imu_packet(
+			    wcb->source,
+			    wcb->base.device_type == XRT_DEVICE_TYPE_LEFT_HAND_CONTROLLER ? WMR_LEFT_CTRL_IMU_INDEX
+			                                                                  : WMR_RIGHT_CTRL_IMU_INDEX,
+			    ctrl->last_inputs.imu.timestamp_ticks * WMR_MOTION_CONTROLLER_NS_PER_TICK,
+			    ctrl->last_inputs.imu.acc, ctrl->last_inputs.imu.gyro);
+		}
 	}
 
 	return b;
@@ -351,7 +363,8 @@ wmr_controller_hp_destroy(struct xrt_device *xdev)
 struct wmr_controller_base *
 wmr_controller_hp_create(struct wmr_controller_connection *conn,
                          enum xrt_device_type controller_type,
-                         enum u_logging_level log_level)
+                         enum u_logging_level log_level,
+                         struct xrt_fs *src)
 {
 	DRV_TRACE_MARKER();
 
@@ -360,7 +373,7 @@ wmr_controller_hp_create(struct wmr_controller_connection *conn,
 	    U_DEVICE_ALLOCATE(struct wmr_controller_hp, flags, WMR_CONTROLLER_INDEX_COUNT, 1);
 	struct wmr_controller_base *wcb = (struct wmr_controller_base *)(ctrl);
 
-	if (!wmr_controller_base_init(wcb, conn, controller_type, log_level, wmr_controller_hp_destroy)) {
+	if (!wmr_controller_base_init(wcb, conn, controller_type, log_level, wmr_controller_hp_destroy, src)) {
 		wmr_controller_hp_destroy(&wcb->base);
 		return NULL;
 	}

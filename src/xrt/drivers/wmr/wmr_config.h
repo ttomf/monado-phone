@@ -18,7 +18,10 @@
 #include "xrt/xrt_tracking.h"
 
 #define WMR_MAX_CAMERAS XRT_TRACKING_MAX_CAMS
+#define WMR_MAX_IMUS XRT_TRACKING_MAX_IMUS
 #define WMR_HMD_IMU_INDEX 0
+#define WMR_LEFT_CTRL_IMU_INDEX 1
+#define WMR_RIGHT_CTRL_IMU_INDEX 2
 
 /* Increase this number if anyone releases a controller with
  * more tracking LEDs */

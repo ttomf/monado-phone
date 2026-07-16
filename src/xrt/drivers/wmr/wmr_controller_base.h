@@ -100,6 +100,9 @@ struct wmr_controller_base
 	//! The connection for this controller.
 	struct wmr_controller_connection *wcc;
 
+	//! Centralized data source for WMR. Controller will send IMU samples to this.
+	struct xrt_fs *source;
+
 	//! Callback from the connection when a packet has been received.
 	void (*receive_bytes)(struct wmr_controller_base *wcb, uint64_t time_ns, uint8_t *buffer, uint32_t buf_size);
 
@@ -131,7 +134,8 @@ wmr_controller_base_init(struct wmr_controller_base *wcb,
                          struct wmr_controller_connection *conn,
                          enum xrt_device_type controller_type,
                          enum u_logging_level log_level,
-                         u_device_destroy_function_t destroy_fn);
+                         u_device_destroy_function_t destroy_fn,
+                         struct xrt_fs *src);
 
 void
 wmr_controller_base_deinit(struct wmr_controller_base *wcb);
