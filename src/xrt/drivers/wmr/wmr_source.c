@@ -14,6 +14,7 @@
 #include "math/m_api.h"
 #include "math/m_clock_tracking.h"
 #include "math/m_filter_fifo.h"
+#include "tracking/t_euroc_recorder.h"
 #include "util/u_debug.h"
 #include "util/u_sink.h"
 #include "util/u_var.h"
@@ -59,6 +60,7 @@ struct wmr_source
 
 	struct wmr_hmd_config config;
 	struct wmr_camera *camera;
+	struct xrt_slam_sinks *euroc_recorder; //!< EuRoC dataset recorder
 
 	// Sinks (head tracking)
 	struct xrt_frame_sink cam_sinks[WMR_MAX_CAMERAS]; //!< Intermediate sinks for camera frames
@@ -98,6 +100,7 @@ struct wmr_source
 		if (ws->out_sinks.cams[cam_id] && ws->first_imu_received) {                                            \
 			xrt_sink_push_frame(ws->out_sinks.cams[cam_id], xf);                                           \
 		}                                                                                                      \
+		xrt_sink_push_frame(ws->euroc_recorder->cams[cam_id], xf);                                             \
 	}
 
 DEFINE_RECEIVE_CAM(0)
@@ -165,6 +168,7 @@ void (*receive_cam[WMR_MAX_CAMERAS])(struct xrt_frame_sink *, struct xrt_frame *
 		if (ws->out_sinks.imus[imu_id]) {                                                                      \
 			xrt_sink_push_imu(ws->out_sinks.imus[imu_id], s);                                              \
 		}                                                                                                      \
+		xrt_sink_push_imu(ws->euroc_recorder->imus[imu_id], s);                                                \
 	}
 
 DEFINE_RECEIVE_IMU(0)
@@ -369,6 +373,7 @@ wmr_source_create(struct xrt_frame_context *xfctx, struct xrt_prober_device *dev
 
 	ws->camera = wmr_camera_open(&options);
 	ws->config = cfg;
+	ws->euroc_recorder = euroc_recorder_create(xfctx, NULL, cfg.sinks_count, WMR_MAX_IMUS, false);
 
 	// Setup UI
 	for (int i = 0; i < cfg.sinks_count; i++) {
@@ -379,6 +384,7 @@ wmr_source_create(struct xrt_frame_context *xfctx, struct xrt_prober_device *dev
 		m_ff_vec3_f32_alloc(&ws->accel_ffs[i], 1000);
 	}
 	u_var_add_root(ws, WMR_SOURCE_STR, false);
+	euroc_recorder_add_ui(ws->euroc_recorder, ws, "");
 	u_var_add_log_level(ws, &ws->log_level, "Log Level");
 	for (int i = 0; i < WMR_MAX_IMUS; i++) {
 		char glabel[] = "Gyroscope NNNNNNNNNNN";
