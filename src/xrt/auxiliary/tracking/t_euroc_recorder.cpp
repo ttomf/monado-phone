@@ -16,6 +16,7 @@
 #include "util/u_debug.h"
 #include "xrt/xrt_defines.h"
 #include "xrt/xrt_tracking.h"
+#include "xrt/xrt_config_have.h"
 
 #include <cassert>
 #include <ctime>
@@ -26,7 +27,9 @@
 #include <queue>
 #include <iomanip>
 
+#ifdef XRT_HAVE_OPENCV
 #include <opencv2/imgcodecs.hpp>
+#endif
 
 DEBUG_GET_ONCE_BOOL_OPTION(euroc_recorder_use_jpg, "EUROC_RECORDER_USE_JPG", false)
 
@@ -218,12 +221,17 @@ euroc_recorder_save_frame(euroc_recorder *er, struct xrt_frame *frame, int cam_i
 	uint64_t ts = frame->timestamp;
 
 	assert(frame->format == XRT_FORMAT_L8 || frame->format == XRT_FORMAT_R8G8B8); // Only formats supported
-	auto img_type = frame->format == XRT_FORMAT_L8 ? CV_8UC1 : CV_8UC3;
 	string file_extension = er->use_jpg ? ".jpg" : ".png";
 	string filename = std::to_string(ts) + file_extension;
 	string img_path = er->path + "/mav0/" + cam_name + "/data/" + filename;
+
+#ifdef XRT_HAVE_OPENCV
+	auto img_type = frame->format == XRT_FORMAT_L8 ? CV_8UC1 : CV_8UC3;
 	cv::Mat img{(int)frame->height, (int)frame->width, img_type, frame->data, frame->stride};
 	cv::imwrite(img_path, img);
+#else
+	U_LOG_W("OpenCV not built, unable to save %s", img_path.c_str());
+#endif
 
 	*er->cams_csv[cam_index] << ts << "," << filename << CSV_EOL;
 }
