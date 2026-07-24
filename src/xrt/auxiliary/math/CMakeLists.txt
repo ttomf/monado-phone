@@ -36,6 +36,7 @@ add_library(
 	m_predict.c
 	m_predict.h
 	m_quatexpmap.cpp
+	m_quatexpmap.hpp
 	m_rational.hpp
 	m_relation_history.cpp
 	m_relation_history.h
