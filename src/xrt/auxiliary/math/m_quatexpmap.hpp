@@ -123,8 +123,6 @@ quat_exp(Eigen::MatrixBase<Derived> const &vec)
 {
 	EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Derived, 3);
 	using Scalar = typename Derived::Scalar;
-	/// @todo Update the tests to take into account the difference between the pure quaternion exponential map and
-	///       the SO(3) version of the exponential map as defined by Grassia.
 	Scalar theta_sq = vec.squaredNorm();
 	Scalar vecscale = sinc_sq(theta_sq);
 	Eigen::Quaternion<Scalar> ret;
