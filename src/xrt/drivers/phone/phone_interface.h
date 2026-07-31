@@ -7,6 +7,8 @@
  * @ingroup drv_phone
  */
 
+#include <arpa/inet.h>
+
 #pragma once
 
 #ifdef __cplusplus
@@ -26,7 +28,7 @@ extern "C" {
  * @ingroup drv_phone
  */
 struct xrt_auto_prober *
-phone_create_auto_proberr(void);
+phone_create_auto_prober(void);
 
 /*!
  * Create a Phone HMD.
@@ -36,7 +38,7 @@ phone_create_auto_proberr(void);
  * @ingroup drv_phone
  */
 struct xrt_device *
-phone_hmd_create(void);
+phone_hmd_create(struct sockaddr_in *phone_addr);
 
 /*!
  * @dir drivers/phone

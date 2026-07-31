@@ -679,6 +679,19 @@ if(XRT_BUILD_DRIVER_SOLARXR)
 	list(APPEND ENABLED_DRIVERS solarxr)
 endif()
 
+if(XRT_BUILD_DRIVER_PHONE)
+	add_library(
+		drv_phone STATIC
+		phone/phone_hmd.c
+		phone/phone_interface.h
+		phone/phone_internals.h
+		phone/phone_prober.c
+		phone/phone_net.c
+	)
+	target_link_libraries(drv_phone PRIVATE xrt-interfaces aux_util)
+	list(APPEND ENABLED_DRIVERS phone)
+endif()
+
 if(XRT_BUILD_SAMPLES)
 	# We build the sample driver to make sure it stays valid,
 	# but it never gets linked into a final target.

@@ -26,13 +26,7 @@
 #include "xrt/xrt_results.h"
 
 #include <stdio.h>
-
-
-/*
- *
- * Structs and defines.
- *
- */
+#include <arpa/inet.h>
 
 /*!
  * A Phone HMD device.
@@ -42,22 +36,12 @@
 struct phone_hmd
 {
 	struct xrt_device base;
-
 	struct xrt_pose pose;
-
 	enum u_logging_level log_level;
-
 	// has built-in mutex so thread safe
 	struct m_relation_history *relation_hist;
+	struct sockaddr_in *phone_addr;
 };
-
-
-/// Casting helper function
-static inline struct phone_hmd *
-phone_hmd(struct xrt_device *xdev)
-{
-	return (struct phone_hmd *)xdev;
-}
 
 DEBUG_GET_ONCE_LOG_OPTION(phone_log, "PHONE_LOG", U_LOGGING_WARN)
 
@@ -69,7 +53,7 @@ DEBUG_GET_ONCE_LOG_OPTION(phone_log, "PHONE_LOG", U_LOGGING_WARN)
 static void
 phone_hmd_destroy(struct xrt_device *xdev)
 {
-	struct phone_hmd *hmd = phone_hmd(xdev);
+	struct phone_hmd *hmd = (struct phone_hmd *)(xdev);
 
 	// Remove the variable tracking.
 	u_var_remove_root(hmd);
@@ -97,7 +81,7 @@ phone_hmd_get_tracked_pose(struct xrt_device *xdev,
                            int64_t at_timestamp_ns,
                            struct xrt_space_relation *out_relation)
 {
-	struct phone_hmd *hmd = phone_hmd(xdev);
+	struct phone_hmd *hmd = (struct phone_hmd *)(xdev);
 
 	if (name != XRT_INPUT_GENERIC_HEAD_POSE) {
 		U_LOG_XDEV_UNSUPPORTED_INPUT(&hmd->base, hmd->log_level, name);
@@ -160,7 +144,7 @@ phone_hmd_get_visibility_mask(struct xrt_device *xdev,
 }
 
 struct xrt_device *
-phone_hmd_create(void)
+phone_hmd_create(struct sockaddr_in *phone_addr)
 {
 	// This indicates you won't be using Monado's built-in tracking algorithms.
 	enum u_device_alloc_flags flags =
@@ -178,6 +162,8 @@ phone_hmd_create(void)
 	hmd->base.get_view_poses = phone_hmd_get_view_poses;
 	hmd->base.get_visibility_mask = phone_hmd_get_visibility_mask;
 	hmd->base.destroy = phone_hmd_destroy;
+
+	hmd->phone_addr = phone_addr;
 
 	// Distortion information, fills in xdev->compute_distortion().
 	u_distortion_mesh_set_none(&hmd->base);

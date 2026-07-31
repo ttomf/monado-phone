@@ -68,6 +68,10 @@
 #include "android/android_prober.h"
 #endif
 
+#ifdef XRT_BUILD_DRIVER_PHONE
+#include "phone/phone_interface.h"
+#endif
+
 #ifdef XRT_BUILD_DRIVER_ILLIXR
 #include "illixr/illixr_interface.h"
 #endif
@@ -261,6 +265,10 @@ xrt_auto_prober_create_func_t target_auto_list[] = {
 
 #ifdef XRT_BUILD_DRIVER_EUROC
     euroc_create_auto_prober,
+#endif
+
+#ifdef XRT_BUILD_DRIVER_PHONE
+    phone_create_auto_prober,
 #endif
 
 #ifdef XRT_BUILD_DRIVER_SIMULATED

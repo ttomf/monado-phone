@@ -245,6 +245,10 @@ if(XRT_BUILD_DRIVER_SOLARXR)
 	target_link_libraries(target_lists PRIVATE drv_solarxr)
 endif()
 
+if(XRT_BUILD_DRIVER_PHONE)
+	target_link_libraries(target_lists PRIVATE drv_phone)
+endif()
+
 ####
 # Instance
 #
