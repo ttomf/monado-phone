@@ -359,6 +359,7 @@ option_with_deps(XRT_BUILD_DRIVER_ILLIXR "Enable ILLIXR driver" DEPENDS ILLIXR_P
 option_with_deps(XRT_BUILD_DRIVER_NS "Enable North Star driver" "NOT ANDROID")
 option_with_deps(XRT_BUILD_DRIVER_OHMD "Enable OpenHMD driver" DEPENDS OPENHMD_FOUND)
 option_with_deps(XRT_BUILD_DRIVER_OPENGLOVES "Enable OpenGloves driver" DEPENDS XRT_HAVE_LIBUDEV XRT_HAVE_BLUETOOTH)
+option(XRT_BUILD_DRIVER_PHONE "Enable phone driver" ON)
 option_with_deps(XRT_BUILD_DRIVER_PSMV "Enable Playstation Move driver" DEPENDS XRT_HAVE_INTERNAL_HID "NOT MSVC")
 option_with_deps(XRT_BUILD_DRIVER_PSSENSE "Enable PlayStation Sense driver" DEPENDS XRT_HAVE_INTERNAL_HID)
 option_with_deps(XRT_BUILD_DRIVER_PSVR "Enable PSVR HMD driver" DEPENDS XRT_HAVE_HIDAPI)
@@ -477,6 +478,7 @@ list(
 	"NS"
 	"OHMD"
 	"OPENGLOVES"
+	"PHONE"
 	"PSMV"
 	"PSSENSE"
 	"PSVR"
@@ -732,6 +734,7 @@ message(STATUS "#    DRIVER_ILLIXR:               ${XRT_BUILD_DRIVER_ILLIXR}")
 message(STATUS "#    DRIVER_NS:                   ${XRT_BUILD_DRIVER_NS}")
 message(STATUS "#    DRIVER_OHMD:                 ${XRT_BUILD_DRIVER_OHMD}")
 message(STATUS "#    DRIVER_OPENGLOVES:           ${XRT_BUILD_DRIVER_OPENGLOVES}")
+message(STATUS "#    DRIVER_PHONE:                ${XRT_BUILD_DRIVER_PHONE}")
 message(STATUS "#    DRIVER_PSMV:                 ${XRT_BUILD_DRIVER_PSMV}")
 message(STATUS "#    DRIVER_PSSENSE:              ${XRT_BUILD_DRIVER_PSSENSE}")
 message(STATUS "#    DRIVER_PSVR:                 ${XRT_BUILD_DRIVER_PSVR}")
