@@ -13,13 +13,17 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.keepScreenOn
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.viewinterop.AndroidView
 import org.tom.monadophone.ui.theme.MonadoPhoneTheme
@@ -40,7 +44,7 @@ class MainActivity : ComponentActivity() {
 @Preview(showBackground = true, showSystemUi = true)
 fun App(modifier: Modifier = Modifier) {
     // Initialize variables
-    val driver = remember { MonadoDriver() }
+    val driver = MonadoDriver
     val view = LocalView.current
     val context = LocalContext.current
     val window = (context as Activity).window
@@ -93,5 +97,12 @@ fun App(modifier: Modifier = Modifier) {
                 }
             }, modifier = Modifier.fillMaxSize()
         )
+        IconButton(
+            { driver.restart() }, modifier = Modifier.align(Alignment.TopStart)
+        ) {
+            Icon(
+                painterResource(R.drawable.reload), "reload", tint = Color.Unspecified
+            )
+        }
     }
 }

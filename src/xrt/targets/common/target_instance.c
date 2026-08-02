@@ -11,6 +11,7 @@
 #include "xrt/xrt_space.h"
 #include "xrt/xrt_system.h"
 #include "xrt/xrt_config_build.h"
+#include "xrt/xrt_config_drivers.h"
 #include "xrt/xrt_config_os.h"
 
 #include "os/os_time.h"
@@ -23,6 +24,10 @@
 
 #ifdef XRT_MODULE_COMPOSITOR_MAIN
 #include "main/comp_main_interface.h"
+#endif
+
+#ifdef XRT_BUILD_DRIVER_PHONE
+#include "phone/phone_interface.h"
 #endif
 
 #include "target_instance_parts.h"
@@ -122,7 +127,11 @@ t_instance_create_system(struct xrt_instance *xinst,
 
 #ifdef XRT_MODULE_COMPOSITOR_MAIN
 	if (xret == XRT_SUCCESS && xsysc == NULL) {
+#ifdef XRT_BUILD_DRIVER_PHONE
+		xret = comp_main_create_system_compositor(head, phone_target_factory_get(head), NULL, &xsysc);
+#else
 		xret = comp_main_create_system_compositor(head, NULL, NULL, &xsysc);
+#endif
 	}
 #else
 	if (!use_null) {

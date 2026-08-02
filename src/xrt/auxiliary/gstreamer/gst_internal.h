@@ -69,6 +69,12 @@ struct gstreamer_sink
 	//! Last sent timestamp, used to calculate duration.
 	uint64_t timestamp_ns;
 
+	//! Nominal frame duration in ns, used to sanitize timestamps.
+	uint64_t nominal_duration_ns;
+
+	//! Maximum frame duration in ns, used to sanitize timestamps.
+	uint64_t max_duration_ns;
+
 	//! Cached appsrc element.
 	GstElement *appsrc;
 

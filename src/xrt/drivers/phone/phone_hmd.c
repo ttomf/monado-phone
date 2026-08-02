@@ -40,7 +40,7 @@ struct phone_hmd
 	enum u_logging_level log_level;
 	// has built-in mutex so thread safe
 	struct m_relation_history *relation_hist;
-	struct sockaddr_in *phone_addr;
+	struct sockaddr_in phone_addr;
 };
 
 DEBUG_GET_ONCE_LOG_OPTION(phone_log, "PHONE_LOG", U_LOGGING_WARN)
@@ -143,6 +143,14 @@ phone_hmd_get_visibility_mask(struct xrt_device *xdev,
 	return XRT_SUCCESS;
 }
 
+struct sockaddr_in *
+phone_hmd_get_addr(struct xrt_device *xdev)
+{
+	struct phone_hmd *hmd = (struct phone_hmd *)(xdev);
+
+	return &hmd->phone_addr;
+}
+
 struct xrt_device *
 phone_hmd_create(struct sockaddr_in *phone_addr)
 {
@@ -163,7 +171,7 @@ phone_hmd_create(struct sockaddr_in *phone_addr)
 	hmd->base.get_visibility_mask = phone_hmd_get_visibility_mask;
 	hmd->base.destroy = phone_hmd_destroy;
 
-	hmd->phone_addr = phone_addr;
+	hmd->phone_addr = *phone_addr;
 
 	// Distortion information, fills in xdev->compute_distortion().
 	u_distortion_mesh_set_none(&hmd->base);

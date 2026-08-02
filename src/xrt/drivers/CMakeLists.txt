@@ -690,6 +690,19 @@ if(XRT_BUILD_DRIVER_PHONE)
 	)
 	target_link_libraries(drv_phone PRIVATE xrt-interfaces aux_util)
 	list(APPEND ENABLED_DRIVERS phone)
+
+	if(XRT_MODULE_COMPOSITOR AND XRT_HAVE_VULKAN AND XRT_HAVE_GST)
+		# The phone compositor target renders into images we own, so it needs
+		# the compositor headers and the Vulkan helper library. The video
+		# stream is encoded and sent with GStreamer.
+		target_sources(drv_phone PRIVATE phone/phone_target.c)
+		target_include_directories(
+			drv_phone PRIVATE
+			${CMAKE_CURRENT_SOURCE_DIR}/../compositor
+			${CMAKE_CURRENT_SOURCE_DIR}/../auxiliary
+			)
+		target_link_libraries(drv_phone PRIVATE aux_vk aux_gstreamer)
+	endif()
 endif()
 
 if(XRT_BUILD_SAMPLES)

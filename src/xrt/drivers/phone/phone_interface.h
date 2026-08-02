@@ -40,6 +40,19 @@ phone_create_auto_prober(void);
 struct xrt_device *
 phone_hmd_create(struct sockaddr_in *phone_addr);
 
+struct comp_target_factory;
+
+/*!
+ * Get the compositor target factory to use for the phone HMD.
+ *
+ * Returns NULL if @p xdev is not a phone HMD, in which case the compositor
+ * selects a target as usual.
+ *
+ * @ingroup drv_phone
+ */
+const struct comp_target_factory *
+phone_target_factory_get(struct xrt_device *xdev);
+
 /*!
  * @dir drivers/phone
  *

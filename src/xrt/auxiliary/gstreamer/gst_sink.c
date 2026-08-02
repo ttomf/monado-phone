@@ -131,8 +131,17 @@ push_frame(struct xrt_frame_sink *xfs, struct xrt_frame *xf)
 	// Need to be offset or gstreamer becomes sad.
 	GST_BUFFER_PTS(buffer) = xtimestamp_ns - gs->offset_ns;
 
-	// Duration is measured from last time stamp.
-	GST_BUFFER_DURATION(buffer) = xtimestamp_ns - gs->timestamp_ns;
+	// Duration is measured from last time stamp, but sanitized: sources like
+	// the phone compositor can emit stale (warm start) or duplicate frames
+	// with huge or zero gaps, which makes videorate duplicate frames many
+	// times over.
+	int64_t duration_ns = (int64_t)(xtimestamp_ns - gs->timestamp_ns);
+	if (duration_ns <= 0) {
+		duration_ns = gs->nominal_duration_ns;
+	} else if ((uint64_t)duration_ns > gs->max_duration_ns) {
+		duration_ns = gs->max_duration_ns;
+	}
+	GST_BUFFER_DURATION(buffer) = duration_ns;
 	gs->timestamp_ns = xtimestamp_ns;
 
 	// All done, send it to the gstreamer pipeline.
@@ -198,13 +207,15 @@ gstreamer_sink_get_timestamp_offset(struct gstreamer_sink *gs)
 }
 
 void
-gstreamer_sink_create_with_pipeline(struct gstreamer_pipeline *gp,
-                                    uint32_t width,
-                                    uint32_t height,
-                                    enum xrt_format format,
-                                    const char *appsrc_name,
-                                    struct gstreamer_sink **out_gs,
-                                    struct xrt_frame_sink **out_xfs)
+gstreamer_sink_create_with_pipeline_fps(struct gstreamer_pipeline *gp,
+                                        uint32_t width,
+                                        uint32_t height,
+                                        uint32_t fps_num,
+                                        uint32_t fps_den,
+                                        enum xrt_format format,
+                                        const char *appsrc_name,
+                                        struct gstreamer_sink **out_gs,
+                                        struct xrt_frame_sink **out_xfs)
 {
 	const char *format_str = NULL;
 	bool need_even_dims = false;
@@ -232,6 +243,15 @@ gstreamer_sink_create_with_pipeline(struct gstreamer_pipeline *gp,
 	gs->appsrc = gst_bin_get_by_name(GST_BIN(gp->pipeline), appsrc_name);
 	gs->need_even_dims = need_even_dims;
 
+	if (fps_num > 0) {
+		gs->nominal_duration_ns = GST_SECOND * fps_den / fps_num;
+		gs->max_duration_ns = gs->nominal_duration_ns * 2;
+	} else {
+		// No fps known, assume 30fps.
+		gs->nominal_duration_ns = GST_SECOND / 30;
+		gs->max_duration_ns = GST_SECOND / 15;
+	}
+
 	if (need_even_dims) {
 		/* Pad out height and width to multiple of 2 */
 		GstElement *vbox = gst_bin_get_by_name(GST_BIN(gp->pipeline), "vbox");
@@ -251,12 +271,13 @@ gstreamer_sink_create_with_pipeline(struct gstreamer_pipeline *gp,
 	}
 
 
-	GstCaps *caps = gst_caps_new_simple(      //
-	    "video/x-raw",                        //
-	    "format", G_TYPE_STRING, format_str,  //
-	    "width", G_TYPE_INT, width,           //
-	    "height", G_TYPE_INT, height,         //
-	    "framerate", GST_TYPE_FRACTION, 0, 1, //
+	GstCaps *caps = gst_caps_new_simple(         //
+	    "video/x-raw",                           //
+	    "format", G_TYPE_STRING, format_str,     //
+	    "width", G_TYPE_INT, width,              //
+	    "height", G_TYPE_INT, height,            //
+	    "framerate", GST_TYPE_FRACTION, fps_num, //
+	    fps_den,                                 //
 	    NULL);
 
 	g_object_set(G_OBJECT(gs->appsrc),                      //
@@ -264,6 +285,9 @@ gstreamer_sink_create_with_pipeline(struct gstreamer_pipeline *gp,
 	             "stream-type", GST_APP_STREAM_TYPE_STREAM, //
 	             "format", GST_FORMAT_TIME,                 //
 	             "is-live", TRUE,                           //
+	             "max-buffers", 4,                          //
+	             "max-bytes", 0,                            //
+	             "leaky-type", GST_APP_LEAKY_TYPE_DOWNSTREAM, //
 	             NULL);
 
 	g_signal_connect(G_OBJECT(gs->appsrc), "enough-data", G_CALLBACK(enough_data), gs);
@@ -276,4 +300,25 @@ gstreamer_sink_create_with_pipeline(struct gstreamer_pipeline *gp,
 
 	*out_gs = gs;
 	*out_xfs = &gs->base;
+}
+
+void
+gstreamer_sink_create_with_pipeline(struct gstreamer_pipeline *gp,
+                                    uint32_t width,
+                                    uint32_t height,
+                                    enum xrt_format format,
+                                    const char *appsrc_name,
+                                    struct gstreamer_sink **out_gs,
+                                    struct xrt_frame_sink **out_xfs)
+{
+	gstreamer_sink_create_with_pipeline_fps( //
+	    gp,                                  //
+	    width,                               //
+	    height,                              //
+	    0,                                   //
+	    1,                                   //
+	    format,                              //
+	    appsrc_name,                         //
+	    out_gs,                              //
+	    out_xfs);                            //
 }
