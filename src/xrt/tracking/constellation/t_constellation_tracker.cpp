@@ -969,6 +969,11 @@ ConstellationTracker::setupVariableTracking()
 t_constellation_device_id_t
 ConstellationTracker::addDevice(t_constellation_tracker_device_params *params, t_constellation_tracker_device *device)
 {
+	if (params->led_model.led_count > XRT_CONSTELLATION_MAX_LEDS_PER_DEVICE) {
+		throw std::runtime_error("Device has too many LEDs, maximum is " +
+		                         std::to_string(XRT_CONSTELLATION_MAX_LEDS_PER_DEVICE));
+	}
+
 	std::unique_lock lock(this->device_lock);
 
 	if (this->devices.size() >= XRT_CONSTELLATION_MAX_DEVICES) {
