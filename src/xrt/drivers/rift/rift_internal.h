@@ -998,6 +998,8 @@ struct rift_hmd
 	struct m_ff_f64 *gravity_correction;
 	timepoint_ns latest_constellation_ts;
 
+	struct xrt_imu_sink *constellation_imu_sink;
+
 	struct t_constellation_tracker_led_model led_model;
 	struct xrt_pose T_imu_device;
 	struct xrt_pose T_device_imu;

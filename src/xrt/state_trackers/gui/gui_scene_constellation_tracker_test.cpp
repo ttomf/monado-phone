@@ -152,6 +152,7 @@ public: // Methods
 			    // @todo support tracking sources in dataset files by interpolating the tracking source pose
 			    //       in the samples.
 			    .tracking_source = nullptr,
+			    .imu_sink = nullptr,
 			};
 
 			this->tracker->addDevice(&device_params, &stub_device);

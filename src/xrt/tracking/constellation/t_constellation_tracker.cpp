@@ -822,6 +822,15 @@ Device::Device(t_constellation_tracker_device_params *params,
                t_constellation_device_id_t id)
     : params(*params), device(device), id(id), data_lock(), locked_data({.last_known_pose = std::nullopt})
 {
+	this->imu_sink = {
+	    .push_imu =
+	        [](xrt_imu_sink *ptr, xrt_imu_sample *sample) {
+		        auto self = Device::fromXrtImuSink(ptr);
+		        self->pushImuSample(*sample);
+	        },
+	};
+	params->imu_sink = &this->imu_sink;
+
 	// Copy the LED model leds into safe memory, since we want to mutate it into OpenCV space
 	this->params.led_model.leds = new t_constellation_tracker_led[this->params.led_model.led_count];
 	memcpy(this->params.led_model.leds, params->led_model.leds,
@@ -854,6 +863,10 @@ Device::~Device()
 		this->params.led_model.leds = nullptr;
 	}
 }
+
+void
+Device::pushImuSample(const xrt_imu_sample &raw_sample)
+{}
 
 /*
  *

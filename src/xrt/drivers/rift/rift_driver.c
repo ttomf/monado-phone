@@ -285,6 +285,15 @@ rift_sensor_thread_tick(struct rift_hmd *hmd)
 			}
 			os_thread_helper_unlock(&hmd->sensor_thread);
 
+			if (hmd->constellation_imu_sink) {
+				xrt_sink_push_imu(hmd->constellation_imu_sink,
+				                  &(struct xrt_imu_sample){
+				                      .timestamp_ns = sample_local_timestamp_ns,
+				                      .accel_m_s2 = {accel.x, accel.y, accel.z},
+				                      .gyro_rad_secs = {gyro.x, gyro.y, gyro.z},
+				                  });
+			}
+
 			hmd->last_sample_local_timestamp_ns = sample_local_timestamp_ns;
 
 			// push the pose of the IMU for that sample, doing so per sample
@@ -1364,6 +1373,7 @@ rift_add_to_constellation_tracker(struct rift_hmd *hmd, struct t_constellation_t
 
 	struct xrt_tracking_origin *tracking_origin = t_constellation_tracker_get_tracking_origin(tracker);
 	hmd->base.tracking_origin = tracking_origin;
+	hmd->constellation_imu_sink = params.imu_sink;
 
 	// Mark that we're using constellation poses now
 	hmd->use_constellation_poses = true;
