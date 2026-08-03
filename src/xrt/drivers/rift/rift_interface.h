@@ -72,6 +72,18 @@ rift_devices_create(struct os_hid_device *hmd_dev,
 bool
 rift_get_radio_id(struct rift_hmd *hmd, uint8_t out_radio_id[5]);
 
+/*!
+ * Timestamps a camera frame with the time of the exposure that produced it, which is taken to be the exposure whose
+ * IN report arrived within half a frame interval of one whole frame interval before the frame's first packet.
+ *
+ * @param user_data The @ref rift_hmd whose exposures the frame is matched against.
+ * @param[out] timestamp Where the exposure time is written, only touched when this returns true.
+ * @param frame_start_ns When the frame's first payload packet arrived, in local monotonic time.
+ * @param pts       The PTS of the frame, in the camera's own clock. Only used for logging.
+ *
+ * @return True when an exposure time was written. False when no exposure lines up with the frame, in which case the
+ *         caller should keep whatever timestamp it already had.
+ */
 bool
 rift_hmd_frame_timestamp_callback(void *user_data, timepoint_ns *timestamp, timepoint_ns frame_start_ns, uint32_t pts);
 

@@ -885,6 +885,26 @@ union rift_radio_command_data {
 	struct rift_radio_command_data_read_flash read_flash;
 };
 
+//! How many past exposures a frame can be matched against. At ~60 Hz this is a little over a quarter second.
+#define RIFT_EXPOSURE_HISTORY_SIZE 16
+
+//! One camera exposure the HMD told us about, held so that late frames can still find the exposure they belong to.
+struct rift_exposure_event
+{
+	//! The value of rift_hmd::exposure_counter at this exposure.
+	uint32_t sequence;
+	//! When the exposure started, in local monotonic time. This is what frames matched to it are timestamped with.
+	timepoint_ns timestamp_ns;
+	/*!
+	 * When the IN report announcing this exposure arrived, in local monotonic time.
+	 *
+	 * Frames are matched against this rather than against @ref timestamp_ns. Both the report and the frame have
+	 * travelled over USB before we see them, so their arrival times share most of that delay and land near each
+	 * other; the exposure instant on the HMD's own clock is a good deal earlier than either.
+	 */
+	timepoint_ns recv_timestamp_ns;
+};
+
 /*!
  * A rift HMD device.
  *
@@ -920,6 +940,12 @@ struct rift_hmd
 	//! A total counter for how many exposures have occurred
 	uint32_t exposure_counter;
 	uint16_t last_tracking_count;
+
+	//! The most recent exposures, newest at `(exposure_history_pushed - 1) % RIFT_EXPOSURE_HISTORY_SIZE`, locked by
+	//! sensor_thread.
+	struct rift_exposure_event exposure_history[RIFT_EXPOSURE_HISTORY_SIZE];
+	//! How many exposures have ever been pushed into the history, locked by sensor_thread.
+	uint64_t exposure_history_pushed;
 
 	struct m_imu_3dof fusion;
 	struct m_clock_windowed_skew_tracker *clock_tracker;

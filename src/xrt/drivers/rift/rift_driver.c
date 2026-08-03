@@ -46,6 +46,7 @@
 
 #include <stdio.h>
 #include <assert.h>
+#include <inttypes.h>
 
 #include "rift_distortion.h"
 #include "rift_internal.h"
@@ -172,11 +173,24 @@ rift_sensor_thread_tick(struct rift_hmd *hmd)
 
 		if (remote_exposure_delta_us > 0) {
 			os_thread_helper_lock(&hmd->sensor_thread);
-			m_clock_windowed_skew_tracker_to_local(hmd->clock_tracker, hmd->last_remote_exposure_time_ns,
-			                                       &hmd->last_local_exposure_time_ns);
+			bool have_local_exposure_time = m_clock_windowed_skew_tracker_to_local(
+			    hmd->clock_tracker, hmd->last_remote_exposure_time_ns, &hmd->last_local_exposure_time_ns);
+
+			// Record the exposure so that frames which arrive after the next exposure has already been
+			// reported can still find the exposure they were taken during. Skipped until the clocks are
+			// synchronized, since before that there is no local time to record.
+			if (have_local_exposure_time) {
+				hmd->exposure_history[hmd->exposure_history_pushed % RIFT_EXPOSURE_HISTORY_SIZE] =
+				    (struct rift_exposure_event){
+				        .sequence = hmd->exposure_counter,
+				        .timestamp_ns = hmd->last_local_exposure_time_ns,
+				        .recv_timestamp_ns = recv_time_ns,
+				    };
+				hmd->exposure_history_pushed++;
+			}
 			os_thread_helper_unlock(&hmd->sensor_thread);
 
-			if (hmd->timing_event_sink) {
+			if (have_local_exposure_time && hmd->timing_event_sink) {
 				struct t_timing_event event = {
 				    .type = T_TIMING_EVENT_TYPE_CAMERA_EXPOSURE_START,
 				    .camera_exposure_start =
@@ -1136,14 +1150,58 @@ rift_hmd_frame_timestamp_callback(void *user_data, timepoint_ns *timestamp, time
 {
 	struct rift_hmd *hmd = (struct rift_hmd *)user_data;
 
-	// @todo: We can do some fancy logic with the pts where we try to match older frames based on PTS changes, but
-	//        if things are running at full speed, this callback should trigger 1-2ms after the exposure on all
-	//        cameras, so that can be added if this turns out to become a problem, as of now, just pulling the
-	//        latest exposure timestamp should be fine.
+	/*
+	 * A frame belongs to the exposure whose IN report arrives alongside its first packet, which is the match
+	 * OpenHMD makes. Searching for that exposure directly does not work here: the gap between the two arrivals
+	 * sits near zero, the ~1 ms quantisation of the 1 kHz report stream walks it either side, and whenever it goes
+	 * negative the report has not been pushed into the history yet and the frame finds nothing.
+	 *
+	 * So the search is centred one frame interval earlier, where the exposure is always already in the history and
+	 * has half an interval of margin each way, and one interval is added back to the timestamp it hands out. The
+	 * exposure that lands on is the one the search cannot reliably see, extrapolated across a single interval of a
+	 * clock that the HMD holds to well under a microsecond of that per frame.
+	 *
+	 * Frames with nothing in the window are left alone rather than guessed at.
+	 */
+	const time_duration_ns interval_ns = (time_duration_ns)hmd->tracking.frame_interval * OS_NS_PER_USEC;
+	const time_duration_ns window_ns = interval_ns / 2;
+
+	struct rift_exposure_event match = {0};
+	bool have_match = false;
 
 	os_thread_helper_lock(&hmd->sensor_thread);
-	*timestamp = hmd->last_local_exposure_time_ns;
+
+	const uint64_t oldest_held = hmd->exposure_history_pushed > RIFT_EXPOSURE_HISTORY_SIZE
+	                                 ? hmd->exposure_history_pushed - RIFT_EXPOSURE_HISTORY_SIZE
+	                                 : 0;
+
+	for (uint64_t i = oldest_held; i < hmd->exposure_history_pushed; i++) {
+		const struct rift_exposure_event *event = &hmd->exposure_history[i % RIFT_EXPOSURE_HISTORY_SIZE];
+
+		const time_duration_ns offset_ns = frame_start_ns - event->recv_timestamp_ns - interval_ns;
+		if (offset_ns > -window_ns && offset_ns < window_ns) {
+			match = *event;
+			have_match = true;
+		}
+	}
+
 	os_thread_helper_unlock(&hmd->sensor_thread);
+
+	if (!have_match) {
+		// Either the clocks have not synchronized yet, so there is nothing to match against, or the frame
+		// landed between two exposures. Leaving the frame with the receive time the UVC driver already gave it
+		// is far better than attributing it to an exposure it may not belong to.
+		HMD_TRACE(hmd, "Frame with PTS %u matched no exposure", pts);
+		return false;
+	}
+
+	*timestamp = match.timestamp_ns + interval_ns;
+
+	HMD_TRACE(hmd,
+	          "Frame with PTS %u matched exposure %u, taken at %" PRId64 " ns, report %" PRId64
+	          " ns before frame, %" PRId64 " ns from window centre",
+	          pts, match.sequence + 1, *timestamp, frame_start_ns - match.recv_timestamp_ns,
+	          frame_start_ns - match.recv_timestamp_ns - interval_ns);
 
 	return true;
 }
