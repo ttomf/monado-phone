@@ -20,7 +20,6 @@
 #include "util/u_device.h"
 #include "util/u_distortion_mesh.h"
 #include "util/u_logging.h"
-#include "util/u_misc.h"
 #include "util/u_time.h"
 #include "util/u_var.h"
 #include "util/u_visibility_mask.h"
@@ -39,7 +38,6 @@
 struct phone_hmd
 {
 	struct xrt_device base;
-	struct xrt_pose pose;
 	enum u_logging_level log_level;
 	struct xrt_hmd_parts parts;
 	struct u_cardboard_distortion distortion;
@@ -50,11 +48,9 @@ struct phone_hmd
 
 DEBUG_GET_ONCE_LOG_OPTION(phone_log, "PHONE_LOG", U_LOGGING_WARN)
 
-#define HMD_TRACE(hmd, ...) U_LOG_XDEV_IFL_T(&hmd->base, hmd->log_level, __VA_ARGS__)
-#define HMD_DEBUG(hmd, ...) U_LOG_XDEV_IFL_D(&hmd->base, hmd->log_level, __VA_ARGS__)
-#define HMD_INFO(hmd, ...) U_LOG_XDEV_IFL_I(&hmd->base, hmd->log_level, __VA_ARGS__)
 #define HMD_ERROR(hmd, ...) U_LOG_XDEV_IFL_E(&hmd->base, hmd->log_level, __VA_ARGS__)
 
+//! @private @memberof phone_hmd
 static void
 phone_hmd_destroy(struct xrt_device *xdev)
 {
@@ -70,13 +66,7 @@ phone_hmd_destroy(struct xrt_device *xdev)
 	u_device_free(&hmd->base);
 }
 
-static xrt_result_t
-phone_hmd_update_inputs(struct xrt_device *xdev)
-{
-	// The phone driver has no device inputs to update.
-	return XRT_SUCCESS;
-}
-
+//! @public @memberof phone_hmd
 static xrt_result_t
 phone_hmd_get_tracked_pose(struct xrt_device *xdev,
                            enum xrt_input_name name,
@@ -108,6 +98,7 @@ phone_hmd_get_tracked_pose(struct xrt_device *xdev,
 	return XRT_SUCCESS;
 }
 
+//! @public @memberof phone_hmd
 static xrt_result_t
 phone_hmd_get_view_poses(struct xrt_device *xdev,
                          const struct xrt_vec3 *default_eye_relation,
@@ -118,10 +109,6 @@ phone_hmd_get_view_poses(struct xrt_device *xdev,
                          struct xrt_fov *out_fovs,
                          struct xrt_pose *out_poses)
 {
-	/*
-	 * For HMDs you can call this function or directly set
-	 * the `get_view_poses` function on the device to it.
-	 */
 	return u_device_get_view_poses( //
 	    xdev,                       //
 	    default_eye_relation,       //
@@ -133,6 +120,7 @@ phone_hmd_get_view_poses(struct xrt_device *xdev,
 	    out_poses);                 //
 }
 
+//! @public @memberof phone_hmd
 static xrt_result_t
 phone_hmd_get_visibility_mask(struct xrt_device *xdev,
                               enum xrt_visibility_mask_type type,
@@ -144,6 +132,7 @@ phone_hmd_get_visibility_mask(struct xrt_device *xdev,
 	return XRT_SUCCESS;
 }
 
+//! @public @memberof phone_hmd
 struct sockaddr_in *
 phone_hmd_get_addr(struct xrt_device *xdev)
 {
@@ -152,6 +141,7 @@ phone_hmd_get_addr(struct xrt_device *xdev)
 	return &hmd->phone_addr;
 }
 
+//! @public @memberof phone_hmd
 struct xrt_device *
 phone_hmd_create(struct sockaddr_in *phone_addr)
 {
@@ -166,7 +156,7 @@ phone_hmd_create(struct sockaddr_in *phone_addr)
 	hmd->base.hmd->blend_modes[idx++] = XRT_BLEND_MODE_OPAQUE;
 	hmd->base.hmd->blend_mode_count = idx;
 
-	hmd->base.update_inputs = phone_hmd_update_inputs;
+	hmd->base.update_inputs = u_device_noop_update_inputs;
 	hmd->base.get_tracked_pose = phone_hmd_get_tracked_pose;
 	hmd->base.get_view_poses = phone_hmd_get_view_poses;
 	hmd->base.get_visibility_mask = phone_hmd_get_visibility_mask;
@@ -174,14 +164,10 @@ phone_hmd_create(struct sockaddr_in *phone_addr)
 
 	hmd->phone_addr = *phone_addr;
 
-	// Distortion information, fills in xdev->compute_distortion().
-	u_distortion_mesh_set_none(&hmd->base);
-
-	hmd->pose = (struct xrt_pose)XRT_POSE_IDENTITY;
 	hmd->log_level = debug_get_log_option_phone_log();
 
 	// Print name.
-	snprintf(hmd->base.str, XRT_DEVICE_NAME_LEN, "Phone HMD");
+	snprintf(hmd->base.str, XRT_DEVICE_NAME_LEN, PHONE_HMD_STR);
 	snprintf(hmd->base.serial, XRT_DEVICE_NAME_LEN, "Phone HMD S/N");
 
 	m_relation_history_create(&hmd->relation_hist);
@@ -197,13 +183,12 @@ phone_hmd_create(struct sockaddr_in *phone_addr)
 	hmd->base.supported.orientation_tracking = true;
 	hmd->base.supported.position_tracking = true;
 
-	// Set up display details
-	// refresh rate
+	// Display details: refresh rate.
 	hmd->base.hmd->screens[0].nominal_frame_interval_ns = time_s_to_ns(1.0f / 90.0f);
 
 	const double hFOV = 90 * (M_PI / 180.0);
 	const double vFOV = 96.73 * (M_PI / 180.0);
-	// center of projection
+	// Center of projection.
 	const double hCOP = 0.329;
 	const double vCOP = 0.5;
 	if (

@@ -8,7 +8,6 @@
  */
 
 #include <assert.h>
-#include <inttypes.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -51,9 +50,6 @@ struct phone_target
 {
 	struct comp_target base;
 
-	//! Extent of the images, zero until @ref create_images.
-	VkExtent2D extent;
-
 	//! Images the compositor renders into.
 	VkImage images[PHONE_TARGET_NUM_IMAGES];
 	VkDeviceMemory mem[PHONE_TARGET_NUM_IMAGES];
@@ -72,9 +68,6 @@ struct phone_target
 	//! Compositor frame pacing helper.
 	struct u_pacing_compositor *upc;
 
-	//! Number of presented frames, for log throttling.
-	uint64_t present_count;
-
 	//! Set once Vulkan resources exist.
 	bool has_images;
 	bool has_init_vulkan;
@@ -87,6 +80,7 @@ struct phone_target
  *
  */
 
+//! @private @memberof phone_target
 static void
 free_images(struct phone_target *pt, struct vk_bundle *vk)
 {
@@ -112,6 +106,7 @@ free_images(struct phone_target *pt, struct vk_bundle *vk)
 	pt->has_images = false;
 }
 
+//! @private @memberof phone_target
 static VkResult
 ensure_images(struct phone_target *pt, struct vk_bundle *vk, VkExtent2D extent, VkImageUsageFlags usage)
 {
@@ -171,11 +166,11 @@ ensure_images(struct phone_target *pt, struct vk_bundle *vk, VkExtent2D extent, 
 		}
 	}
 
-	pt->extent = extent;
 	pt->has_images = true;
 
 	return VK_SUCCESS;
 }
+
 
 
 /*
@@ -184,12 +179,14 @@ ensure_images(struct phone_target *pt, struct vk_bundle *vk, VkExtent2D extent, 
  *
  */
 
+//! @private @memberof phone_target
 static bool
 target_init_pre_vulkan(struct comp_target *ct)
 {
 	return true; // No-op
 }
 
+//! @private @memberof phone_target
 static bool
 target_init_post_vulkan(struct comp_target *ct, uint32_t preferred_width, uint32_t preferred_height)
 {
@@ -203,12 +200,14 @@ target_init_post_vulkan(struct comp_target *ct, uint32_t preferred_width, uint32
 	return true;
 }
 
+//! @private @memberof phone_target
 static bool
 target_check_ready(struct comp_target *ct)
 {
 	return true; // Always ready.
 }
 
+//! @private @memberof phone_target
 static bool
 target_is_shared_presentable_image(struct comp_target *ct)
 {
@@ -216,6 +215,7 @@ target_is_shared_presentable_image(struct comp_target *ct)
 	return false;
 }
 
+//! @private @memberof phone_target
 static void
 target_create_images(struct comp_target *ct,
                      const struct comp_target_create_images_info *create_info,
@@ -229,7 +229,6 @@ target_create_images(struct comp_target *ct,
 	assert(present_queue != NULL);
 	(void)present_queue;
 
-	// Paranoia.
 	assert(pt->has_init_vulkan);
 
 	/*
@@ -301,26 +300,35 @@ target_create_images(struct comp_target *ct,
 	struct sockaddr_in *addr = phone_hmd_get_addr(ct->c->xdev);
 	if (addr == NULL) {
 		COMP_ERROR(ct->c, "phone: no phone address, cannot start stream");
-	} else if (!phone_stream_init(vk, create_info->extent, addr)) {
+		return;
+	}
+
+	struct xrt_frame_sink *xfs = NULL;
+	if (!phone_net_stream_sink_create(addr, &xfs)) {
+		COMP_ERROR(ct->c, "phone: failed to create network stream");
+		return;
+	}
+	if (!phone_stream_init(vk, create_info->extent, xfs)) {
 		COMP_ERROR(ct->c, "phone: failed to start stream");
+		phone_net_stream_destroy();
 	}
 }
 
+//! @private @memberof phone_target
 static bool
 target_has_images(struct comp_target *ct)
 {
 	struct phone_target *pt = (struct phone_target *)ct;
 
-	// Simple check.
 	return pt->base.images != NULL;
 }
 
+//! @private @memberof phone_target
 static VkResult
 target_acquire(struct comp_target *ct, uint32_t *out_index)
 {
 	struct phone_target *pt = (struct phone_target *)ct;
 
-	// Error checking.
 	assert(pt->current_index == -1);
 
 	uint32_t index = pt->last_index;
@@ -328,15 +336,14 @@ target_acquire(struct comp_target *ct, uint32_t *out_index)
 		index = 0;
 	}
 
-	// For error checking.
 	pt->current_index = index;
 
-	// Return the variable.
 	*out_index = index;
 
 	return VK_SUCCESS;
 }
 
+//! @private @memberof phone_target
 static VkResult
 target_present(struct comp_target *ct,
                struct vk_bundle_queue *present_queue,
@@ -352,30 +359,33 @@ target_present(struct comp_target *ct,
 	assert(present_queue != NULL);
 	(void)present_queue;
 	(void)timeline_semaphore_value;
+	(void)desired_present_time_ns;
+	(void)present_slop_ns;
 
 	assert(pt->current_index == (int64_t)index);
 
 	pt->last_index = index;
 	pt->current_index = -1;
-	pt->present_count++;
 
 	phone_stream_frame(&pt->base.images[index], &c->frame.rendering);
 
 	return VK_SUCCESS;
 }
 
+//! @private @memberof phone_target
 static VkResult
 target_wait_for_present(struct comp_target *ct, time_duration_ns timeout_ns)
 {
 	return VK_ERROR_EXTENSION_NOT_PRESENT;
 }
-
+//! @private @memberof phone_target
 static void
 target_flush(struct comp_target *ct)
 {
 	// No-op
 }
 
+//! @private @memberof phone_target
 static void
 target_calc_frame_pacing(struct comp_target *ct,
                          int64_t *out_frame_id,
@@ -412,6 +422,7 @@ target_calc_frame_pacing(struct comp_target *ct,
 	*out_present_slop_ns = present_slop_ns;
 }
 
+//! @private @memberof phone_target
 static void
 target_mark_timing_point(struct comp_target *ct, enum comp_target_timing_point point, int64_t frame_id, int64_t when_ns)
 {
@@ -434,12 +445,14 @@ target_mark_timing_point(struct comp_target *ct, enum comp_target_timing_point p
 	}
 }
 
+//! @private @memberof phone_target
 static VkResult
 target_update_timings(struct comp_target *ct)
 {
 	return VK_SUCCESS; // No-op
 }
 
+//! @private @memberof phone_target
 static void
 target_info_gpu(struct comp_target *ct, int64_t frame_id, int64_t gpu_start_ns, int64_t gpu_end_ns, int64_t when_ns)
 {
@@ -448,6 +461,7 @@ target_info_gpu(struct comp_target *ct, int64_t frame_id, int64_t gpu_start_ns, 
 	u_pc_info_gpu(pt->upc, frame_id, gpu_start_ns, gpu_end_ns, when_ns);
 }
 
+//! @private @memberof phone_target
 static VkResult
 target_queue_supports_present(struct comp_target *ct, struct vk_bundle_queue *queue, VkBool32 *out_supported)
 {
@@ -457,20 +471,25 @@ target_queue_supports_present(struct comp_target *ct, struct vk_bundle_queue *qu
 	return VK_SUCCESS;
 }
 
+//! @private @memberof phone_target
 static void
 target_set_title(struct comp_target *ct, const char *title)
 {
 	// No-op
 }
 
+//! @private @memberof phone_target
 static void
 target_destroy(struct comp_target *ct)
 {
 	struct phone_target *pt = (struct phone_target *)ct;
 	struct vk_bundle *vk = &pt->base.c->base.vk;
 
-	// Stop the video stream, it uses the Vulkan device.
+	// Stop the host-side stream, it uses the Vulkan device.
 	phone_stream_destroy();
+
+	// Tear down the encode + network pipeline.
+	phone_net_stream_destroy();
 
 	// Can only free if we have Vulkan.
 	if (pt->has_init_vulkan) {
@@ -491,6 +510,7 @@ target_destroy(struct comp_target *ct)
 	free(pt);
 }
 
+//! @private @memberof phone_target
 static struct comp_target *
 target_create(struct comp_compositor *c)
 {
@@ -535,6 +555,7 @@ target_create(struct comp_compositor *c)
  *
  */
 
+//! @private @memberof phone_target
 static bool
 factory_detect(const struct comp_target_factory *ctf, struct comp_compositor *c)
 {
@@ -544,6 +565,7 @@ factory_detect(const struct comp_target_factory *ctf, struct comp_compositor *c)
 	return false;
 }
 
+//! @private @memberof phone_target
 static bool
 factory_create_target(const struct comp_target_factory *ctf, struct comp_compositor *c, struct comp_target **out_ct)
 {
@@ -572,11 +594,12 @@ static const struct comp_target_factory phone_target_factory = {
     .create_target = factory_create_target,
 };
 
+//! @public @memberof phone_target
 const struct comp_target_factory *
 phone_target_factory_get(struct xrt_device *xdev)
 {
 	// Only force the phone target if the head mounted display is the phone HMD.
-	if (strcmp(xdev->str, "Phone HMD") != 0) {
+	if (strcmp(xdev->str, PHONE_HMD_STR) != 0) {
 		return NULL;
 	}
 

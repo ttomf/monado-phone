@@ -685,8 +685,10 @@ if(XRT_BUILD_DRIVER_PHONE)
 		phone/phone_hmd.c
 		phone/phone_interface.h
 		phone/phone_internals.h
-		phone/phone_prober.c
 		phone/phone_net.c
+		phone/phone_packet.c
+		phone/phone_prober.c
+		phone/phone_stream.c
 	)
 	target_link_libraries(drv_phone PRIVATE xrt-interfaces aux_util)
 	list(APPEND ENABLED_DRIVERS phone)

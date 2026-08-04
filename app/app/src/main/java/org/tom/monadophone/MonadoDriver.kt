@@ -9,15 +9,12 @@ import android.os.Looper
 import android.util.Log
 import android.view.Surface
 import android.widget.Toast
-import java.io.ByteArrayOutputStream
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.MulticastSocket
 import java.net.SocketTimeoutException
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -33,17 +30,25 @@ import kotlin.time.Duration.Companion.milliseconds
 private const val MCAST_ADDR = "239.1.1.1"
 private const val PORT = 5500
 private const val POSE_PORT = 5501
-private const val POSE_PACKET_SIZE = 40
 private const val DISCOVER_MSG_PHONE = "MONADO_PHONE_DISCOVER_PHONE"
 private const val DISCOVER_MSG_PC = "MONADO_PHONE_DISCOVER_PC"
 private const val TAG = "MonadoDriver"
 
+/**
+ * Orchestrates the phone side of the Monado Phone HMD driver: discovery,
+ * video stream reception and pose sending. Mirrors the wire protocol defined
+ * in the Monado phone driver (phone_internals.h).
+ */
 class MonadoDriver(
     private val context: Context
 ) {
     private var surface: Surface? = null
     private var job: Job? = null
+
+    @Volatile
     private var streamSocket: DatagramSocket? = null
+
+    @Volatile
     private var poseSocket: DatagramSocket? = null
     private var glSurfaceView: GLSurfaceView? = null
     private var poseSource: ArCorePose? = null
@@ -101,6 +106,7 @@ class MonadoDriver(
             discoverySocket.use { socket ->
                 // Periodically send beacon packets
                 toast("Starting discovery...")
+                var attempts = 0
                 while (currentCoroutineContext().isActive) {
                     try {
                         socket.send(packet)
@@ -119,7 +125,9 @@ class MonadoDriver(
                         }
                     } catch (e: SocketTimeoutException) {
                     }
-                    delay(500.milliseconds)
+                    // Slow down after a while to save battery if the PC is not listening.
+                    val interval = if (++attempts > 120) 5000L else 500L
+                    delay(interval.milliseconds)
                 }
             }
             if (currentCoroutineContext().isActive) {
@@ -141,12 +149,7 @@ class MonadoDriver(
 
     /**
      * Sends the latest ARCore pose to the PC over UDP.
-     *
-     * Packet layout, 40 bytes, little-endian:
-     *   int64 timestamp_ns
-     *   int32 tracking_state (0 = tracking, 1 = paused, 2 = stopped)
-     *   float qx qy qz qw
-     *   float tx ty tz
+     * The packet layout is defined in [PosePacket].
      */
     private suspend fun sendPose() {
         val src = poseSource
@@ -161,8 +164,6 @@ class MonadoDriver(
         try {
             socket.use { s ->
                 Log.d(TAG, "sending pose to ${runtimeAddr.hostAddress}:$POSE_PORT")
-                val buffer = ByteBuffer.allocate(POSE_PACKET_SIZE).order(ByteOrder.LITTLE_ENDIAN)
-                val datagram = DatagramPacket(buffer.array(), POSE_PACKET_SIZE, runtimeAddr, POSE_PORT)
                 var sent = 0L
                 var lastLog = 0L
                 while (currentCoroutineContext().isActive) {
@@ -171,16 +172,8 @@ class MonadoDriver(
                         delay(10.milliseconds)
                         continue
                     }
-                    buffer.clear()
-                    buffer.putLong(pose.timestampNs)
-                    buffer.putInt(pose.trackingState)
-                    buffer.putFloat(pose.qx)
-                    buffer.putFloat(pose.qy)
-                    buffer.putFloat(pose.qz)
-                    buffer.putFloat(pose.qw)
-                    buffer.putFloat(pose.tx)
-                    buffer.putFloat(pose.ty)
-                    buffer.putFloat(pose.tz)
+                    val data = PosePacket.encode(pose)
+                    val datagram = DatagramPacket(data, data.size, runtimeAddr, POSE_PORT)
                     s.send(datagram)
                     sent++
                     val now = System.nanoTime()
@@ -211,10 +204,9 @@ class MonadoDriver(
         }
         Log.d(TAG, "codec started")
 
-        val startCode = byteArrayOf(0, 0, 0, 1)
         val buf = ByteArray(65536)
         val packet = DatagramPacket(buf, buf.size)
-        val fu = ByteArrayOutputStream()
+        val depacketizer = HevcRtpDepacketizer()
 
         try {
             val socket = withContext(Dispatchers.IO) {
@@ -265,83 +257,15 @@ class MonadoDriver(
                     if (n <= hdrLen) continue
 
                     val payload = buf.copyOfRange(hdrLen, n)
-                    if (payload.size < 2) continue
-
-                    // HEVC 2-byte NAL header, the type is in the first byte
-                    val nalType = (payload[0].toInt() shr 1) and 0x3F
-
-                    val ok = when {
-                        // Single NAL unit packet
-                        nalType <= 47 -> {
-                            val nal = ByteArray(4 + payload.size)
-                            startCode.copyInto(nal)
-                            payload.copyInto(nal, 4)
-                            feedCodec(codec, nal, nalType)
-                        }
-
-                        // Aggregation packet
-                        nalType == 48 -> {
-                            var off = 2
-                            var allOk = true
-                            while (off + 2 < payload.size) {
-                                val size =
-                                    ((payload[off].toInt() and 0xFF) shl 8) or
-                                        (payload[off + 1].toInt() and 0xFF)
-                                if (off + 2 + size > payload.size) break
-                                val sub = payload.copyOfRange(off + 2, off + 2 + size)
-                                if (sub.size < 2) break
-                                val t = (sub[0].toInt() shr 1) and 0x3F
-                                val nal = ByteArray(4 + sub.size)
-                                startCode.copyInto(nal)
-                                sub.copyInto(nal, 4)
-                                if (!feedCodec(codec, nal, t)) {
-                                    allOk = false
-                                    break
-                                }
-                                off += 2 + size
+                    for (nal in depacketizer.depacketize(payload)) {
+                        // A single decode hiccup must not kill the whole stream
+                        if (!feedCodec(codec, nal)) {
+                            decodeErrors++
+                            val now = System.nanoTime()
+                            if (now - lastDecodeErrorLog > 1_000_000_000L) {
+                                Log.w(TAG, "feedCodec failed $decodeErrors times, continuing")
+                                lastDecodeErrorLog = now
                             }
-                            allOk
-                        }
-
-                        // Fragmentation unit
-                        nalType == 49 -> {
-                            if (payload.size < 3) {
-                                true
-                            } else {
-                                val fuHeader = payload[2].toInt()
-                                val start = (fuHeader and 0x80) != 0
-                                val end = (fuHeader and 0x40) != 0
-                                val origType = fuHeader and 0x3F
-
-                                if (start) {
-                                    fu.reset()
-                                    fu.write(startCode)
-                                    fu.write((payload[0].toInt() and 0x81) or (origType shl 1))
-                                    fu.write(payload[1].toInt())
-                                    fu.write(payload, 3, payload.size - 3)
-                                } else if (fu.size() > 0) {
-                                    fu.write(payload, 3, payload.size - 3)
-                                }
-
-                                if (end && fu.size() > 0) {
-                                    val okFeed = feedCodec(codec, fu.toByteArray(), origType)
-                                    fu.reset()
-                                    okFeed
-                                } else {
-                                    true
-                                }
-                            }
-                        }
-
-                        else -> true
-                    }
-                    // A single decode hiccup must not kill the whole stream
-                    if (!ok) {
-                        decodeErrors++
-                        val now = System.nanoTime()
-                        if (now - lastDecodeErrorLog > 1_000_000_000L) {
-                            Log.w(TAG, "feedCodec failed $decodeErrors times, continuing")
-                            lastDecodeErrorLog = now
                         }
                     }
                 }
@@ -365,12 +289,13 @@ class MonadoDriver(
      * packet, so they are queued with plain flags; BUFFER_FLAG_CODEC_CONFIG
      * on input is ignored by most codecs and can stall Qualcomm decoders.
      */
-    private fun feedCodec(codec: MediaCodec, nal: ByteArray, nalType: Int): Boolean {
+    private fun feedCodec(codec: MediaCodec, nal: ByteArray): Boolean {
         return try {
-            val index = codec.dequeueInputBuffer(10000)
+            val index = codec.dequeueInputBuffer(10_000) // 10 ms, never block the receive loop
             if (index < 0) {
-                Log.w(TAG, "feedCodec: no input buffer within 10s")
-                return false
+                // No input buffer right now, drop this packet rather than
+                // stalling the RTP receive loop.
+                return true
             }
 
             val input = codec.getInputBuffer(index)
