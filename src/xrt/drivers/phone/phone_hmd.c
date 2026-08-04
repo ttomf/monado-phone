@@ -183,8 +183,9 @@ phone_hmd_create(struct sockaddr_in *phone_addr)
 	hmd->base.supported.orientation_tracking = true;
 	hmd->base.supported.position_tracking = true;
 
-	// Display details: refresh rate.
-	hmd->base.hmd->screens[0].nominal_frame_interval_ns = time_s_to_ns(1.0f / 90.0f);
+	// Display details: refresh rate. The video stream is fixed at 60 fps,
+	// so pace the compositor at the same rate.
+	hmd->base.hmd->screens[0].nominal_frame_interval_ns = time_s_to_ns(1.0f / 60.0f);
 
 	const double hFOV = 90 * (M_PI / 180.0);
 	const double vFOV = 96.73 * (M_PI / 180.0);
