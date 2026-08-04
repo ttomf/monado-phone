@@ -28,6 +28,8 @@ public:
 	XRTVRCompositor_024(XRTVRClientCore_003 *core) : XRTVRCompositor_029(core) {};
 	// clang-format on
 
+	FnTable_IVRCompositor_024();
+
 	ForwardDeclareBase_IVRCompositor(XRTVRCompositor_029);
 
 	Forward_IVRCompositor_SetTrackingSpace_029();

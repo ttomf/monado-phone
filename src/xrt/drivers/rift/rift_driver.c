@@ -565,6 +565,21 @@ rift_hmd_destroy(struct xrt_device *xdev)
 }
 
 static xrt_result_t
+rift_hmd_update_inputs(struct xrt_device *xdev)
+{
+	struct rift_hmd *hmd = rift_hmd(xdev);
+
+	// Only the CV1 has a presence sensor
+	if (hmd->variant != RIFT_VARIANT_CV1) {
+		return XRT_SUCCESS;
+	}
+
+	hmd->base.inputs[1].value = (union xrt_input_value){.boolean = hmd->presence};
+	hmd->base.inputs[1].timestamp = os_monotonic_get_ns();
+	return XRT_SUCCESS;
+}
+
+static xrt_result_t
 rift_hmd_get_tracked_pose(struct xrt_device *xdev,
                           enum xrt_input_name name,
                           int64_t at_timestamp_ns,
@@ -631,21 +646,6 @@ rift_hmd_get_visibility_mask(struct xrt_device *xdev,
 	return XRT_SUCCESS;
 }
 
-static xrt_result_t
-rift_hmd_get_presence(struct xrt_device *xdev, bool *out_presence)
-{
-	struct rift_hmd *hmd = rift_hmd(xdev);
-
-	// Only the CV1 has a presence sensor, and this should never be called on DK2 given we don't mark this as
-	// supported on non-CV1 headsets
-	if (hmd->variant != RIFT_VARIANT_CV1) {
-		return XRT_ERROR_FEATURE_NOT_SUPPORTED;
-	}
-
-	*out_presence = hmd->presence;
-	return XRT_SUCCESS;
-}
-
 static void
 rift_hmd_constellation_tracking_source_get_tracked_pose(struct t_constellation_tracker_tracking_source *tracking_source,
                                                         timepoint_ns when_ns,
@@ -697,7 +697,8 @@ rift_devices_create(struct os_hid_device *hmd_dev,
 	enum u_device_alloc_flags flags =
 	    (enum u_device_alloc_flags)(U_DEVICE_ALLOC_HMD | U_DEVICE_ALLOC_TRACKING_NONE);
 
-	struct rift_hmd *hmd = U_DEVICE_ALLOCATE(struct rift_hmd, flags, 1, 0);
+	bool has_presence = variant == RIFT_VARIANT_CV1;
+	struct rift_hmd *hmd = U_DEVICE_ALLOCATE(struct rift_hmd, flags, has_presence ? 2 : 1, 0);
 
 	// Mark mutex as not initialized yet
 	hmd->device_count = -1;
@@ -904,12 +905,11 @@ rift_devices_create(struct os_hid_device *hmd_dev,
 	hmd->base.hmd->blend_modes[idx++] = XRT_BLEND_MODE_OPAQUE;
 	hmd->base.hmd->blend_mode_count = idx;
 
-	hmd->base.update_inputs = u_device_noop_update_inputs;
+	hmd->base.update_inputs = rift_hmd_update_inputs;
 	hmd->base.get_tracked_pose = rift_hmd_get_tracked_pose;
 	hmd->base.get_view_poses = rift_hmd_get_view_poses;
 	hmd->base.get_visibility_mask = rift_hmd_get_visibility_mask;
 	hmd->base.destroy = rift_hmd_destroy;
-	hmd->base.get_presence = rift_hmd_get_presence;
 
 	hmd->base.hmd->distortion.models = XRT_DISTORTION_MODEL_COMPUTE;
 	hmd->base.hmd->distortion.preferred = XRT_DISTORTION_MODEL_COMPUTE;
@@ -936,6 +936,9 @@ rift_devices_create(struct os_hid_device *hmd_dev,
 	hmd->base.name = XRT_DEVICE_GENERIC_HMD;
 	hmd->base.device_type = XRT_DEVICE_TYPE_HMD;
 	hmd->base.inputs[0].name = XRT_INPUT_GENERIC_HEAD_POSE;
+	if (has_presence) {
+		hmd->base.inputs[1].name = XRT_INPUT_GENERIC_HEAD_DETECT;
+	}
 	hmd->base.supported.orientation_tracking = true;
 	hmd->base.supported.position_tracking = false; // set to true once we are trying to get the sensor 6dof to work
 	hmd->base.supported.presence = variant == RIFT_VARIANT_CV1;

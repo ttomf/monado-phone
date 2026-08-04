@@ -273,7 +273,11 @@ HmdDevice::HmdDevice(const DeviceBuilder &builder) : Device(builder)
 
 	this->supported.compositor_info = true;
 
-	inputs_vec = {xrt_input{true, 0, XRT_INPUT_GENERIC_HEAD_POSE, {}}};
+	inputs_vec = {
+	    xrt_input{true, 0, XRT_INPUT_GENERIC_HEAD_POSE, {}},
+	    xrt_input{false, 0, XRT_INPUT_GENERIC_HEAD_DETECT, {}},
+	};
+	this->inputs_map["/proximity"] = &inputs_vec[1];
 	this->inputs = inputs_vec.data();
 	this->input_count = inputs_vec.size();
 
@@ -1402,6 +1406,10 @@ HmdDevice::handle_property_write(const vr::PropertyWrite_t &prop)
 		float bat = *static_cast<float *>(prop.pvBuffer);
 		this->charge = bat;
 		DEV_DEBUG("Battery: HMD: %f", bat);
+		break;
+	}
+	case vr::Prop_ContainsProximitySensor_Bool: {
+		this->supported.presence = *static_cast<bool *>(prop.pvBuffer);
 		break;
 	}
 	case vr::Prop_DisplaySupportsAnalogGain_Bool: {

@@ -47,7 +47,7 @@ DEBUG_GET_ONCE_LOG_OPTION(compositor_log, "XRT_COMPOSITOR_LOG", U_LOGGING_WARN)
  * documentation, all 8-bit per component formats are sRGB/Gamma
  */
 static vr::EColorSpace
-determine_color_space(VkFormat format)
+determineColorSpace(VkFormat format)
 {
 	switch (format) {
 	case VK_FORMAT_R8_UNORM:
@@ -104,19 +104,19 @@ determine_color_space(VkFormat format)
 }
 
 static vr::EColorSpace
-resolve_color_space(VkFormat format, vr::EColorSpace color_space)
+resolveColorSpace(VkFormat format, vr::EColorSpace color_space)
 {
 	if (color_space == vr::EColorSpace::ColorSpace_Auto) {
-		return determine_color_space(format);
+		return determineColorSpace(format);
 	}
 
 	return color_space;
 }
 
 static VkFormat
-resolve_swapchain_sample_format(VkFormat format, vr::EColorSpace color_space)
+resolveSwapchainSampleFormat(VkFormat format, vr::EColorSpace color_space)
 {
-	color_space = resolve_color_space(format, color_space);
+	color_space = resolveColorSpace(format, color_space);
 
 	VkFormat srgb_to_unorm = vk_format_convert_srgb_to_unorm(format);
 
@@ -135,7 +135,7 @@ resolve_swapchain_sample_format(VkFormat format, vr::EColorSpace color_space)
  * Given the format that the compositor will later sample with, return the storage-compatible format to write into.
  */
 static VkFormat
-resolve_swapchain_storage_format(VkFormat source_format, VkFormat sample_format)
+resolveSwapchainStorageFormat(VkFormat source_format, VkFormat sample_format)
 {
 	if (sample_format == source_format) {
 		return sample_format;
@@ -153,9 +153,9 @@ resolve_swapchain_storage_format(VkFormat source_format, VkFormat sample_format)
 }
 
 static std::optional<render_compute_blit_resolve_color_mode>
-determine_blit_resolve_color_mode(VkFormat format, vr::EColorSpace color_space)
+determineBlitResolveColorMode(VkFormat format, vr::EColorSpace color_space)
 {
-	color_space = resolve_color_space(format, color_space);
+	color_space = resolveColorSpace(format, color_space);
 
 	VkFormat srgb_to_unorm = vk_format_convert_srgb_to_unorm(format);
 
@@ -186,7 +186,7 @@ determine_blit_resolve_color_mode(VkFormat format, vr::EColorSpace color_space)
  * For dispatching compute to the blit target, calculate the number of groups.
  */
 static void
-calc_dispatch_dims(const VkExtent2D extent, uint32_t *out_w, uint32_t *out_h)
+calculateDispatchDimensions(const VkExtent2D extent, uint32_t *out_w, uint32_t *out_h)
 {
 	// Power of two divide and round up.
 #define P2_DIVIDE_ROUND_UP(v, div) ((v + (div - 1)) / div)
@@ -199,7 +199,7 @@ calc_dispatch_dims(const VkExtent2D extent, uint32_t *out_w, uint32_t *out_h)
 }
 
 static uint32_t
-get_blit_pipeline_id(render_compute_blit_resolve_color_mode color_mode)
+getBlitPipelineId(render_compute_blit_resolve_color_mode color_mode)
 {
 	return static_cast<uint32_t>(color_mode) - 1;
 }
@@ -211,7 +211,7 @@ get_blit_pipeline_id(render_compute_blit_resolve_color_mode color_mode)
  */
 
 xrt_result_t
-Compositor::SetupBlitPipelines(openvr_logger &logger)
+Compositor::setupBlitPipelines(openvr_logger &logger)
 {
 	VkResult vk_result;
 
@@ -306,14 +306,14 @@ Compositor::SetupBlitPipelines(openvr_logger &logger)
 	}
 	VK_NAME_PIPELINE_LAYOUT(vk, this->blit.pipeline_layout, "openvr_compositor_vulkan blit pipeline layout");
 
-	constexpr std::array<render_compute_blit_resolve_color_mode, RENDER_BLIT_RESOLVE_COLOR_MODE_COUNT> color_modes =
+	constexpr std::array<render_compute_blit_resolve_color_mode, RENDER_BLIT_RESOLVE_COLOR_MODE_COUNT> kColorModes =
 	    {
 	        RENDER_BLIT_RESOLVE_COLOR_MODE_GAMMA_IN_LINEAR_FORMAT,
 	        RENDER_BLIT_RESOLVE_COLOR_MODE_LINEAR_IN_SRGB_FORMAT,
 	    };
 
-	for (render_compute_blit_resolve_color_mode color_mode : color_modes) {
-		uint32_t pipeline_id = get_blit_pipeline_id(color_mode);
+	for (render_compute_blit_resolve_color_mode color_mode : kColorModes) {
+		uint32_t pipeline_id = getBlitPipelineId(color_mode);
 		assert(pipeline_id < std::size(this->blit.pipelines));
 
 		render_compute_blit_specialization_constants specialization_constants_data = {
@@ -365,7 +365,7 @@ Compositor::SetupBlitPipelines(openvr_logger &logger)
 }
 
 xrt_result_t
-Compositor::SetupVulkanCompositor(openvr_logger &logger, vr::VRVulkanTextureData_t &vulkan_data)
+Compositor::setupVulkanCompositor(openvr_logger &logger, vr::VRVulkanTextureData_t &vulkan_data)
 {
 	VkInstance vkInstance = vulkan_data.m_pInstance;
 	VkPhysicalDevice vkPhysicalDevice = vulkan_data.m_pPhysicalDevice;
@@ -453,13 +453,13 @@ Compositor::SetupVulkanCompositor(openvr_logger &logger, vr::VRVulkanTextureData
 	this->vk = &c->vk;
 	this->cmd_pool = &c->pool;
 
-	this->SetupBlitPipelines(logger);
+	this->setupBlitPipelines(logger);
 
 	return XRT_SUCCESS;
 }
 
 void
-Compositor::DestroyVulkanResources()
+Compositor::destroyVulkanResources()
 {
 	if (this->vk != nullptr) {
 		if (this->blit.sampler != VK_NULL_HANDLE) {
@@ -501,7 +501,7 @@ Compositor::DestroyVulkanResources()
 }
 
 xrt_result_t
-Compositor::TransferAppImageToSwapchainImage(openvr_logger &logger,
+Compositor::transferAppImageToSwapchainImage(openvr_logger &logger,
                                              xrt_swapchain *xsc,
                                              uint32_t dst_index,
                                              vr::VRVulkanTextureData_t &texture_data,
@@ -515,7 +515,7 @@ Compositor::TransferAppImageToSwapchainImage(openvr_logger &logger,
 	const VkFormat src_format = static_cast<VkFormat>(texture_data.m_nFormat);
 	const bool source_is_multisampled = texture_data.m_nSampleCount > 1;
 	const std::optional<render_compute_blit_resolve_color_mode> resolve_color_mode =
-	    determine_blit_resolve_color_mode(src_format, color_space);
+	    determineBlitResolveColorMode(src_format, color_space);
 	const bool use_compute_resolve = source_is_multisampled && resolve_color_mode.has_value();
 
 	VkImageView src_view = VK_NULL_HANDLE;
@@ -704,7 +704,7 @@ Compositor::TransferAppImageToSwapchainImage(openvr_logger &logger,
 		vk->vkUpdateDescriptorSets(vk->device, ARRAY_SIZE(write_descriptor_sets), write_descriptor_sets, 0,
 		                           NULL);
 
-		uint32_t pipeline_id = get_blit_pipeline_id(*resolve_color_mode);
+		uint32_t pipeline_id = getBlitPipelineId(*resolve_color_mode);
 		assert(pipeline_id < std::size(this->blit.pipelines));
 
 		VkPipeline pipeline = this->blit.pipelines[pipeline_id];
@@ -740,7 +740,7 @@ Compositor::TransferAppImageToSwapchainImage(openvr_logger &logger,
 		};
 
 		uint32_t w = 0, h = 0;
-		calc_dispatch_dims(target_extent, &w, &h);
+		calculateDispatchDimensions(target_extent, &w, &h);
 		assert(w != 0 && h != 0);
 
 		vk->vkCmdDispatch(cmd, w, h, 1);
@@ -786,7 +786,7 @@ Compositor::TransferAppImageToSwapchainImage(openvr_logger &logger,
 }
 
 vr::EVRCompositorError
-Compositor::SubmitVulkan(openvr_logger &logger,
+Compositor::submitVulkan(openvr_logger &logger,
                          vr::EVREye eye,
                          vr::VRVulkanTextureData_t &texture_data,
                          vr::EColorSpace color_space,
@@ -798,11 +798,11 @@ Compositor::SubmitVulkan(openvr_logger &logger,
 	                 (void *)texture_data.m_nImage, texture_data.m_nFormat, color_space);
 
 	if (this->active_compositor == nullptr) {
-		xrt_result_t xret = this->SetupVulkanCompositor(logger, texture_data);
+		xrt_result_t xret = this->setupVulkanCompositor(logger, texture_data);
 
 		if (xret != XRT_SUCCESS) {
 			OPENVR_LOG_ERROR(logger, "Failed to setup Vulkan compositor for submission");
-			return xret_to_compositor_error(xret);
+			return xretToCompositorError(xret);
 		}
 	}
 
@@ -812,10 +812,10 @@ Compositor::SubmitVulkan(openvr_logger &logger,
 
 	// Resolve the format's colour space to the correct one
 	const vr::EColorSpace resolved_color_space =
-	    resolve_color_space(static_cast<VkFormat>(texture_data.m_nFormat), color_space);
+	    resolveColorSpace(static_cast<VkFormat>(texture_data.m_nFormat), color_space);
 
 	const VkFormat swapchain_sample_format =
-	    resolve_swapchain_sample_format(static_cast<VkFormat>(texture_data.m_nFormat), resolved_color_space);
+	    resolveSwapchainSampleFormat(static_cast<VkFormat>(texture_data.m_nFormat), resolved_color_space);
 
 	xrt_rect source_rect = {
 	    .offset =
@@ -832,7 +832,7 @@ Compositor::SubmitVulkan(openvr_logger &logger,
 
 	// The storage format
 	const VkFormat storage_format =
-	    resolve_swapchain_storage_format(static_cast<VkFormat>(texture_data.m_nFormat), swapchain_sample_format);
+	    resolveSwapchainStorageFormat(static_cast<VkFormat>(texture_data.m_nFormat), swapchain_sample_format);
 
 	xrt_swapchain_create_flags swapchain_flags = (xrt_swapchain_create_flags)(0);
 	xrt_swapchain_usage_bits swapchain_bits =
@@ -851,11 +851,11 @@ Compositor::SubmitVulkan(openvr_logger &logger,
 	}
 
 	xrt_result_t xret =
-	    cache.EnsureSwapchain(this->active_compositor, storage_format, swapchain_sample_format,
+	    cache.ensureSwapchain(this->active_compositor, storage_format, swapchain_sample_format,
 	                          source_rect.extent.w, source_rect.extent.h, swapchain_bits, swapchain_flags);
 	if (xret != XRT_SUCCESS) {
 		OPENVR_LOG_ERROR_XRET(logger, "Failed to get swapchain for submitted texture", xret);
-		return xret_to_compositor_error(xret);
+		return xretToCompositorError(xret);
 	}
 
 	xrt_swapchain *xsc = cache.xsc;
@@ -866,36 +866,36 @@ Compositor::SubmitVulkan(openvr_logger &logger,
 	xret = xrt_swapchain_acquire_image(xsc, &image_index);
 	if (xret != XRT_SUCCESS) {
 		OPENVR_LOG_ERROR_XRET(logger, "Failed to acquire swapchain image", xret);
-		return xret_to_compositor_error(xret);
+		return xretToCompositorError(xret);
 	}
 
 	// Wait for it to become available
 	xret = xrt_swapchain_wait_image(xsc, XRT_INFINITE_DURATION, image_index);
 	if (xret != XRT_SUCCESS) {
 		OPENVR_LOG_ERROR_XRET(logger, "Failed to wait for image to be available", xret);
-		return xret_to_compositor_error(xret);
+		return xretToCompositorError(xret);
 	}
 
 	// Barrier it for our own use
 	xret = xrt_swapchain_barrier_image(xsc, XRT_BARRIER_TO_APP, image_index);
 	if (xret != XRT_SUCCESS) {
 		OPENVR_LOG_ERROR_XRET(logger, "Failed to barrier image for app use", xret);
-		return xret_to_compositor_error(xret);
+		return xretToCompositorError(xret);
 	}
 
 	// Copy the app texture into the swapchain image
-	xret = TransferAppImageToSwapchainImage(logger, xsc, image_index, texture_data, storage_format,
+	xret = transferAppImageToSwapchainImage(logger, xsc, image_index, texture_data, storage_format,
 	                                        resolved_color_space, source_rect);
 	if (xret != XRT_SUCCESS) {
 		OPENVR_LOG_ERROR_XRET(logger, "Failed to blit app image to swapchain image", xret);
-		return xret_to_compositor_error(xret);
+		return xretToCompositorError(xret);
 	}
 
 	// Barrier it for compositor use
 	xret = xrt_swapchain_barrier_image(xsc, XRT_BARRIER_TO_COMP, image_index);
 	if (xret != XRT_SUCCESS) {
 		OPENVR_LOG_ERROR_XRET(logger, "Failed to barrier image for compositor use", xret);
-		return xret_to_compositor_error(xret);
+		return xretToCompositorError(xret);
 	}
 
 	xrt_rect full_swapchain_rect = {
@@ -940,22 +940,27 @@ snprint_luid(char *str, size_t size, xrt_luid_t *luid)
 }
 
 void
-Compositor::GetVulkanOutputDevice(openvr_logger &logger, uint64_t *out_device, VkInstance pInstance)
+Compositor::getVulkanOutputDevice(openvr_logger &logger, uint64_t *out_device, VkInstance pInstance)
 {
-	VkInstance vulkanInstance = (VkInstance)pInstance;
-
 	auto vulkanGetInstanceProcAddr = vkGetInstanceProcAddr;
+
+	// We have no way to give a suggestion in this case.
+	// @todo Should we create our own instance here?
+	if (pInstance == VK_NULL_HANDLE) {
+		*out_device = 0;
+		return;
+	}
 
 	// @todo TODO: dedup this whole function with oxr_vulkan
 #define GET_PROC(INST, NAME) PFN_vk##NAME loaded_##NAME = (PFN_vk##NAME)vulkanGetInstanceProcAddr(INST, "vk" #NAME)
-	GET_PROC(vulkanInstance, EnumeratePhysicalDevices);
-	GET_PROC(vulkanInstance, GetPhysicalDeviceProperties2KHR);
+	GET_PROC(pInstance, EnumeratePhysicalDevices);
+	GET_PROC(pInstance, GetPhysicalDeviceProperties2KHR);
 #undef GET_PROC
 
 	VkResult vk_ret;
 	uint32_t count;
 
-	vk_ret = loaded_EnumeratePhysicalDevices(vulkanInstance, &count, NULL);
+	vk_ret = loaded_EnumeratePhysicalDevices(pInstance, &count, NULL);
 	if (vk_ret != VK_SUCCESS) {
 		OPENVR_LOG_ERROR(logger, "Failed to enumerate physical devices to get output device");
 		*out_device = 0;
@@ -969,7 +974,7 @@ Compositor::GetVulkanOutputDevice(openvr_logger &logger, uint64_t *out_device, V
 	}
 
 	std::vector<VkPhysicalDevice> phys(count);
-	vk_ret = loaded_EnumeratePhysicalDevices(vulkanInstance, &count, phys.data());
+	vk_ret = loaded_EnumeratePhysicalDevices(pInstance, &count, phys.data());
 	if (vk_ret != VK_SUCCESS) {
 		OPENVR_LOG_ERROR(logger, "Failed to enumerate physical devices to get output device");
 		*out_device = 0;

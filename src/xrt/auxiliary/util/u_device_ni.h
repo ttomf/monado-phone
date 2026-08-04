@@ -111,14 +111,6 @@ xrt_result_t
 u_device_ni_get_output_limits(struct xrt_device *xdev, struct xrt_output_limits *limits);
 
 /*!
- * Not implemented function for @ref xrt_device::get_presence.
- *
- * @ingroup aux_util
- */
-xrt_result_t
-u_device_ni_get_presence(struct xrt_device *xdev, bool *presence);
-
-/*!
  * Not implemented function for @ref xrt_device::begin_plane_detection_ext.
  *
  * @ingroup aux_util

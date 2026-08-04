@@ -11,11 +11,14 @@
 #pragma once
 
 #include "openvr_interfaces_unified.h"
+#include "openvr_forward_macros.h"
 
 #include "XRTVRClientCore.hpp"
 
 
 namespace xrt::state_trackers::openvr {
+
+using namespace vr;
 
 class XRTVRChaperoneSetup_006 : public vr::IVRChaperoneSetup_006
 {
@@ -26,6 +29,8 @@ public:
 	XRTVRChaperoneSetup_006(XRTVRClientCore_003 *clientCore);
 
 	virtual ~XRTVRChaperoneSetup_006() = default;
+
+	FnTable_IVRChaperoneSetup_006();
 
 	bool
 	CommitWorkingCopy(vr::EChaperoneConfigFile configFile) override;

@@ -13,6 +13,7 @@
 
 #include "interfaces/context.hpp"
 
+#include "b_body_tracker.h"
 #include "b_hand_tracker.h"
 
 #include "util/u_var.h"
@@ -87,6 +88,7 @@ namespace {
 DEBUG_GET_ONCE_LOG_OPTION(lh_log, "LIGHTHOUSE_LOG", U_LOGGING_INFO)
 DEBUG_GET_ONCE_BOOL_OPTION(lh_load_slimevr, "LH_LOAD_SLIMEVR", false)
 DEBUG_GET_ONCE_NUM_OPTION(lh_discover_wait_ms, "LH_DISCOVER_WAIT_MS", 3000)
+DEBUG_GET_ONCE_FLOAT_OPTION(lh_stick_deadzone, "LH_STICK_DEADZONE", 0)
 
 static constexpr size_t MAX_CONTROLLERS = 16;
 
@@ -663,6 +665,28 @@ Context::CreateScalarComponent(vr::PropertyContainerHandle_t ulContainer,
 	return create_component_common(ulContainer, pchName, pHandle);
 }
 
+static struct xrt_vec2
+applyDeadzone(struct xrt_vec2 input)
+{
+	static const float deadzone = [] {
+		float raw = debug_get_float_option_lh_stick_deadzone();
+		// we apply deadzone to the input's absolute value; valid range is 0..1
+		float clamped = CLAMP(raw, 0.0f, 0.99f);
+		if (raw != clamped) {
+			U_LOG_W("LH_STICK_DEADZONE value of %.2f falls outside of expected range 0..1 - clamp to %.2f",
+			        raw, clamped);
+		}
+		return clamped;
+	}();
+
+	if (input.x * input.x + input.y * input.y <= deadzone * deadzone) {
+		input.x = 0.0f;
+		input.y = 0.0f;
+	}
+
+	return input;
+}
+
 vr::EVRInputError
 Context::UpdateScalarComponent(vr::VRInputComponentHandle_t ulComponent, float fNewValue, double fTimeOffset)
 {
@@ -680,6 +704,7 @@ Context::UpdateScalarComponent(vr::VRInputComponentHandle_t ulComponent, float f
 				         "component of its associated input",
 				         ulComponent);
 			}
+			input->value.vec2 = applyDeadzone(input->value.vec2);
 
 		} else {
 			input->value.vec1.x = fNewValue;
@@ -1015,6 +1040,7 @@ steamvr_lh_create_devices(struct xrt_prober *xp, struct xrt_system_devices **out
 	svrs->ctx->in_setup = false;
 
 	u_system_devices_populate_function_pointers(xsysd, get_roles, destroy);
+	xsysd->create_body_tracker = b_body_tracker_create;
 	xsysd->create_hand_tracker = b_hand_tracker_create;
 
 	// Include the HMD

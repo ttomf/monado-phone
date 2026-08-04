@@ -321,9 +321,12 @@ static void
 init_filter(cv::KalmanFilter &kf, float process_cov, float meas_cov, float dt)
 {
 	kf.init(6, 3);
-	kf.transitionMatrix =
-	    (cv::Mat_<float>(6, 6) << 1.0, 0.0, 0.0, dt, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, dt, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0,
-	     dt, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
+	kf.transitionMatrix = cv::Mat_<float>({6, 6}, {1.0f, 0.0f, 0.0f, dt,   0.0f, 0.0f, //
+	                                               0.0f, 1.0f, 0.0f, 0.0f, dt,   0.0f, //
+	                                               0.0f, 0.0f, 1.0f, 0.0f, 0.0f, dt,   //
+	                                               0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, //
+	                                               0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, //
+	                                               0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f});
 
 	cv::setIdentity(kf.measurementMatrix, cv::Scalar::all(1.0f));
 	cv::setIdentity(kf.errorCovPost, cv::Scalar::all(0.0f));

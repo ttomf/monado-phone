@@ -1,4 +1,5 @@
 //========= Copyright Valve Corporation ============//
+
 // Generated from versioned OpenVR headers.
 // Each interface version is copied from the newest header that still contains it.
 
@@ -124,6 +125,33 @@ public:
 	virtual EVRApplicationError LaunchInternalProcess(const char* pchBinaryPath, const char* pchArguments, const char* pchWorkingDirectory) = 0;
 };
 
+struct VR_IVRApplications_004_FnTable
+{
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* AddApplicationManifest)(char* pchApplicationManifestFullPath, bool bTemporary);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* RemoveApplicationManifest)(char* pchApplicationManifestFullPath);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsApplicationInstalled)(char* pchAppKey);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetApplicationCount)();
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* GetApplicationKeyByIndex)(uint32_t unApplicationIndex, char* pchAppKeyBuffer, uint32_t unAppKeyBufferLen);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* GetApplicationKeyByProcessId)(uint32_t unProcessId, char* pchAppKeyBuffer, uint32_t unAppKeyBufferLen);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* LaunchApplication)(char* pchAppKey);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* LaunchDashboardOverlay)(char* pchAppKey);
+	bool(OPENVR_FNTABLE_CALLTYPE* CancelApplicationLaunch)(char* pchAppKey);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* IdentifyApplication)(uint32_t unProcessId, char* pchAppKey);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetApplicationProcessId)(char* pchAppKey);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetApplicationsErrorNameFromEnum)(EVRApplicationError error);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetApplicationPropertyString)(char* pchAppKey, EVRApplicationProperty eProperty, char* pchPropertyValueBuffer, uint32_t unPropertyValueBufferLen, EVRApplicationError* peError);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetApplicationPropertyBool)(char* pchAppKey, EVRApplicationProperty eProperty, EVRApplicationError* peError);
+	uint64_t(OPENVR_FNTABLE_CALLTYPE* GetApplicationPropertyUint64)(char* pchAppKey, EVRApplicationProperty eProperty, EVRApplicationError* peError);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* SetApplicationAutoLaunch)(char* pchAppKey, bool bAutoLaunch);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetApplicationAutoLaunch)(char* pchAppKey);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* GetStartingApplication)(char* pchAppKeyBuffer, uint32_t unAppKeyBufferLen);
+	EVRApplicationTransitionState(OPENVR_FNTABLE_CALLTYPE* GetTransitionState)();
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* PerformApplicationPrelaunchCheck)(char* pchAppKey);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetApplicationsTransitionStateNameFromEnum)(EVRApplicationTransitionState state);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsQuitUserPromptRequested)();
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* LaunchInternalProcess)(char* pchBinaryPath, char* pchArguments, char* pchWorkingDirectory);
+};
+
 
 static const char* const IVRApplications_005_Version = "IVRApplications_005";
 
@@ -154,6 +182,34 @@ public:
 	virtual const char* GetApplicationsTransitionStateNameFromEnum(EVRApplicationTransitionState state) = 0;
 	virtual bool IsQuitUserPromptRequested() = 0;
 	virtual EVRApplicationError LaunchInternalProcess(const char* pchBinaryPath, const char* pchArguments, const char* pchWorkingDirectory) = 0;
+};
+
+struct VR_IVRApplications_005_FnTable
+{
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* AddApplicationManifest)(char* pchApplicationManifestFullPath, bool bTemporary);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* RemoveApplicationManifest)(char* pchApplicationManifestFullPath);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsApplicationInstalled)(char* pchAppKey);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetApplicationCount)();
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* GetApplicationKeyByIndex)(uint32_t unApplicationIndex, char* pchAppKeyBuffer, uint32_t unAppKeyBufferLen);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* GetApplicationKeyByProcessId)(uint32_t unProcessId, char* pchAppKeyBuffer, uint32_t unAppKeyBufferLen);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* LaunchApplication)(char* pchAppKey);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* LaunchTemplateApplication)(char* pchTemplateAppKey, char* pchNewAppKey, struct AppOverrideKeys_t* pKeys, uint32_t unKeys);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* LaunchDashboardOverlay)(char* pchAppKey);
+	bool(OPENVR_FNTABLE_CALLTYPE* CancelApplicationLaunch)(char* pchAppKey);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* IdentifyApplication)(uint32_t unProcessId, char* pchAppKey);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetApplicationProcessId)(char* pchAppKey);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetApplicationsErrorNameFromEnum)(EVRApplicationError error);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetApplicationPropertyString)(char* pchAppKey, EVRApplicationProperty eProperty, char* pchPropertyValueBuffer, uint32_t unPropertyValueBufferLen, EVRApplicationError* peError);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetApplicationPropertyBool)(char* pchAppKey, EVRApplicationProperty eProperty, EVRApplicationError* peError);
+	uint64_t(OPENVR_FNTABLE_CALLTYPE* GetApplicationPropertyUint64)(char* pchAppKey, EVRApplicationProperty eProperty, EVRApplicationError* peError);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* SetApplicationAutoLaunch)(char* pchAppKey, bool bAutoLaunch);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetApplicationAutoLaunch)(char* pchAppKey);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* GetStartingApplication)(char* pchAppKeyBuffer, uint32_t unAppKeyBufferLen);
+	EVRApplicationTransitionState(OPENVR_FNTABLE_CALLTYPE* GetTransitionState)();
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* PerformApplicationPrelaunchCheck)(char* pchAppKey);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetApplicationsTransitionStateNameFromEnum)(EVRApplicationTransitionState state);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsQuitUserPromptRequested)();
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* LaunchInternalProcess)(char* pchBinaryPath, char* pchArguments, char* pchWorkingDirectory);
 };
 
 
@@ -195,6 +251,41 @@ public:
 	virtual uint32_t GetCurrentSceneProcessId() = 0;
 };
 
+struct VR_IVRApplications_006_FnTable
+{
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* AddApplicationManifest)(char* pchApplicationManifestFullPath, bool bTemporary);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* RemoveApplicationManifest)(char* pchApplicationManifestFullPath);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsApplicationInstalled)(char* pchAppKey);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetApplicationCount)();
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* GetApplicationKeyByIndex)(uint32_t unApplicationIndex, char* pchAppKeyBuffer, uint32_t unAppKeyBufferLen);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* GetApplicationKeyByProcessId)(uint32_t unProcessId, char* pchAppKeyBuffer, uint32_t unAppKeyBufferLen);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* LaunchApplication)(char* pchAppKey);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* LaunchTemplateApplication)(char* pchTemplateAppKey, char* pchNewAppKey, struct AppOverrideKeys_t* pKeys, uint32_t unKeys);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* LaunchApplicationFromMimeType)(char* pchMimeType, char* pchArgs);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* LaunchDashboardOverlay)(char* pchAppKey);
+	bool(OPENVR_FNTABLE_CALLTYPE* CancelApplicationLaunch)(char* pchAppKey);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* IdentifyApplication)(uint32_t unProcessId, char* pchAppKey);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetApplicationProcessId)(char* pchAppKey);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetApplicationsErrorNameFromEnum)(EVRApplicationError error);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetApplicationPropertyString)(char* pchAppKey, EVRApplicationProperty eProperty, char* pchPropertyValueBuffer, uint32_t unPropertyValueBufferLen, EVRApplicationError* peError);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetApplicationPropertyBool)(char* pchAppKey, EVRApplicationProperty eProperty, EVRApplicationError* peError);
+	uint64_t(OPENVR_FNTABLE_CALLTYPE* GetApplicationPropertyUint64)(char* pchAppKey, EVRApplicationProperty eProperty, EVRApplicationError* peError);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* SetApplicationAutoLaunch)(char* pchAppKey, bool bAutoLaunch);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetApplicationAutoLaunch)(char* pchAppKey);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* SetDefaultApplicationForMimeType)(char* pchAppKey, char* pchMimeType);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetDefaultApplicationForMimeType)(char* pchMimeType, char* pchAppKeyBuffer, uint32_t unAppKeyBufferLen);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetApplicationSupportedMimeTypes)(char* pchAppKey, char* pchMimeTypesBuffer, uint32_t unMimeTypesBuffer);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetApplicationsThatSupportMimeType)(char* pchMimeType, char* pchAppKeysThatSupportBuffer, uint32_t unAppKeysThatSupportBuffer);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetApplicationLaunchArguments)(uint32_t unHandle, char* pchArgs, uint32_t unArgs);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* GetStartingApplication)(char* pchAppKeyBuffer, uint32_t unAppKeyBufferLen);
+	EVRApplicationTransitionState(OPENVR_FNTABLE_CALLTYPE* GetTransitionState)();
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* PerformApplicationPrelaunchCheck)(char* pchAppKey);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetApplicationsTransitionStateNameFromEnum)(EVRApplicationTransitionState state);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsQuitUserPromptRequested)();
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* LaunchInternalProcess)(char* pchBinaryPath, char* pchArguments, char* pchWorkingDirectory);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetCurrentSceneProcessId)();
+};
+
 
 static const char* const IVRApplications_007_Version = "IVRApplications_007";
 
@@ -231,6 +322,40 @@ public:
 	virtual const char* GetSceneApplicationStateNameFromEnum(EVRSceneApplicationState state) = 0;
 	virtual EVRApplicationError LaunchInternalProcess(const char* pchBinaryPath, const char* pchArguments, const char* pchWorkingDirectory) = 0;
 	virtual uint32_t GetCurrentSceneProcessId() = 0;
+};
+
+struct VR_IVRApplications_007_FnTable
+{
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* AddApplicationManifest)(char* pchApplicationManifestFullPath, bool bTemporary);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* RemoveApplicationManifest)(char* pchApplicationManifestFullPath);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsApplicationInstalled)(char* pchAppKey);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetApplicationCount)();
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* GetApplicationKeyByIndex)(uint32_t unApplicationIndex, char* pchAppKeyBuffer, uint32_t unAppKeyBufferLen);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* GetApplicationKeyByProcessId)(uint32_t unProcessId, char* pchAppKeyBuffer, uint32_t unAppKeyBufferLen);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* LaunchApplication)(char* pchAppKey);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* LaunchTemplateApplication)(char* pchTemplateAppKey, char* pchNewAppKey, struct AppOverrideKeys_t* pKeys, uint32_t unKeys);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* LaunchApplicationFromMimeType)(char* pchMimeType, char* pchArgs);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* LaunchDashboardOverlay)(char* pchAppKey);
+	bool(OPENVR_FNTABLE_CALLTYPE* CancelApplicationLaunch)(char* pchAppKey);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* IdentifyApplication)(uint32_t unProcessId, char* pchAppKey);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetApplicationProcessId)(char* pchAppKey);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetApplicationsErrorNameFromEnum)(EVRApplicationError error);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetApplicationPropertyString)(char* pchAppKey, EVRApplicationProperty eProperty, char* pchPropertyValueBuffer, uint32_t unPropertyValueBufferLen, EVRApplicationError* peError);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetApplicationPropertyBool)(char* pchAppKey, EVRApplicationProperty eProperty, EVRApplicationError* peError);
+	uint64_t(OPENVR_FNTABLE_CALLTYPE* GetApplicationPropertyUint64)(char* pchAppKey, EVRApplicationProperty eProperty, EVRApplicationError* peError);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* SetApplicationAutoLaunch)(char* pchAppKey, bool bAutoLaunch);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetApplicationAutoLaunch)(char* pchAppKey);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* SetDefaultApplicationForMimeType)(char* pchAppKey, char* pchMimeType);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetDefaultApplicationForMimeType)(char* pchMimeType, char* pchAppKeyBuffer, uint32_t unAppKeyBufferLen);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetApplicationSupportedMimeTypes)(char* pchAppKey, char* pchMimeTypesBuffer, uint32_t unMimeTypesBuffer);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetApplicationsThatSupportMimeType)(char* pchMimeType, char* pchAppKeysThatSupportBuffer, uint32_t unAppKeysThatSupportBuffer);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetApplicationLaunchArguments)(uint32_t unHandle, char* pchArgs, uint32_t unArgs);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* GetStartingApplication)(char* pchAppKeyBuffer, uint32_t unAppKeyBufferLen);
+	EVRSceneApplicationState(OPENVR_FNTABLE_CALLTYPE* GetSceneApplicationState)();
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* PerformApplicationPrelaunchCheck)(char* pchAppKey);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetSceneApplicationStateNameFromEnum)(EVRSceneApplicationState state);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* LaunchInternalProcess)(char* pchBinaryPath, char* pchArguments, char* pchWorkingDirectory);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetCurrentSceneProcessId)();
 };
 
 
@@ -272,6 +397,41 @@ public:
 	virtual uint32_t GetCurrentSceneProcessId() = 0;
 };
 
+struct VR_IVRApplications_008_FnTable
+{
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* AddApplicationManifest)(char* pchApplicationManifestFullPath, bool bTemporary);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* RemoveApplicationManifest)(char* pchApplicationManifestFullPath);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsApplicationInstalled)(char* pchAppKey);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetApplicationCount)();
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* GetApplicationKeyByIndex)(uint32_t unApplicationIndex, char* pchAppKeyBuffer, uint32_t unAppKeyBufferLen);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* GetApplicationKeyByProcessId)(uint32_t unProcessId, char* pchAppKeyBuffer, uint32_t unAppKeyBufferLen);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* LaunchApplication)(char* pchAppKey);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* LaunchTemplateApplication)(char* pchTemplateAppKey, char* pchNewAppKey, struct AppOverrideKeys_t* pKeys, uint32_t unKeys);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* LaunchApplicationFromMimeType)(char* pchMimeType, char* pchArgs);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* LaunchDashboardOverlay)(char* pchAppKey);
+	bool(OPENVR_FNTABLE_CALLTYPE* CancelApplicationLaunch)(char* pchAppKey);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* IdentifyApplication)(uint32_t unProcessId, char* pchAppKey);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetApplicationProcessId)(char* pchAppKey);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetApplicationsErrorNameFromEnum)(EVRApplicationError error);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetApplicationPropertyString)(char* pchAppKey, EVRApplicationProperty eProperty, char* pchPropertyValueBuffer, uint32_t unPropertyValueBufferLen, EVRApplicationError* peError);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetApplicationPropertyBool)(char* pchAppKey, EVRApplicationProperty eProperty, EVRApplicationError* peError);
+	uint64_t(OPENVR_FNTABLE_CALLTYPE* GetApplicationPropertyUint64)(char* pchAppKey, EVRApplicationProperty eProperty, EVRApplicationError* peError);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* SetApplicationAutoLaunch)(char* pchAppKey, bool bAutoLaunch);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetApplicationAutoLaunch)(char* pchAppKey);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* SetDefaultApplicationForMimeType)(char* pchAppKey, char* pchMimeType);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetDefaultApplicationForMimeType)(char* pchMimeType, char* pchAppKeyBuffer, uint32_t unAppKeyBufferLen);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetApplicationSupportedMimeTypes)(char* pchAppKey, char* pchMimeTypesBuffer, uint32_t unMimeTypesBuffer);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetApplicationsThatSupportMimeType)(char* pchMimeType, char* pchAppKeysThatSupportBuffer, uint32_t unAppKeysThatSupportBuffer);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetApplicationLaunchArguments)(uint32_t unHandle, char* pchArgs, uint32_t unArgs);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* GetStartingApplication)(char* pchAppKeyBuffer, uint32_t unAppKeyBufferLen);
+	EVRSceneApplicationState(OPENVR_FNTABLE_CALLTYPE* GetSceneApplicationState)();
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* PerformApplicationPrelaunchCheck)(char* pchAppKey);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetSceneApplicationStateNameFromEnum)(EVRSceneApplicationState state);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* LaunchInternalProcess)(char* pchBinaryPath, char* pchArguments, char* pchWorkingDirectory);
+	EVRApplicationError(OPENVR_FNTABLE_CALLTYPE* RegisterSubprocess)(uint32_t nPid);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetCurrentSceneProcessId)();
+};
+
 
 static const char* const IVRChaperone_002_Version = "IVRChaperone_002";
 
@@ -305,6 +465,18 @@ public:
 	virtual void ForceBoundsVisible(bool bForce) = 0;
 };
 
+struct VR_IVRChaperone_003_FnTable
+{
+	ChaperoneCalibrationState(OPENVR_FNTABLE_CALLTYPE* GetCalibrationState)();
+	bool(OPENVR_FNTABLE_CALLTYPE* GetPlayAreaSize)(float* pSizeX, float* pSizeZ);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetPlayAreaRect)(struct HmdQuad_t* rect);
+	void(OPENVR_FNTABLE_CALLTYPE* ReloadInfo)();
+	void(OPENVR_FNTABLE_CALLTYPE* SetSceneColor)(struct HmdColor_t color);
+	void(OPENVR_FNTABLE_CALLTYPE* GetBoundsColor)(struct HmdColor_t* pOutputColorArray, int nNumOutputColors, float flCollisionBoundsFadeDistance, struct HmdColor_t* pOutputCameraColor);
+	bool(OPENVR_FNTABLE_CALLTYPE* AreBoundsVisible)();
+	void(OPENVR_FNTABLE_CALLTYPE* ForceBoundsVisible)(bool bForce);
+};
+
 
 static const char* const IVRChaperone_004_Version = "IVRChaperone_004";
 
@@ -320,6 +492,19 @@ public:
 	virtual bool AreBoundsVisible() = 0;
 	virtual void ForceBoundsVisible(bool bForce) = 0;
 	virtual void ResetZeroPose(ETrackingUniverseOrigin eTrackingUniverseOrigin) = 0;
+};
+
+struct VR_IVRChaperone_004_FnTable
+{
+	ChaperoneCalibrationState(OPENVR_FNTABLE_CALLTYPE* GetCalibrationState)();
+	bool(OPENVR_FNTABLE_CALLTYPE* GetPlayAreaSize)(float* pSizeX, float* pSizeZ);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetPlayAreaRect)(struct HmdQuad_t* rect);
+	void(OPENVR_FNTABLE_CALLTYPE* ReloadInfo)();
+	void(OPENVR_FNTABLE_CALLTYPE* SetSceneColor)(struct HmdColor_t color);
+	void(OPENVR_FNTABLE_CALLTYPE* GetBoundsColor)(struct HmdColor_t* pOutputColorArray, int nNumOutputColors, float flCollisionBoundsFadeDistance, struct HmdColor_t* pOutputCameraColor);
+	bool(OPENVR_FNTABLE_CALLTYPE* AreBoundsVisible)();
+	void(OPENVR_FNTABLE_CALLTYPE* ForceBoundsVisible)(bool bForce);
+	void(OPENVR_FNTABLE_CALLTYPE* ResetZeroPose)(ETrackingUniverseOrigin eTrackingUniverseOrigin);
 };
 
 
@@ -374,6 +559,30 @@ public:
 	virtual bool ImportFromBufferToWorking(const char* pBuffer, uint32_t nImportFlags) = 0;
 };
 
+struct VR_IVRChaperoneSetup_005_FnTable
+{
+	bool(OPENVR_FNTABLE_CALLTYPE* CommitWorkingCopy)(EChaperoneConfigFile configFile);
+	void(OPENVR_FNTABLE_CALLTYPE* RevertWorkingCopy)();
+	bool(OPENVR_FNTABLE_CALLTYPE* GetWorkingPlayAreaSize)(float* pSizeX, float* pSizeZ);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetWorkingPlayAreaRect)(struct HmdQuad_t* rect);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetWorkingCollisionBoundsInfo)(struct HmdQuad_t* pQuadsBuffer, uint32_t* punQuadsCount);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetLiveCollisionBoundsInfo)(struct HmdQuad_t* pQuadsBuffer, uint32_t* punQuadsCount);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetWorkingSeatedZeroPoseToRawTrackingPose)(struct HmdMatrix34_t* pmatSeatedZeroPoseToRawTrackingPose);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetWorkingStandingZeroPoseToRawTrackingPose)(struct HmdMatrix34_t* pmatStandingZeroPoseToRawTrackingPose);
+	void(OPENVR_FNTABLE_CALLTYPE* SetWorkingPlayAreaSize)(float sizeX, float sizeZ);
+	void(OPENVR_FNTABLE_CALLTYPE* SetWorkingCollisionBoundsInfo)(struct HmdQuad_t* pQuadsBuffer, uint32_t unQuadsCount);
+	void(OPENVR_FNTABLE_CALLTYPE* SetWorkingSeatedZeroPoseToRawTrackingPose)(struct HmdMatrix34_t* pMatSeatedZeroPoseToRawTrackingPose);
+	void(OPENVR_FNTABLE_CALLTYPE* SetWorkingStandingZeroPoseToRawTrackingPose)(struct HmdMatrix34_t* pMatStandingZeroPoseToRawTrackingPose);
+	void(OPENVR_FNTABLE_CALLTYPE* ReloadFromDisk)(EChaperoneConfigFile configFile);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetLiveSeatedZeroPoseToRawTrackingPose)(struct HmdMatrix34_t* pmatSeatedZeroPoseToRawTrackingPose);
+	void(OPENVR_FNTABLE_CALLTYPE* SetWorkingCollisionBoundsTagsInfo)(uint8_t* pTagsBuffer, uint32_t unTagCount);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetLiveCollisionBoundsTagsInfo)(uint8_t* pTagsBuffer, uint32_t* punTagCount);
+	bool(OPENVR_FNTABLE_CALLTYPE* SetWorkingPhysicalBoundsInfo)(struct HmdQuad_t* pQuadsBuffer, uint32_t unQuadsCount);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetLivePhysicalBoundsInfo)(struct HmdQuad_t* pQuadsBuffer, uint32_t* punQuadsCount);
+	bool(OPENVR_FNTABLE_CALLTYPE* ExportLiveToBuffer)(char* pBuffer, uint32_t* pnBufferLength);
+	bool(OPENVR_FNTABLE_CALLTYPE* ImportFromBufferToWorking)(char* pBuffer, uint32_t nImportFlags);
+};
+
 
 static const char* const IVRChaperoneSetup_006_Version = "IVRChaperoneSetup_006";
 
@@ -400,6 +609,30 @@ public:
 	virtual void ShowWorkingSetPreview() = 0;
 	virtual void HideWorkingSetPreview() = 0;
 	virtual void RoomSetupStarting() = 0;
+};
+
+struct VR_IVRChaperoneSetup_006_FnTable
+{
+	bool(OPENVR_FNTABLE_CALLTYPE* CommitWorkingCopy)(EChaperoneConfigFile configFile);
+	void(OPENVR_FNTABLE_CALLTYPE* RevertWorkingCopy)();
+	bool(OPENVR_FNTABLE_CALLTYPE* GetWorkingPlayAreaSize)(float* pSizeX, float* pSizeZ);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetWorkingPlayAreaRect)(struct HmdQuad_t* rect);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetWorkingCollisionBoundsInfo)(struct HmdQuad_t* pQuadsBuffer, uint32_t* punQuadsCount);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetLiveCollisionBoundsInfo)(struct HmdQuad_t* pQuadsBuffer, uint32_t* punQuadsCount);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetWorkingSeatedZeroPoseToRawTrackingPose)(struct HmdMatrix34_t* pmatSeatedZeroPoseToRawTrackingPose);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetWorkingStandingZeroPoseToRawTrackingPose)(struct HmdMatrix34_t* pmatStandingZeroPoseToRawTrackingPose);
+	void(OPENVR_FNTABLE_CALLTYPE* SetWorkingPlayAreaSize)(float sizeX, float sizeZ);
+	void(OPENVR_FNTABLE_CALLTYPE* SetWorkingCollisionBoundsInfo)(struct HmdQuad_t* pQuadsBuffer, uint32_t unQuadsCount);
+	void(OPENVR_FNTABLE_CALLTYPE* SetWorkingPerimeter)(struct HmdVector2_t* pPointBuffer, uint32_t unPointCount);
+	void(OPENVR_FNTABLE_CALLTYPE* SetWorkingSeatedZeroPoseToRawTrackingPose)(struct HmdMatrix34_t* pMatSeatedZeroPoseToRawTrackingPose);
+	void(OPENVR_FNTABLE_CALLTYPE* SetWorkingStandingZeroPoseToRawTrackingPose)(struct HmdMatrix34_t* pMatStandingZeroPoseToRawTrackingPose);
+	void(OPENVR_FNTABLE_CALLTYPE* ReloadFromDisk)(EChaperoneConfigFile configFile);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetLiveSeatedZeroPoseToRawTrackingPose)(struct HmdMatrix34_t* pmatSeatedZeroPoseToRawTrackingPose);
+	bool(OPENVR_FNTABLE_CALLTYPE* ExportLiveToBuffer)(char* pBuffer, uint32_t* pnBufferLength);
+	bool(OPENVR_FNTABLE_CALLTYPE* ImportFromBufferToWorking)(char* pBuffer, uint32_t nImportFlags);
+	void(OPENVR_FNTABLE_CALLTYPE* ShowWorkingSetPreview)();
+	void(OPENVR_FNTABLE_CALLTYPE* HideWorkingSetPreview)();
+	void(OPENVR_FNTABLE_CALLTYPE* RoomSetupStarting)();
 };
 
 
@@ -690,6 +923,37 @@ public:
 	virtual void ForceInterleavedReprojectionOn(bool bOverride) = 0;
 };
 
+struct VR_IVRCompositor_013_FnTable
+{
+	void(OPENVR_FNTABLE_CALLTYPE* SetTrackingSpace)(ETrackingUniverseOrigin eOrigin);
+	ETrackingUniverseOrigin(OPENVR_FNTABLE_CALLTYPE* GetTrackingSpace)();
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* WaitGetPoses)(struct TrackedDevicePose_t* pRenderPoseArray, uint32_t unRenderPoseArrayCount, struct TrackedDevicePose_t* pGamePoseArray, uint32_t unGamePoseArrayCount);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetLastPoses)(struct TrackedDevicePose_t* pRenderPoseArray, uint32_t unRenderPoseArrayCount, struct TrackedDevicePose_t* pGamePoseArray, uint32_t unGamePoseArrayCount);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetLastPoseForTrackedDeviceIndex)(TrackedDeviceIndex_t unDeviceIndex, struct TrackedDevicePose_t* pOutputPose, struct TrackedDevicePose_t* pOutputGamePose);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* Submit)(EVREye eEye, struct Texture_t* pTexture, struct VRTextureBounds_t* pBounds, EVRSubmitFlags nSubmitFlags);
+	void(OPENVR_FNTABLE_CALLTYPE* ClearLastSubmittedFrame)();
+	void(OPENVR_FNTABLE_CALLTYPE* PostPresentHandoff)();
+	bool(OPENVR_FNTABLE_CALLTYPE* GetFrameTiming)(struct Compositor_FrameTiming* pTiming, uint32_t unFramesAgo);
+	float(OPENVR_FNTABLE_CALLTYPE* GetFrameTimeRemaining)();
+	void(OPENVR_FNTABLE_CALLTYPE* FadeToColor)(float fSeconds, float fRed, float fGreen, float fBlue, float fAlpha, bool bBackground);
+	void(OPENVR_FNTABLE_CALLTYPE* FadeGrid)(float fSeconds, bool bFadeIn);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* SetSkyboxOverride)(struct Texture_t* pTextures, uint32_t unTextureCount);
+	void(OPENVR_FNTABLE_CALLTYPE* ClearSkyboxOverride)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorBringToFront)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorGoToBack)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorQuit)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsFullscreen)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetCurrentSceneFocusProcess)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetLastFrameRenderer)();
+	bool(OPENVR_FNTABLE_CALLTYPE* CanRenderScene)();
+	void(OPENVR_FNTABLE_CALLTYPE* ShowMirrorWindow)();
+	void(OPENVR_FNTABLE_CALLTYPE* HideMirrorWindow)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsMirrorWindowVisible)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorDumpImages)();
+	bool(OPENVR_FNTABLE_CALLTYPE* ShouldAppRenderWithLowResources)();
+	void(OPENVR_FNTABLE_CALLTYPE* ForceInterleavedReprojectionOn)(bool bOverride);
+};
+
 
 static const char* const IVRCompositor_014_Version = "IVRCompositor_014";
 
@@ -725,6 +989,39 @@ public:
 	virtual void ForceInterleavedReprojectionOn(bool bOverride) = 0;
 	virtual void ForceReconnectProcess() = 0;
 	virtual void SuspendRendering(bool bSuspend) = 0;
+};
+
+struct VR_IVRCompositor_014_FnTable
+{
+	void(OPENVR_FNTABLE_CALLTYPE* SetTrackingSpace)(ETrackingUniverseOrigin eOrigin);
+	ETrackingUniverseOrigin(OPENVR_FNTABLE_CALLTYPE* GetTrackingSpace)();
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* WaitGetPoses)(struct TrackedDevicePose_t* pRenderPoseArray, uint32_t unRenderPoseArrayCount, struct TrackedDevicePose_t* pGamePoseArray, uint32_t unGamePoseArrayCount);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetLastPoses)(struct TrackedDevicePose_t* pRenderPoseArray, uint32_t unRenderPoseArrayCount, struct TrackedDevicePose_t* pGamePoseArray, uint32_t unGamePoseArrayCount);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetLastPoseForTrackedDeviceIndex)(TrackedDeviceIndex_t unDeviceIndex, struct TrackedDevicePose_t* pOutputPose, struct TrackedDevicePose_t* pOutputGamePose);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* Submit)(EVREye eEye, struct Texture_t* pTexture, struct VRTextureBounds_t* pBounds, EVRSubmitFlags nSubmitFlags);
+	void(OPENVR_FNTABLE_CALLTYPE* ClearLastSubmittedFrame)();
+	void(OPENVR_FNTABLE_CALLTYPE* PostPresentHandoff)();
+	bool(OPENVR_FNTABLE_CALLTYPE* GetFrameTiming)(struct Compositor_FrameTiming* pTiming, uint32_t unFramesAgo);
+	float(OPENVR_FNTABLE_CALLTYPE* GetFrameTimeRemaining)();
+	void(OPENVR_FNTABLE_CALLTYPE* FadeToColor)(float fSeconds, float fRed, float fGreen, float fBlue, float fAlpha, bool bBackground);
+	void(OPENVR_FNTABLE_CALLTYPE* FadeGrid)(float fSeconds, bool bFadeIn);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* SetSkyboxOverride)(struct Texture_t* pTextures, uint32_t unTextureCount);
+	void(OPENVR_FNTABLE_CALLTYPE* ClearSkyboxOverride)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorBringToFront)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorGoToBack)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorQuit)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsFullscreen)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetCurrentSceneFocusProcess)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetLastFrameRenderer)();
+	bool(OPENVR_FNTABLE_CALLTYPE* CanRenderScene)();
+	void(OPENVR_FNTABLE_CALLTYPE* ShowMirrorWindow)();
+	void(OPENVR_FNTABLE_CALLTYPE* HideMirrorWindow)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsMirrorWindowVisible)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorDumpImages)();
+	bool(OPENVR_FNTABLE_CALLTYPE* ShouldAppRenderWithLowResources)();
+	void(OPENVR_FNTABLE_CALLTYPE* ForceInterleavedReprojectionOn)(bool bOverride);
+	void(OPENVR_FNTABLE_CALLTYPE* ForceReconnectProcess)();
+	void(OPENVR_FNTABLE_CALLTYPE* SuspendRendering)(bool bSuspend);
 };
 
 
@@ -772,6 +1069,47 @@ public:
 	virtual void UnlockGLSharedTextureForAccess(vr::glSharedTextureHandle_t glSharedTextureHandle) = 0;
 };
 
+struct VR_IVRCompositor_015_FnTable
+{
+	void(OPENVR_FNTABLE_CALLTYPE* SetTrackingSpace)(ETrackingUniverseOrigin eOrigin);
+	ETrackingUniverseOrigin(OPENVR_FNTABLE_CALLTYPE* GetTrackingSpace)();
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* WaitGetPoses)(struct TrackedDevicePose_t* pRenderPoseArray, uint32_t unRenderPoseArrayCount, struct TrackedDevicePose_t* pGamePoseArray, uint32_t unGamePoseArrayCount);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetLastPoses)(struct TrackedDevicePose_t* pRenderPoseArray, uint32_t unRenderPoseArrayCount, struct TrackedDevicePose_t* pGamePoseArray, uint32_t unGamePoseArrayCount);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetLastPoseForTrackedDeviceIndex)(TrackedDeviceIndex_t unDeviceIndex, struct TrackedDevicePose_t* pOutputPose, struct TrackedDevicePose_t* pOutputGamePose);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* Submit)(EVREye eEye, struct Texture_t* pTexture, struct VRTextureBounds_t* pBounds, EVRSubmitFlags nSubmitFlags);
+	void(OPENVR_FNTABLE_CALLTYPE* ClearLastSubmittedFrame)();
+	void(OPENVR_FNTABLE_CALLTYPE* PostPresentHandoff)();
+	bool(OPENVR_FNTABLE_CALLTYPE* GetFrameTiming)(struct Compositor_FrameTiming* pTiming, uint32_t unFramesAgo);
+	float(OPENVR_FNTABLE_CALLTYPE* GetFrameTimeRemaining)();
+	void(OPENVR_FNTABLE_CALLTYPE* GetCumulativeStats)(struct Compositor_CumulativeStats* pStats, uint32_t nStatsSizeInBytes);
+	void(OPENVR_FNTABLE_CALLTYPE* FadeToColor)(float fSeconds, float fRed, float fGreen, float fBlue, float fAlpha, bool bBackground);
+	void(OPENVR_FNTABLE_CALLTYPE* FadeGrid)(float fSeconds, bool bFadeIn);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* SetSkyboxOverride)(struct Texture_t* pTextures, uint32_t unTextureCount);
+	void(OPENVR_FNTABLE_CALLTYPE* ClearSkyboxOverride)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorBringToFront)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorGoToBack)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorQuit)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsFullscreen)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetCurrentSceneFocusProcess)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetLastFrameRenderer)();
+	bool(OPENVR_FNTABLE_CALLTYPE* CanRenderScene)();
+	void(OPENVR_FNTABLE_CALLTYPE* ShowMirrorWindow)();
+	void(OPENVR_FNTABLE_CALLTYPE* HideMirrorWindow)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsMirrorWindowVisible)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorDumpImages)();
+	bool(OPENVR_FNTABLE_CALLTYPE* ShouldAppRenderWithLowResources)();
+	void(OPENVR_FNTABLE_CALLTYPE* ForceInterleavedReprojectionOn)(bool bOverride);
+	void(OPENVR_FNTABLE_CALLTYPE* ForceReconnectProcess)();
+	void(OPENVR_FNTABLE_CALLTYPE* SuspendRendering)(bool bSuspend);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* RequestScreenshot)(EVRScreenshotType type, char* pchDestinationFileName, char* pchVRDestinationFileName);
+	EVRScreenshotType(OPENVR_FNTABLE_CALLTYPE* GetCurrentScreenshotType)();
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetMirrorTextureD3D11)(EVREye eEye, void* pD3D11DeviceOrResource, void** ppD3D11ShaderResourceView);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetMirrorTextureGL)(EVREye eEye, glUInt_t* pglTextureId, glSharedTextureHandle_t* pglSharedTextureHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* ReleaseSharedGLTexture)(glUInt_t glTextureId, glSharedTextureHandle_t glSharedTextureHandle);
+	void(OPENVR_FNTABLE_CALLTYPE* LockGLSharedTextureForAccess)(glSharedTextureHandle_t glSharedTextureHandle);
+	void(OPENVR_FNTABLE_CALLTYPE* UnlockGLSharedTextureForAccess)(glSharedTextureHandle_t glSharedTextureHandle);
+};
+
 
 static const char* const IVRCompositor_016_Version = "IVRCompositor_016";
 
@@ -813,6 +1151,45 @@ public:
 	virtual bool ReleaseSharedGLTexture(vr::glUInt_t glTextureId, vr::glSharedTextureHandle_t glSharedTextureHandle) = 0;
 	virtual void LockGLSharedTextureForAccess(vr::glSharedTextureHandle_t glSharedTextureHandle) = 0;
 	virtual void UnlockGLSharedTextureForAccess(vr::glSharedTextureHandle_t glSharedTextureHandle) = 0;
+};
+
+struct VR_IVRCompositor_016_FnTable
+{
+	void(OPENVR_FNTABLE_CALLTYPE* SetTrackingSpace)(ETrackingUniverseOrigin eOrigin);
+	ETrackingUniverseOrigin(OPENVR_FNTABLE_CALLTYPE* GetTrackingSpace)();
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* WaitGetPoses)(struct TrackedDevicePose_t* pRenderPoseArray, uint32_t unRenderPoseArrayCount, struct TrackedDevicePose_t* pGamePoseArray, uint32_t unGamePoseArrayCount);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetLastPoses)(struct TrackedDevicePose_t* pRenderPoseArray, uint32_t unRenderPoseArrayCount, struct TrackedDevicePose_t* pGamePoseArray, uint32_t unGamePoseArrayCount);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetLastPoseForTrackedDeviceIndex)(TrackedDeviceIndex_t unDeviceIndex, struct TrackedDevicePose_t* pOutputPose, struct TrackedDevicePose_t* pOutputGamePose);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* Submit)(EVREye eEye, struct Texture_t* pTexture, struct VRTextureBounds_t* pBounds, EVRSubmitFlags nSubmitFlags);
+	void(OPENVR_FNTABLE_CALLTYPE* ClearLastSubmittedFrame)();
+	void(OPENVR_FNTABLE_CALLTYPE* PostPresentHandoff)();
+	bool(OPENVR_FNTABLE_CALLTYPE* GetFrameTiming)(struct Compositor_FrameTiming* pTiming, uint32_t unFramesAgo);
+	float(OPENVR_FNTABLE_CALLTYPE* GetFrameTimeRemaining)();
+	void(OPENVR_FNTABLE_CALLTYPE* GetCumulativeStats)(struct Compositor_CumulativeStats* pStats, uint32_t nStatsSizeInBytes);
+	void(OPENVR_FNTABLE_CALLTYPE* FadeToColor)(float fSeconds, float fRed, float fGreen, float fBlue, float fAlpha, bool bBackground);
+	void(OPENVR_FNTABLE_CALLTYPE* FadeGrid)(float fSeconds, bool bFadeIn);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* SetSkyboxOverride)(struct Texture_t* pTextures, uint32_t unTextureCount);
+	void(OPENVR_FNTABLE_CALLTYPE* ClearSkyboxOverride)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorBringToFront)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorGoToBack)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorQuit)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsFullscreen)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetCurrentSceneFocusProcess)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetLastFrameRenderer)();
+	bool(OPENVR_FNTABLE_CALLTYPE* CanRenderScene)();
+	void(OPENVR_FNTABLE_CALLTYPE* ShowMirrorWindow)();
+	void(OPENVR_FNTABLE_CALLTYPE* HideMirrorWindow)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsMirrorWindowVisible)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorDumpImages)();
+	bool(OPENVR_FNTABLE_CALLTYPE* ShouldAppRenderWithLowResources)();
+	void(OPENVR_FNTABLE_CALLTYPE* ForceInterleavedReprojectionOn)(bool bOverride);
+	void(OPENVR_FNTABLE_CALLTYPE* ForceReconnectProcess)();
+	void(OPENVR_FNTABLE_CALLTYPE* SuspendRendering)(bool bSuspend);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetMirrorTextureD3D11)(EVREye eEye, void* pD3D11DeviceOrResource, void** ppD3D11ShaderResourceView);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetMirrorTextureGL)(EVREye eEye, glUInt_t* pglTextureId, glSharedTextureHandle_t* pglSharedTextureHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* ReleaseSharedGLTexture)(glUInt_t glTextureId, glSharedTextureHandle_t glSharedTextureHandle);
+	void(OPENVR_FNTABLE_CALLTYPE* LockGLSharedTextureForAccess)(glSharedTextureHandle_t glSharedTextureHandle);
+	void(OPENVR_FNTABLE_CALLTYPE* UnlockGLSharedTextureForAccess)(glSharedTextureHandle_t glSharedTextureHandle);
 };
 
 
@@ -861,6 +1238,48 @@ public:
 	virtual void UnlockGLSharedTextureForAccess(vr::glSharedTextureHandle_t glSharedTextureHandle) = 0;
 };
 
+struct VR_IVRCompositor_018_FnTable
+{
+	void(OPENVR_FNTABLE_CALLTYPE* SetTrackingSpace)(ETrackingUniverseOrigin eOrigin);
+	ETrackingUniverseOrigin(OPENVR_FNTABLE_CALLTYPE* GetTrackingSpace)();
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* WaitGetPoses)(struct TrackedDevicePose_t* pRenderPoseArray, uint32_t unRenderPoseArrayCount, struct TrackedDevicePose_t* pGamePoseArray, uint32_t unGamePoseArrayCount);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetLastPoses)(struct TrackedDevicePose_t* pRenderPoseArray, uint32_t unRenderPoseArrayCount, struct TrackedDevicePose_t* pGamePoseArray, uint32_t unGamePoseArrayCount);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetLastPoseForTrackedDeviceIndex)(TrackedDeviceIndex_t unDeviceIndex, struct TrackedDevicePose_t* pOutputPose, struct TrackedDevicePose_t* pOutputGamePose);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* Submit)(EVREye eEye, struct Texture_t* pTexture, struct VRTextureBounds_t* pBounds, EVRSubmitFlags nSubmitFlags);
+	void(OPENVR_FNTABLE_CALLTYPE* ClearLastSubmittedFrame)();
+	void(OPENVR_FNTABLE_CALLTYPE* PostPresentHandoff)();
+	bool(OPENVR_FNTABLE_CALLTYPE* GetFrameTiming)(struct Compositor_FrameTiming* pTiming, uint32_t unFramesAgo);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetFrameTimings)(struct Compositor_FrameTiming* pTiming, uint32_t nFrames);
+	float(OPENVR_FNTABLE_CALLTYPE* GetFrameTimeRemaining)();
+	void(OPENVR_FNTABLE_CALLTYPE* GetCumulativeStats)(struct Compositor_CumulativeStats* pStats, uint32_t nStatsSizeInBytes);
+	void(OPENVR_FNTABLE_CALLTYPE* FadeToColor)(float fSeconds, float fRed, float fGreen, float fBlue, float fAlpha, bool bBackground);
+	struct HmdColor_t(OPENVR_FNTABLE_CALLTYPE* GetCurrentFadeColor)(bool bBackground);
+	void(OPENVR_FNTABLE_CALLTYPE* FadeGrid)(float fSeconds, bool bFadeIn);
+	float(OPENVR_FNTABLE_CALLTYPE* GetCurrentGridAlpha)();
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* SetSkyboxOverride)(struct Texture_t* pTextures, uint32_t unTextureCount);
+	void(OPENVR_FNTABLE_CALLTYPE* ClearSkyboxOverride)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorBringToFront)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorGoToBack)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorQuit)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsFullscreen)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetCurrentSceneFocusProcess)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetLastFrameRenderer)();
+	bool(OPENVR_FNTABLE_CALLTYPE* CanRenderScene)();
+	void(OPENVR_FNTABLE_CALLTYPE* ShowMirrorWindow)();
+	void(OPENVR_FNTABLE_CALLTYPE* HideMirrorWindow)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsMirrorWindowVisible)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorDumpImages)();
+	bool(OPENVR_FNTABLE_CALLTYPE* ShouldAppRenderWithLowResources)();
+	void(OPENVR_FNTABLE_CALLTYPE* ForceInterleavedReprojectionOn)(bool bOverride);
+	void(OPENVR_FNTABLE_CALLTYPE* ForceReconnectProcess)();
+	void(OPENVR_FNTABLE_CALLTYPE* SuspendRendering)(bool bSuspend);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetMirrorTextureD3D11)(EVREye eEye, void* pD3D11DeviceOrResource, void** ppD3D11ShaderResourceView);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetMirrorTextureGL)(EVREye eEye, glUInt_t* pglTextureId, glSharedTextureHandle_t* pglSharedTextureHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* ReleaseSharedGLTexture)(glUInt_t glTextureId, glSharedTextureHandle_t glSharedTextureHandle);
+	void(OPENVR_FNTABLE_CALLTYPE* LockGLSharedTextureForAccess)(glSharedTextureHandle_t glSharedTextureHandle);
+	void(OPENVR_FNTABLE_CALLTYPE* UnlockGLSharedTextureForAccess)(glSharedTextureHandle_t glSharedTextureHandle);
+};
+
 
 static const char* const IVRCompositor_019_Version = "IVRCompositor_019";
 
@@ -907,6 +1326,50 @@ public:
 	virtual void UnlockGLSharedTextureForAccess(vr::glSharedTextureHandle_t glSharedTextureHandle) = 0;
 	virtual uint32_t GetVulkanInstanceExtensionsRequired(VR_OUT_STRING() char* pchValue, uint32_t unBufferSize) = 0;
 	virtual uint32_t GetVulkanDeviceExtensionsRequired(VkPhysicalDevice_T* pPhysicalDevice, VR_OUT_STRING() char* pchValue, uint32_t unBufferSize) = 0;
+};
+
+struct VR_IVRCompositor_019_FnTable
+{
+	void(OPENVR_FNTABLE_CALLTYPE* SetTrackingSpace)(ETrackingUniverseOrigin eOrigin);
+	ETrackingUniverseOrigin(OPENVR_FNTABLE_CALLTYPE* GetTrackingSpace)();
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* WaitGetPoses)(struct TrackedDevicePose_t* pRenderPoseArray, uint32_t unRenderPoseArrayCount, struct TrackedDevicePose_t* pGamePoseArray, uint32_t unGamePoseArrayCount);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetLastPoses)(struct TrackedDevicePose_t* pRenderPoseArray, uint32_t unRenderPoseArrayCount, struct TrackedDevicePose_t* pGamePoseArray, uint32_t unGamePoseArrayCount);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetLastPoseForTrackedDeviceIndex)(TrackedDeviceIndex_t unDeviceIndex, struct TrackedDevicePose_t* pOutputPose, struct TrackedDevicePose_t* pOutputGamePose);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* Submit)(EVREye eEye, struct Texture_t* pTexture, struct VRTextureBounds_t* pBounds, EVRSubmitFlags nSubmitFlags);
+	void(OPENVR_FNTABLE_CALLTYPE* ClearLastSubmittedFrame)();
+	void(OPENVR_FNTABLE_CALLTYPE* PostPresentHandoff)();
+	bool(OPENVR_FNTABLE_CALLTYPE* GetFrameTiming)(struct Compositor_FrameTiming* pTiming, uint32_t unFramesAgo);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetFrameTimings)(struct Compositor_FrameTiming* pTiming, uint32_t nFrames);
+	float(OPENVR_FNTABLE_CALLTYPE* GetFrameTimeRemaining)();
+	void(OPENVR_FNTABLE_CALLTYPE* GetCumulativeStats)(struct Compositor_CumulativeStats* pStats, uint32_t nStatsSizeInBytes);
+	void(OPENVR_FNTABLE_CALLTYPE* FadeToColor)(float fSeconds, float fRed, float fGreen, float fBlue, float fAlpha, bool bBackground);
+	struct HmdColor_t(OPENVR_FNTABLE_CALLTYPE* GetCurrentFadeColor)(bool bBackground);
+	void(OPENVR_FNTABLE_CALLTYPE* FadeGrid)(float fSeconds, bool bFadeIn);
+	float(OPENVR_FNTABLE_CALLTYPE* GetCurrentGridAlpha)();
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* SetSkyboxOverride)(struct Texture_t* pTextures, uint32_t unTextureCount);
+	void(OPENVR_FNTABLE_CALLTYPE* ClearSkyboxOverride)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorBringToFront)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorGoToBack)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorQuit)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsFullscreen)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetCurrentSceneFocusProcess)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetLastFrameRenderer)();
+	bool(OPENVR_FNTABLE_CALLTYPE* CanRenderScene)();
+	void(OPENVR_FNTABLE_CALLTYPE* ShowMirrorWindow)();
+	void(OPENVR_FNTABLE_CALLTYPE* HideMirrorWindow)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsMirrorWindowVisible)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorDumpImages)();
+	bool(OPENVR_FNTABLE_CALLTYPE* ShouldAppRenderWithLowResources)();
+	void(OPENVR_FNTABLE_CALLTYPE* ForceInterleavedReprojectionOn)(bool bOverride);
+	void(OPENVR_FNTABLE_CALLTYPE* ForceReconnectProcess)();
+	void(OPENVR_FNTABLE_CALLTYPE* SuspendRendering)(bool bSuspend);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetMirrorTextureD3D11)(EVREye eEye, void* pD3D11DeviceOrResource, void** ppD3D11ShaderResourceView);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetMirrorTextureGL)(EVREye eEye, glUInt_t* pglTextureId, glSharedTextureHandle_t* pglSharedTextureHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* ReleaseSharedGLTexture)(glUInt_t glTextureId, glSharedTextureHandle_t glSharedTextureHandle);
+	void(OPENVR_FNTABLE_CALLTYPE* LockGLSharedTextureForAccess)(glSharedTextureHandle_t glSharedTextureHandle);
+	void(OPENVR_FNTABLE_CALLTYPE* UnlockGLSharedTextureForAccess)(glSharedTextureHandle_t glSharedTextureHandle);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetVulkanInstanceExtensionsRequired)(char* pchValue, uint32_t unBufferSize);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetVulkanDeviceExtensionsRequired)(struct VkPhysicalDevice_T* pPhysicalDevice, char* pchValue, uint32_t unBufferSize);
 };
 
 
@@ -958,6 +1421,51 @@ public:
 	virtual uint32_t GetVulkanDeviceExtensionsRequired(VkPhysicalDevice_T* pPhysicalDevice, VR_OUT_STRING() char* pchValue, uint32_t unBufferSize) = 0;
 };
 
+struct VR_IVRCompositor_020_FnTable
+{
+	void(OPENVR_FNTABLE_CALLTYPE* SetTrackingSpace)(ETrackingUniverseOrigin eOrigin);
+	ETrackingUniverseOrigin(OPENVR_FNTABLE_CALLTYPE* GetTrackingSpace)();
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* WaitGetPoses)(struct TrackedDevicePose_t* pRenderPoseArray, uint32_t unRenderPoseArrayCount, struct TrackedDevicePose_t* pGamePoseArray, uint32_t unGamePoseArrayCount);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetLastPoses)(struct TrackedDevicePose_t* pRenderPoseArray, uint32_t unRenderPoseArrayCount, struct TrackedDevicePose_t* pGamePoseArray, uint32_t unGamePoseArrayCount);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetLastPoseForTrackedDeviceIndex)(TrackedDeviceIndex_t unDeviceIndex, struct TrackedDevicePose_t* pOutputPose, struct TrackedDevicePose_t* pOutputGamePose);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* Submit)(EVREye eEye, struct Texture_t* pTexture, struct VRTextureBounds_t* pBounds, EVRSubmitFlags nSubmitFlags);
+	void(OPENVR_FNTABLE_CALLTYPE* ClearLastSubmittedFrame)();
+	void(OPENVR_FNTABLE_CALLTYPE* PostPresentHandoff)();
+	bool(OPENVR_FNTABLE_CALLTYPE* GetFrameTiming)(struct Compositor_FrameTiming* pTiming, uint32_t unFramesAgo);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetFrameTimings)(struct Compositor_FrameTiming* pTiming, uint32_t nFrames);
+	float(OPENVR_FNTABLE_CALLTYPE* GetFrameTimeRemaining)();
+	void(OPENVR_FNTABLE_CALLTYPE* GetCumulativeStats)(struct Compositor_CumulativeStats* pStats, uint32_t nStatsSizeInBytes);
+	void(OPENVR_FNTABLE_CALLTYPE* FadeToColor)(float fSeconds, float fRed, float fGreen, float fBlue, float fAlpha, bool bBackground);
+	struct HmdColor_t(OPENVR_FNTABLE_CALLTYPE* GetCurrentFadeColor)(bool bBackground);
+	void(OPENVR_FNTABLE_CALLTYPE* FadeGrid)(float fSeconds, bool bFadeIn);
+	float(OPENVR_FNTABLE_CALLTYPE* GetCurrentGridAlpha)();
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* SetSkyboxOverride)(struct Texture_t* pTextures, uint32_t unTextureCount);
+	void(OPENVR_FNTABLE_CALLTYPE* ClearSkyboxOverride)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorBringToFront)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorGoToBack)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorQuit)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsFullscreen)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetCurrentSceneFocusProcess)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetLastFrameRenderer)();
+	bool(OPENVR_FNTABLE_CALLTYPE* CanRenderScene)();
+	void(OPENVR_FNTABLE_CALLTYPE* ShowMirrorWindow)();
+	void(OPENVR_FNTABLE_CALLTYPE* HideMirrorWindow)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsMirrorWindowVisible)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorDumpImages)();
+	bool(OPENVR_FNTABLE_CALLTYPE* ShouldAppRenderWithLowResources)();
+	void(OPENVR_FNTABLE_CALLTYPE* ForceInterleavedReprojectionOn)(bool bOverride);
+	void(OPENVR_FNTABLE_CALLTYPE* ForceReconnectProcess)();
+	void(OPENVR_FNTABLE_CALLTYPE* SuspendRendering)(bool bSuspend);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetMirrorTextureD3D11)(EVREye eEye, void* pD3D11DeviceOrResource, void** ppD3D11ShaderResourceView);
+	void(OPENVR_FNTABLE_CALLTYPE* ReleaseMirrorTextureD3D11)(void* pD3D11ShaderResourceView);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetMirrorTextureGL)(EVREye eEye, glUInt_t* pglTextureId, glSharedTextureHandle_t* pglSharedTextureHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* ReleaseSharedGLTexture)(glUInt_t glTextureId, glSharedTextureHandle_t glSharedTextureHandle);
+	void(OPENVR_FNTABLE_CALLTYPE* LockGLSharedTextureForAccess)(glSharedTextureHandle_t glSharedTextureHandle);
+	void(OPENVR_FNTABLE_CALLTYPE* UnlockGLSharedTextureForAccess)(glSharedTextureHandle_t glSharedTextureHandle);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetVulkanInstanceExtensionsRequired)(char* pchValue, uint32_t unBufferSize);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetVulkanDeviceExtensionsRequired)(struct VkPhysicalDevice_T* pPhysicalDevice, char* pchValue, uint32_t unBufferSize);
+};
+
 
 static const char* const IVRCompositor_021_Version = "IVRCompositor_021";
 
@@ -1007,6 +1515,53 @@ public:
 	virtual uint32_t GetVulkanDeviceExtensionsRequired(VkPhysicalDevice_T* pPhysicalDevice, VR_OUT_STRING() char* pchValue, uint32_t unBufferSize) = 0;
 	virtual void SetExplicitTimingMode(bool bExplicitTimingMode) = 0;
 	virtual EVRCompositorError SubmitExplicitTimingData() = 0;
+};
+
+struct VR_IVRCompositor_021_FnTable
+{
+	void(OPENVR_FNTABLE_CALLTYPE* SetTrackingSpace)(ETrackingUniverseOrigin eOrigin);
+	ETrackingUniverseOrigin(OPENVR_FNTABLE_CALLTYPE* GetTrackingSpace)();
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* WaitGetPoses)(struct TrackedDevicePose_t* pRenderPoseArray, uint32_t unRenderPoseArrayCount, struct TrackedDevicePose_t* pGamePoseArray, uint32_t unGamePoseArrayCount);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetLastPoses)(struct TrackedDevicePose_t* pRenderPoseArray, uint32_t unRenderPoseArrayCount, struct TrackedDevicePose_t* pGamePoseArray, uint32_t unGamePoseArrayCount);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetLastPoseForTrackedDeviceIndex)(TrackedDeviceIndex_t unDeviceIndex, struct TrackedDevicePose_t* pOutputPose, struct TrackedDevicePose_t* pOutputGamePose);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* Submit)(EVREye eEye, struct Texture_t* pTexture, struct VRTextureBounds_t* pBounds, EVRSubmitFlags nSubmitFlags);
+	void(OPENVR_FNTABLE_CALLTYPE* ClearLastSubmittedFrame)();
+	void(OPENVR_FNTABLE_CALLTYPE* PostPresentHandoff)();
+	bool(OPENVR_FNTABLE_CALLTYPE* GetFrameTiming)(struct Compositor_FrameTiming* pTiming, uint32_t unFramesAgo);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetFrameTimings)(struct Compositor_FrameTiming* pTiming, uint32_t nFrames);
+	float(OPENVR_FNTABLE_CALLTYPE* GetFrameTimeRemaining)();
+	void(OPENVR_FNTABLE_CALLTYPE* GetCumulativeStats)(struct Compositor_CumulativeStats* pStats, uint32_t nStatsSizeInBytes);
+	void(OPENVR_FNTABLE_CALLTYPE* FadeToColor)(float fSeconds, float fRed, float fGreen, float fBlue, float fAlpha, bool bBackground);
+	struct HmdColor_t(OPENVR_FNTABLE_CALLTYPE* GetCurrentFadeColor)(bool bBackground);
+	void(OPENVR_FNTABLE_CALLTYPE* FadeGrid)(float fSeconds, bool bFadeIn);
+	float(OPENVR_FNTABLE_CALLTYPE* GetCurrentGridAlpha)();
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* SetSkyboxOverride)(struct Texture_t* pTextures, uint32_t unTextureCount);
+	void(OPENVR_FNTABLE_CALLTYPE* ClearSkyboxOverride)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorBringToFront)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorGoToBack)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorQuit)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsFullscreen)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetCurrentSceneFocusProcess)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetLastFrameRenderer)();
+	bool(OPENVR_FNTABLE_CALLTYPE* CanRenderScene)();
+	void(OPENVR_FNTABLE_CALLTYPE* ShowMirrorWindow)();
+	void(OPENVR_FNTABLE_CALLTYPE* HideMirrorWindow)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsMirrorWindowVisible)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorDumpImages)();
+	bool(OPENVR_FNTABLE_CALLTYPE* ShouldAppRenderWithLowResources)();
+	void(OPENVR_FNTABLE_CALLTYPE* ForceInterleavedReprojectionOn)(bool bOverride);
+	void(OPENVR_FNTABLE_CALLTYPE* ForceReconnectProcess)();
+	void(OPENVR_FNTABLE_CALLTYPE* SuspendRendering)(bool bSuspend);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetMirrorTextureD3D11)(EVREye eEye, void* pD3D11DeviceOrResource, void** ppD3D11ShaderResourceView);
+	void(OPENVR_FNTABLE_CALLTYPE* ReleaseMirrorTextureD3D11)(void* pD3D11ShaderResourceView);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetMirrorTextureGL)(EVREye eEye, glUInt_t* pglTextureId, glSharedTextureHandle_t* pglSharedTextureHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* ReleaseSharedGLTexture)(glUInt_t glTextureId, glSharedTextureHandle_t glSharedTextureHandle);
+	void(OPENVR_FNTABLE_CALLTYPE* LockGLSharedTextureForAccess)(glSharedTextureHandle_t glSharedTextureHandle);
+	void(OPENVR_FNTABLE_CALLTYPE* UnlockGLSharedTextureForAccess)(glSharedTextureHandle_t glSharedTextureHandle);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetVulkanInstanceExtensionsRequired)(char* pchValue, uint32_t unBufferSize);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetVulkanDeviceExtensionsRequired)(struct VkPhysicalDevice_T* pPhysicalDevice, char* pchValue, uint32_t unBufferSize);
+	void(OPENVR_FNTABLE_CALLTYPE* SetExplicitTimingMode)(bool bExplicitTimingMode);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* SubmitExplicitTimingData)();
 };
 
 
@@ -1063,6 +1618,56 @@ public:
 	virtual bool IsCurrentSceneFocusAppLoading() = 0;
 };
 
+struct VR_IVRCompositor_022_FnTable
+{
+	void(OPENVR_FNTABLE_CALLTYPE* SetTrackingSpace)(ETrackingUniverseOrigin eOrigin);
+	ETrackingUniverseOrigin(OPENVR_FNTABLE_CALLTYPE* GetTrackingSpace)();
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* WaitGetPoses)(struct TrackedDevicePose_t* pRenderPoseArray, uint32_t unRenderPoseArrayCount, struct TrackedDevicePose_t* pGamePoseArray, uint32_t unGamePoseArrayCount);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetLastPoses)(struct TrackedDevicePose_t* pRenderPoseArray, uint32_t unRenderPoseArrayCount, struct TrackedDevicePose_t* pGamePoseArray, uint32_t unGamePoseArrayCount);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetLastPoseForTrackedDeviceIndex)(TrackedDeviceIndex_t unDeviceIndex, struct TrackedDevicePose_t* pOutputPose, struct TrackedDevicePose_t* pOutputGamePose);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* Submit)(EVREye eEye, struct Texture_t* pTexture, struct VRTextureBounds_t* pBounds, EVRSubmitFlags nSubmitFlags);
+	void(OPENVR_FNTABLE_CALLTYPE* ClearLastSubmittedFrame)();
+	void(OPENVR_FNTABLE_CALLTYPE* PostPresentHandoff)();
+	bool(OPENVR_FNTABLE_CALLTYPE* GetFrameTiming)(struct Compositor_FrameTiming* pTiming, uint32_t unFramesAgo);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetFrameTimings)(struct Compositor_FrameTiming* pTiming, uint32_t nFrames);
+	float(OPENVR_FNTABLE_CALLTYPE* GetFrameTimeRemaining)();
+	void(OPENVR_FNTABLE_CALLTYPE* GetCumulativeStats)(struct Compositor_CumulativeStats* pStats, uint32_t nStatsSizeInBytes);
+	void(OPENVR_FNTABLE_CALLTYPE* FadeToColor)(float fSeconds, float fRed, float fGreen, float fBlue, float fAlpha, bool bBackground);
+	struct HmdColor_t(OPENVR_FNTABLE_CALLTYPE* GetCurrentFadeColor)(bool bBackground);
+	void(OPENVR_FNTABLE_CALLTYPE* FadeGrid)(float fSeconds, bool bFadeIn);
+	float(OPENVR_FNTABLE_CALLTYPE* GetCurrentGridAlpha)();
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* SetSkyboxOverride)(struct Texture_t* pTextures, uint32_t unTextureCount);
+	void(OPENVR_FNTABLE_CALLTYPE* ClearSkyboxOverride)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorBringToFront)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorGoToBack)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorQuit)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsFullscreen)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetCurrentSceneFocusProcess)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetLastFrameRenderer)();
+	bool(OPENVR_FNTABLE_CALLTYPE* CanRenderScene)();
+	void(OPENVR_FNTABLE_CALLTYPE* ShowMirrorWindow)();
+	void(OPENVR_FNTABLE_CALLTYPE* HideMirrorWindow)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsMirrorWindowVisible)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorDumpImages)();
+	bool(OPENVR_FNTABLE_CALLTYPE* ShouldAppRenderWithLowResources)();
+	void(OPENVR_FNTABLE_CALLTYPE* ForceInterleavedReprojectionOn)(bool bOverride);
+	void(OPENVR_FNTABLE_CALLTYPE* ForceReconnectProcess)();
+	void(OPENVR_FNTABLE_CALLTYPE* SuspendRendering)(bool bSuspend);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetMirrorTextureD3D11)(EVREye eEye, void* pD3D11DeviceOrResource, void** ppD3D11ShaderResourceView);
+	void(OPENVR_FNTABLE_CALLTYPE* ReleaseMirrorTextureD3D11)(void* pD3D11ShaderResourceView);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetMirrorTextureGL)(EVREye eEye, glUInt_t* pglTextureId, glSharedTextureHandle_t* pglSharedTextureHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* ReleaseSharedGLTexture)(glUInt_t glTextureId, glSharedTextureHandle_t glSharedTextureHandle);
+	void(OPENVR_FNTABLE_CALLTYPE* LockGLSharedTextureForAccess)(glSharedTextureHandle_t glSharedTextureHandle);
+	void(OPENVR_FNTABLE_CALLTYPE* UnlockGLSharedTextureForAccess)(glSharedTextureHandle_t glSharedTextureHandle);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetVulkanInstanceExtensionsRequired)(char* pchValue, uint32_t unBufferSize);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetVulkanDeviceExtensionsRequired)(struct VkPhysicalDevice_T* pPhysicalDevice, char* pchValue, uint32_t unBufferSize);
+	void(OPENVR_FNTABLE_CALLTYPE* SetExplicitTimingMode)(EVRCompositorTimingMode eTimingMode);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* SubmitExplicitTimingData)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsMotionSmoothingEnabled)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsMotionSmoothingSupported)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsCurrentSceneFocusAppLoading)();
+};
+
 
 static const char* const IVRCompositor_024_Version = "IVRCompositor_024";
 
@@ -1117,6 +1722,58 @@ public:
 	virtual bool IsCurrentSceneFocusAppLoading() = 0;
 	virtual EVRCompositorError SetStageOverride_Async(const char* pchRenderModelPath, const HmdMatrix34_t* pTransform = 0, const Compositor_StageRenderSettings* pRenderSettings = 0, uint32_t nSizeOfRenderSettings = 0) = 0;
 	virtual void ClearStageOverride() = 0;
+};
+
+struct VR_IVRCompositor_024_FnTable
+{
+	void(OPENVR_FNTABLE_CALLTYPE* SetTrackingSpace)(ETrackingUniverseOrigin eOrigin);
+	ETrackingUniverseOrigin(OPENVR_FNTABLE_CALLTYPE* GetTrackingSpace)();
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* WaitGetPoses)(struct TrackedDevicePose_t* pRenderPoseArray, uint32_t unRenderPoseArrayCount, struct TrackedDevicePose_t* pGamePoseArray, uint32_t unGamePoseArrayCount);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetLastPoses)(struct TrackedDevicePose_t* pRenderPoseArray, uint32_t unRenderPoseArrayCount, struct TrackedDevicePose_t* pGamePoseArray, uint32_t unGamePoseArrayCount);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetLastPoseForTrackedDeviceIndex)(TrackedDeviceIndex_t unDeviceIndex, struct TrackedDevicePose_t* pOutputPose, struct TrackedDevicePose_t* pOutputGamePose);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* Submit)(EVREye eEye, struct Texture_t* pTexture, struct VRTextureBounds_t* pBounds, EVRSubmitFlags nSubmitFlags);
+	void(OPENVR_FNTABLE_CALLTYPE* ClearLastSubmittedFrame)();
+	void(OPENVR_FNTABLE_CALLTYPE* PostPresentHandoff)();
+	bool(OPENVR_FNTABLE_CALLTYPE* GetFrameTiming)(struct Compositor_FrameTiming* pTiming, uint32_t unFramesAgo);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetFrameTimings)(struct Compositor_FrameTiming* pTiming, uint32_t nFrames);
+	float(OPENVR_FNTABLE_CALLTYPE* GetFrameTimeRemaining)();
+	void(OPENVR_FNTABLE_CALLTYPE* GetCumulativeStats)(struct Compositor_CumulativeStats* pStats, uint32_t nStatsSizeInBytes);
+	void(OPENVR_FNTABLE_CALLTYPE* FadeToColor)(float fSeconds, float fRed, float fGreen, float fBlue, float fAlpha, bool bBackground);
+	struct HmdColor_t(OPENVR_FNTABLE_CALLTYPE* GetCurrentFadeColor)(bool bBackground);
+	void(OPENVR_FNTABLE_CALLTYPE* FadeGrid)(float fSeconds, bool bFadeIn);
+	float(OPENVR_FNTABLE_CALLTYPE* GetCurrentGridAlpha)();
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* SetSkyboxOverride)(struct Texture_t* pTextures, uint32_t unTextureCount);
+	void(OPENVR_FNTABLE_CALLTYPE* ClearSkyboxOverride)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorBringToFront)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorGoToBack)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorQuit)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsFullscreen)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetCurrentSceneFocusProcess)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetLastFrameRenderer)();
+	bool(OPENVR_FNTABLE_CALLTYPE* CanRenderScene)();
+	void(OPENVR_FNTABLE_CALLTYPE* ShowMirrorWindow)();
+	void(OPENVR_FNTABLE_CALLTYPE* HideMirrorWindow)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsMirrorWindowVisible)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorDumpImages)();
+	bool(OPENVR_FNTABLE_CALLTYPE* ShouldAppRenderWithLowResources)();
+	void(OPENVR_FNTABLE_CALLTYPE* ForceInterleavedReprojectionOn)(bool bOverride);
+	void(OPENVR_FNTABLE_CALLTYPE* ForceReconnectProcess)();
+	void(OPENVR_FNTABLE_CALLTYPE* SuspendRendering)(bool bSuspend);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetMirrorTextureD3D11)(EVREye eEye, void* pD3D11DeviceOrResource, void** ppD3D11ShaderResourceView);
+	void(OPENVR_FNTABLE_CALLTYPE* ReleaseMirrorTextureD3D11)(void* pD3D11ShaderResourceView);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetMirrorTextureGL)(EVREye eEye, glUInt_t* pglTextureId, glSharedTextureHandle_t* pglSharedTextureHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* ReleaseSharedGLTexture)(glUInt_t glTextureId, glSharedTextureHandle_t glSharedTextureHandle);
+	void(OPENVR_FNTABLE_CALLTYPE* LockGLSharedTextureForAccess)(glSharedTextureHandle_t glSharedTextureHandle);
+	void(OPENVR_FNTABLE_CALLTYPE* UnlockGLSharedTextureForAccess)(glSharedTextureHandle_t glSharedTextureHandle);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetVulkanInstanceExtensionsRequired)(char* pchValue, uint32_t unBufferSize);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetVulkanDeviceExtensionsRequired)(struct VkPhysicalDevice_T* pPhysicalDevice, char* pchValue, uint32_t unBufferSize);
+	void(OPENVR_FNTABLE_CALLTYPE* SetExplicitTimingMode)(EVRCompositorTimingMode eTimingMode);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* SubmitExplicitTimingData)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsMotionSmoothingEnabled)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsMotionSmoothingSupported)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsCurrentSceneFocusAppLoading)();
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* SetStageOverride_Async)(char* pchRenderModelPath, struct HmdMatrix34_t* pTransform, struct Compositor_StageRenderSettings* pRenderSettings, uint32_t nSizeOfRenderSettings);
+	void(OPENVR_FNTABLE_CALLTYPE* ClearStageOverride)();
 };
 
 
@@ -1178,6 +1835,61 @@ public:
 	virtual EVRCompositorError GetPosesForFrame(uint32_t unPosePredictionID, VR_ARRAY_COUNT(unPoseArrayCount) TrackedDevicePose_t* pPoseArray, uint32_t unPoseArrayCount) = 0;
 };
 
+struct VR_IVRCompositor_026_FnTable
+{
+	void(OPENVR_FNTABLE_CALLTYPE* SetTrackingSpace)(ETrackingUniverseOrigin eOrigin);
+	ETrackingUniverseOrigin(OPENVR_FNTABLE_CALLTYPE* GetTrackingSpace)();
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* WaitGetPoses)(struct TrackedDevicePose_t* pRenderPoseArray, uint32_t unRenderPoseArrayCount, struct TrackedDevicePose_t* pGamePoseArray, uint32_t unGamePoseArrayCount);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetLastPoses)(struct TrackedDevicePose_t* pRenderPoseArray, uint32_t unRenderPoseArrayCount, struct TrackedDevicePose_t* pGamePoseArray, uint32_t unGamePoseArrayCount);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetLastPoseForTrackedDeviceIndex)(TrackedDeviceIndex_t unDeviceIndex, struct TrackedDevicePose_t* pOutputPose, struct TrackedDevicePose_t* pOutputGamePose);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* Submit)(EVREye eEye, struct Texture_t* pTexture, struct VRTextureBounds_t* pBounds, EVRSubmitFlags nSubmitFlags);
+	void(OPENVR_FNTABLE_CALLTYPE* ClearLastSubmittedFrame)();
+	void(OPENVR_FNTABLE_CALLTYPE* PostPresentHandoff)();
+	bool(OPENVR_FNTABLE_CALLTYPE* GetFrameTiming)(struct Compositor_FrameTiming* pTiming, uint32_t unFramesAgo);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetFrameTimings)(struct Compositor_FrameTiming* pTiming, uint32_t nFrames);
+	float(OPENVR_FNTABLE_CALLTYPE* GetFrameTimeRemaining)();
+	void(OPENVR_FNTABLE_CALLTYPE* GetCumulativeStats)(struct Compositor_CumulativeStats* pStats, uint32_t nStatsSizeInBytes);
+	void(OPENVR_FNTABLE_CALLTYPE* FadeToColor)(float fSeconds, float fRed, float fGreen, float fBlue, float fAlpha, bool bBackground);
+	struct HmdColor_t(OPENVR_FNTABLE_CALLTYPE* GetCurrentFadeColor)(bool bBackground);
+	void(OPENVR_FNTABLE_CALLTYPE* FadeGrid)(float fSeconds, bool bFadeIn);
+	float(OPENVR_FNTABLE_CALLTYPE* GetCurrentGridAlpha)();
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* SetSkyboxOverride)(struct Texture_t* pTextures, uint32_t unTextureCount);
+	void(OPENVR_FNTABLE_CALLTYPE* ClearSkyboxOverride)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorBringToFront)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorGoToBack)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorQuit)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsFullscreen)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetCurrentSceneFocusProcess)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetLastFrameRenderer)();
+	bool(OPENVR_FNTABLE_CALLTYPE* CanRenderScene)();
+	void(OPENVR_FNTABLE_CALLTYPE* ShowMirrorWindow)();
+	void(OPENVR_FNTABLE_CALLTYPE* HideMirrorWindow)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsMirrorWindowVisible)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorDumpImages)();
+	bool(OPENVR_FNTABLE_CALLTYPE* ShouldAppRenderWithLowResources)();
+	void(OPENVR_FNTABLE_CALLTYPE* ForceInterleavedReprojectionOn)(bool bOverride);
+	void(OPENVR_FNTABLE_CALLTYPE* ForceReconnectProcess)();
+	void(OPENVR_FNTABLE_CALLTYPE* SuspendRendering)(bool bSuspend);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetMirrorTextureD3D11)(EVREye eEye, void* pD3D11DeviceOrResource, void** ppD3D11ShaderResourceView);
+	void(OPENVR_FNTABLE_CALLTYPE* ReleaseMirrorTextureD3D11)(void* pD3D11ShaderResourceView);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetMirrorTextureGL)(EVREye eEye, glUInt_t* pglTextureId, glSharedTextureHandle_t* pglSharedTextureHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* ReleaseSharedGLTexture)(glUInt_t glTextureId, glSharedTextureHandle_t glSharedTextureHandle);
+	void(OPENVR_FNTABLE_CALLTYPE* LockGLSharedTextureForAccess)(glSharedTextureHandle_t glSharedTextureHandle);
+	void(OPENVR_FNTABLE_CALLTYPE* UnlockGLSharedTextureForAccess)(glSharedTextureHandle_t glSharedTextureHandle);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetVulkanInstanceExtensionsRequired)(char* pchValue, uint32_t unBufferSize);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetVulkanDeviceExtensionsRequired)(struct VkPhysicalDevice_T* pPhysicalDevice, char* pchValue, uint32_t unBufferSize);
+	void(OPENVR_FNTABLE_CALLTYPE* SetExplicitTimingMode)(EVRCompositorTimingMode eTimingMode);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* SubmitExplicitTimingData)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsMotionSmoothingEnabled)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsMotionSmoothingSupported)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsCurrentSceneFocusAppLoading)();
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* SetStageOverride_Async)(char* pchRenderModelPath, struct HmdMatrix34_t* pTransform, struct Compositor_StageRenderSettings* pRenderSettings, uint32_t nSizeOfRenderSettings);
+	void(OPENVR_FNTABLE_CALLTYPE* ClearStageOverride)();
+	bool(OPENVR_FNTABLE_CALLTYPE* GetCompositorBenchmarkResults)(struct Compositor_BenchmarkResults* pBenchmarkResults, uint32_t nSizeOfBenchmarkResults);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetLastPosePredictionIDs)(uint32_t* pRenderPosePredictionID, uint32_t* pGamePosePredictionID);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetPosesForFrame)(uint32_t unPosePredictionID, struct TrackedDevicePose_t* pPoseArray, uint32_t unPoseArrayCount);
+};
+
 
 static const char* const IVRCompositor_027_Version = "IVRCompositor_027";
 
@@ -1235,6 +1947,61 @@ public:
 	virtual bool GetCompositorBenchmarkResults(Compositor_BenchmarkResults* pBenchmarkResults, uint32_t nSizeOfBenchmarkResults) = 0;
 	virtual EVRCompositorError GetLastPosePredictionIDs(uint32_t* pRenderPosePredictionID, uint32_t* pGamePosePredictionID) = 0;
 	virtual EVRCompositorError GetPosesForFrame(uint32_t unPosePredictionID, VR_ARRAY_COUNT(unPoseArrayCount) TrackedDevicePose_t* pPoseArray, uint32_t unPoseArrayCount) = 0;
+};
+
+struct VR_IVRCompositor_027_FnTable
+{
+	void(OPENVR_FNTABLE_CALLTYPE* SetTrackingSpace)(ETrackingUniverseOrigin eOrigin);
+	ETrackingUniverseOrigin(OPENVR_FNTABLE_CALLTYPE* GetTrackingSpace)();
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* WaitGetPoses)(struct TrackedDevicePose_t* pRenderPoseArray, uint32_t unRenderPoseArrayCount, struct TrackedDevicePose_t* pGamePoseArray, uint32_t unGamePoseArrayCount);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetLastPoses)(struct TrackedDevicePose_t* pRenderPoseArray, uint32_t unRenderPoseArrayCount, struct TrackedDevicePose_t* pGamePoseArray, uint32_t unGamePoseArrayCount);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetLastPoseForTrackedDeviceIndex)(TrackedDeviceIndex_t unDeviceIndex, struct TrackedDevicePose_t* pOutputPose, struct TrackedDevicePose_t* pOutputGamePose);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* Submit)(EVREye eEye, struct Texture_t* pTexture, struct VRTextureBounds_t* pBounds, EVRSubmitFlags nSubmitFlags);
+	void(OPENVR_FNTABLE_CALLTYPE* ClearLastSubmittedFrame)();
+	void(OPENVR_FNTABLE_CALLTYPE* PostPresentHandoff)();
+	bool(OPENVR_FNTABLE_CALLTYPE* GetFrameTiming)(struct Compositor_FrameTiming* pTiming, uint32_t unFramesAgo);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetFrameTimings)(struct Compositor_FrameTiming* pTiming, uint32_t nFrames);
+	float(OPENVR_FNTABLE_CALLTYPE* GetFrameTimeRemaining)();
+	void(OPENVR_FNTABLE_CALLTYPE* GetCumulativeStats)(struct Compositor_CumulativeStats* pStats, uint32_t nStatsSizeInBytes);
+	void(OPENVR_FNTABLE_CALLTYPE* FadeToColor)(float fSeconds, float fRed, float fGreen, float fBlue, float fAlpha, bool bBackground);
+	struct HmdColor_t(OPENVR_FNTABLE_CALLTYPE* GetCurrentFadeColor)(bool bBackground);
+	void(OPENVR_FNTABLE_CALLTYPE* FadeGrid)(float fSeconds, bool bFadeGridIn);
+	float(OPENVR_FNTABLE_CALLTYPE* GetCurrentGridAlpha)();
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* SetSkyboxOverride)(struct Texture_t* pTextures, uint32_t unTextureCount);
+	void(OPENVR_FNTABLE_CALLTYPE* ClearSkyboxOverride)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorBringToFront)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorGoToBack)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorQuit)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsFullscreen)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetCurrentSceneFocusProcess)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetLastFrameRenderer)();
+	bool(OPENVR_FNTABLE_CALLTYPE* CanRenderScene)();
+	void(OPENVR_FNTABLE_CALLTYPE* ShowMirrorWindow)();
+	void(OPENVR_FNTABLE_CALLTYPE* HideMirrorWindow)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsMirrorWindowVisible)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorDumpImages)();
+	bool(OPENVR_FNTABLE_CALLTYPE* ShouldAppRenderWithLowResources)();
+	void(OPENVR_FNTABLE_CALLTYPE* ForceInterleavedReprojectionOn)(bool bOverride);
+	void(OPENVR_FNTABLE_CALLTYPE* ForceReconnectProcess)();
+	void(OPENVR_FNTABLE_CALLTYPE* SuspendRendering)(bool bSuspend);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetMirrorTextureD3D11)(EVREye eEye, void* pD3D11DeviceOrResource, void** ppD3D11ShaderResourceView);
+	void(OPENVR_FNTABLE_CALLTYPE* ReleaseMirrorTextureD3D11)(void* pD3D11ShaderResourceView);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetMirrorTextureGL)(EVREye eEye, glUInt_t* pglTextureId, glSharedTextureHandle_t* pglSharedTextureHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* ReleaseSharedGLTexture)(glUInt_t glTextureId, glSharedTextureHandle_t glSharedTextureHandle);
+	void(OPENVR_FNTABLE_CALLTYPE* LockGLSharedTextureForAccess)(glSharedTextureHandle_t glSharedTextureHandle);
+	void(OPENVR_FNTABLE_CALLTYPE* UnlockGLSharedTextureForAccess)(glSharedTextureHandle_t glSharedTextureHandle);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetVulkanInstanceExtensionsRequired)(char* pchValue, uint32_t unBufferSize);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetVulkanDeviceExtensionsRequired)(struct VkPhysicalDevice_T* pPhysicalDevice, char* pchValue, uint32_t unBufferSize);
+	void(OPENVR_FNTABLE_CALLTYPE* SetExplicitTimingMode)(EVRCompositorTimingMode eTimingMode);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* SubmitExplicitTimingData)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsMotionSmoothingEnabled)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsMotionSmoothingSupported)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsCurrentSceneFocusAppLoading)();
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* SetStageOverride_Async)(char* pchRenderModelPath, struct HmdMatrix34_t* pTransform, struct Compositor_StageRenderSettings* pRenderSettings, uint32_t nSizeOfRenderSettings);
+	void(OPENVR_FNTABLE_CALLTYPE* ClearStageOverride)();
+	bool(OPENVR_FNTABLE_CALLTYPE* GetCompositorBenchmarkResults)(struct Compositor_BenchmarkResults* pBenchmarkResults, uint32_t nSizeOfBenchmarkResults);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetLastPosePredictionIDs)(uint32_t* pRenderPosePredictionID, uint32_t* pGamePosePredictionID);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetPosesForFrame)(uint32_t unPosePredictionID, struct TrackedDevicePose_t* pPoseArray, uint32_t unPoseArrayCount);
 };
 
 
@@ -1295,6 +2062,62 @@ public:
 	virtual bool GetCompositorBenchmarkResults(Compositor_BenchmarkResults* pBenchmarkResults, uint32_t nSizeOfBenchmarkResults) = 0;
 	virtual EVRCompositorError GetLastPosePredictionIDs(uint32_t* pRenderPosePredictionID, uint32_t* pGamePosePredictionID) = 0;
 	virtual EVRCompositorError GetPosesForFrame(uint32_t unPosePredictionID, VR_ARRAY_COUNT(unPoseArrayCount) TrackedDevicePose_t* pPoseArray, uint32_t unPoseArrayCount) = 0;
+};
+
+struct VR_IVRCompositor_028_FnTable
+{
+	void(OPENVR_FNTABLE_CALLTYPE* SetTrackingSpace)(ETrackingUniverseOrigin eOrigin);
+	ETrackingUniverseOrigin(OPENVR_FNTABLE_CALLTYPE* GetTrackingSpace)();
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* WaitGetPoses)(struct TrackedDevicePose_t* pRenderPoseArray, uint32_t unRenderPoseArrayCount, struct TrackedDevicePose_t* pGamePoseArray, uint32_t unGamePoseArrayCount);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetLastPoses)(struct TrackedDevicePose_t* pRenderPoseArray, uint32_t unRenderPoseArrayCount, struct TrackedDevicePose_t* pGamePoseArray, uint32_t unGamePoseArrayCount);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetLastPoseForTrackedDeviceIndex)(TrackedDeviceIndex_t unDeviceIndex, struct TrackedDevicePose_t* pOutputPose, struct TrackedDevicePose_t* pOutputGamePose);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* Submit)(EVREye eEye, struct Texture_t* pTexture, struct VRTextureBounds_t* pBounds, EVRSubmitFlags nSubmitFlags);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* SubmitWithArrayIndex)(EVREye eEye, struct Texture_t* pTexture, uint32_t unTextureArrayIndex, struct VRTextureBounds_t* pBounds, EVRSubmitFlags nSubmitFlags);
+	void(OPENVR_FNTABLE_CALLTYPE* ClearLastSubmittedFrame)();
+	void(OPENVR_FNTABLE_CALLTYPE* PostPresentHandoff)();
+	bool(OPENVR_FNTABLE_CALLTYPE* GetFrameTiming)(struct Compositor_FrameTiming* pTiming, uint32_t unFramesAgo);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetFrameTimings)(struct Compositor_FrameTiming* pTiming, uint32_t nFrames);
+	float(OPENVR_FNTABLE_CALLTYPE* GetFrameTimeRemaining)();
+	void(OPENVR_FNTABLE_CALLTYPE* GetCumulativeStats)(struct Compositor_CumulativeStats* pStats, uint32_t nStatsSizeInBytes);
+	void(OPENVR_FNTABLE_CALLTYPE* FadeToColor)(float fSeconds, float fRed, float fGreen, float fBlue, float fAlpha, bool bBackground);
+	struct HmdColor_t(OPENVR_FNTABLE_CALLTYPE* GetCurrentFadeColor)(bool bBackground);
+	void(OPENVR_FNTABLE_CALLTYPE* FadeGrid)(float fSeconds, bool bFadeGridIn);
+	float(OPENVR_FNTABLE_CALLTYPE* GetCurrentGridAlpha)();
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* SetSkyboxOverride)(struct Texture_t* pTextures, uint32_t unTextureCount);
+	void(OPENVR_FNTABLE_CALLTYPE* ClearSkyboxOverride)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorBringToFront)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorGoToBack)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorQuit)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsFullscreen)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetCurrentSceneFocusProcess)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetLastFrameRenderer)();
+	bool(OPENVR_FNTABLE_CALLTYPE* CanRenderScene)();
+	void(OPENVR_FNTABLE_CALLTYPE* ShowMirrorWindow)();
+	void(OPENVR_FNTABLE_CALLTYPE* HideMirrorWindow)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsMirrorWindowVisible)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorDumpImages)();
+	bool(OPENVR_FNTABLE_CALLTYPE* ShouldAppRenderWithLowResources)();
+	void(OPENVR_FNTABLE_CALLTYPE* ForceInterleavedReprojectionOn)(bool bOverride);
+	void(OPENVR_FNTABLE_CALLTYPE* ForceReconnectProcess)();
+	void(OPENVR_FNTABLE_CALLTYPE* SuspendRendering)(bool bSuspend);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetMirrorTextureD3D11)(EVREye eEye, void* pD3D11DeviceOrResource, void** ppD3D11ShaderResourceView);
+	void(OPENVR_FNTABLE_CALLTYPE* ReleaseMirrorTextureD3D11)(void* pD3D11ShaderResourceView);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetMirrorTextureGL)(EVREye eEye, glUInt_t* pglTextureId, glSharedTextureHandle_t* pglSharedTextureHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* ReleaseSharedGLTexture)(glUInt_t glTextureId, glSharedTextureHandle_t glSharedTextureHandle);
+	void(OPENVR_FNTABLE_CALLTYPE* LockGLSharedTextureForAccess)(glSharedTextureHandle_t glSharedTextureHandle);
+	void(OPENVR_FNTABLE_CALLTYPE* UnlockGLSharedTextureForAccess)(glSharedTextureHandle_t glSharedTextureHandle);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetVulkanInstanceExtensionsRequired)(char* pchValue, uint32_t unBufferSize);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetVulkanDeviceExtensionsRequired)(struct VkPhysicalDevice_T* pPhysicalDevice, char* pchValue, uint32_t unBufferSize);
+	void(OPENVR_FNTABLE_CALLTYPE* SetExplicitTimingMode)(EVRCompositorTimingMode eTimingMode);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* SubmitExplicitTimingData)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsMotionSmoothingEnabled)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsMotionSmoothingSupported)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsCurrentSceneFocusAppLoading)();
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* SetStageOverride_Async)(char* pchRenderModelPath, struct HmdMatrix34_t* pTransform, struct Compositor_StageRenderSettings* pRenderSettings, uint32_t nSizeOfRenderSettings);
+	void(OPENVR_FNTABLE_CALLTYPE* ClearStageOverride)();
+	bool(OPENVR_FNTABLE_CALLTYPE* GetCompositorBenchmarkResults)(struct Compositor_BenchmarkResults* pBenchmarkResults, uint32_t nSizeOfBenchmarkResults);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetLastPosePredictionIDs)(uint32_t* pRenderPosePredictionID, uint32_t* pGamePosePredictionID);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetPosesForFrame)(uint32_t unPosePredictionID, struct TrackedDevicePose_t* pPoseArray, uint32_t unPoseArrayCount);
 };
 
 
@@ -1358,6 +2181,63 @@ public:
 	virtual EVRCompositorError GetPosesForFrame(uint32_t unPosePredictionID, VR_ARRAY_COUNT(unPoseArrayCount) TrackedDevicePose_t* pPoseArray, uint32_t unPoseArrayCount) = 0;
 };
 
+struct VR_IVRCompositor_029_FnTable
+{
+	void(OPENVR_FNTABLE_CALLTYPE* SetTrackingSpace)(ETrackingUniverseOrigin eOrigin);
+	ETrackingUniverseOrigin(OPENVR_FNTABLE_CALLTYPE* GetTrackingSpace)();
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* WaitGetPoses)(struct TrackedDevicePose_t* pRenderPoseArray, uint32_t unRenderPoseArrayCount, struct TrackedDevicePose_t* pGamePoseArray, uint32_t unGamePoseArrayCount);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetLastPoses)(struct TrackedDevicePose_t* pRenderPoseArray, uint32_t unRenderPoseArrayCount, struct TrackedDevicePose_t* pGamePoseArray, uint32_t unGamePoseArrayCount);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetLastPoseForTrackedDeviceIndex)(TrackedDeviceIndex_t unDeviceIndex, struct TrackedDevicePose_t* pOutputPose, struct TrackedDevicePose_t* pOutputGamePose);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetSubmitTexture)(struct Texture_t* pOutTexture, bool* pNeedsFlush, EVRCompositorTextureUsage eUsage, struct Texture_t* pTexture, struct VRTextureBounds_t* pBounds, EVRSubmitFlags nSubmitFlags);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* Submit)(EVREye eEye, struct Texture_t* pTexture, struct VRTextureBounds_t* pBounds, EVRSubmitFlags nSubmitFlags);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* SubmitWithArrayIndex)(EVREye eEye, struct Texture_t* pTexture, uint32_t unTextureArrayIndex, struct VRTextureBounds_t* pBounds, EVRSubmitFlags nSubmitFlags);
+	void(OPENVR_FNTABLE_CALLTYPE* ClearLastSubmittedFrame)();
+	void(OPENVR_FNTABLE_CALLTYPE* PostPresentHandoff)();
+	bool(OPENVR_FNTABLE_CALLTYPE* GetFrameTiming)(struct Compositor_FrameTiming* pTiming, uint32_t unFramesAgo);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetFrameTimings)(struct Compositor_FrameTiming* pTiming, uint32_t nFrames);
+	float(OPENVR_FNTABLE_CALLTYPE* GetFrameTimeRemaining)();
+	void(OPENVR_FNTABLE_CALLTYPE* GetCumulativeStats)(struct Compositor_CumulativeStats* pStats, uint32_t nStatsSizeInBytes);
+	void(OPENVR_FNTABLE_CALLTYPE* FadeToColor)(float fSeconds, float fRed, float fGreen, float fBlue, float fAlpha, bool bBackground);
+	struct HmdColor_t(OPENVR_FNTABLE_CALLTYPE* GetCurrentFadeColor)(bool bBackground);
+	void(OPENVR_FNTABLE_CALLTYPE* FadeGrid)(float fSeconds, bool bFadeGridIn);
+	float(OPENVR_FNTABLE_CALLTYPE* GetCurrentGridAlpha)();
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* SetSkyboxOverride)(struct Texture_t* pTextures, uint32_t unTextureCount);
+	void(OPENVR_FNTABLE_CALLTYPE* ClearSkyboxOverride)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorBringToFront)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorGoToBack)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorQuit)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsFullscreen)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetCurrentSceneFocusProcess)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetLastFrameRenderer)();
+	bool(OPENVR_FNTABLE_CALLTYPE* CanRenderScene)();
+	void(OPENVR_FNTABLE_CALLTYPE* ShowMirrorWindow)();
+	void(OPENVR_FNTABLE_CALLTYPE* HideMirrorWindow)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsMirrorWindowVisible)();
+	void(OPENVR_FNTABLE_CALLTYPE* CompositorDumpImages)();
+	bool(OPENVR_FNTABLE_CALLTYPE* ShouldAppRenderWithLowResources)();
+	void(OPENVR_FNTABLE_CALLTYPE* ForceInterleavedReprojectionOn)(bool bOverride);
+	void(OPENVR_FNTABLE_CALLTYPE* ForceReconnectProcess)();
+	void(OPENVR_FNTABLE_CALLTYPE* SuspendRendering)(bool bSuspend);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetMirrorTextureD3D11)(EVREye eEye, void* pD3D11DeviceOrResource, void** ppD3D11ShaderResourceView);
+	void(OPENVR_FNTABLE_CALLTYPE* ReleaseMirrorTextureD3D11)(void* pD3D11ShaderResourceView);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetMirrorTextureGL)(EVREye eEye, glUInt_t* pglTextureId, glSharedTextureHandle_t* pglSharedTextureHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* ReleaseSharedGLTexture)(glUInt_t glTextureId, glSharedTextureHandle_t glSharedTextureHandle);
+	void(OPENVR_FNTABLE_CALLTYPE* LockGLSharedTextureForAccess)(glSharedTextureHandle_t glSharedTextureHandle);
+	void(OPENVR_FNTABLE_CALLTYPE* UnlockGLSharedTextureForAccess)(glSharedTextureHandle_t glSharedTextureHandle);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetVulkanInstanceExtensionsRequired)(char* pchValue, uint32_t unBufferSize);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetVulkanDeviceExtensionsRequired)(struct VkPhysicalDevice_T* pPhysicalDevice, char* pchValue, uint32_t unBufferSize);
+	void(OPENVR_FNTABLE_CALLTYPE* SetExplicitTimingMode)(EVRCompositorTimingMode eTimingMode);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* SubmitExplicitTimingData)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsMotionSmoothingEnabled)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsMotionSmoothingSupported)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsCurrentSceneFocusAppLoading)();
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* SetStageOverride_Async)(char* pchRenderModelPath, struct HmdMatrix34_t* pTransform, struct Compositor_StageRenderSettings* pRenderSettings, uint32_t nSizeOfRenderSettings);
+	void(OPENVR_FNTABLE_CALLTYPE* ClearStageOverride)();
+	bool(OPENVR_FNTABLE_CALLTYPE* GetCompositorBenchmarkResults)(struct Compositor_BenchmarkResults* pBenchmarkResults, uint32_t nSizeOfBenchmarkResults);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetLastPosePredictionIDs)(uint32_t* pRenderPosePredictionID, uint32_t* pGamePosePredictionID);
+	EVRCompositorError(OPENVR_FNTABLE_CALLTYPE* GetPosesForFrame)(uint32_t unPosePredictionID, struct TrackedDevicePose_t* pPoseArray, uint32_t unPoseArrayCount);
+};
+
 
 static const char* const IVRControlPanel_001_Version = "IVRControlPanel_001";
 
@@ -1396,6 +2276,14 @@ public:
 	virtual uint32_t DriverDebugRequest(vr::TrackedDeviceIndex_t unDeviceIndex, const char* pchRequest, VR_OUT_STRING() char* pchResponseBuffer, uint32_t unResponseBufferSize) = 0;
 };
 
+struct VR_IVRDebug_001_FnTable
+{
+	EVRDebugError(OPENVR_FNTABLE_CALLTYPE* EmitVrProfilerEvent)(char* pchMessage);
+	EVRDebugError(OPENVR_FNTABLE_CALLTYPE* BeginVrProfilerEvent)(VrProfilerEventHandle_t* pHandleOut);
+	EVRDebugError(OPENVR_FNTABLE_CALLTYPE* FinishVrProfilerEvent)(VrProfilerEventHandle_t hHandle, char* pchMessage);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* DriverDebugRequest)(TrackedDeviceIndex_t unDeviceIndex, char* pchRequest, char* pchResponseBuffer, uint32_t unResponseBufferSize);
+};
+
 
 static const char* const IVRDriverManager_001_Version = "IVRDriverManager_001";
 
@@ -1408,6 +2296,14 @@ public:
 	virtual bool IsEnabled(vr::DriverId_t nDriver) const = 0;
 };
 
+struct VR_IVRDriverManager_001_FnTable
+{
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetDriverCount)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetDriverName)(DriverId_t nDriver, char* pchValue, uint32_t unBufferSize);
+	DriverHandle_t(OPENVR_FNTABLE_CALLTYPE* GetDriverHandle)(char* pchDriverName);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsEnabled)(DriverId_t nDriver);
+};
+
 
 static const char* const IVRExtendedDisplay_001_Version = "IVRExtendedDisplay_001";
 
@@ -1417,6 +2313,13 @@ public:
 	virtual void GetWindowBounds(int32_t* pnX, int32_t* pnY, uint32_t* pnWidth, uint32_t* pnHeight) = 0;
 	virtual void GetEyeOutputViewport(EVREye eEye, uint32_t* pnX, uint32_t* pnY, uint32_t* pnWidth, uint32_t* pnHeight) = 0;
 	virtual void GetDXGIOutputInfo(int32_t* pnAdapterIndex, int32_t* pnAdapterOutputIndex) = 0;
+};
+
+struct VR_IVRExtendedDisplay_001_FnTable
+{
+	void(OPENVR_FNTABLE_CALLTYPE* GetWindowBounds)(int32_t* pnX, int32_t* pnY, uint32_t* pnWidth, uint32_t* pnHeight);
+	void(OPENVR_FNTABLE_CALLTYPE* GetEyeOutputViewport)(EVREye eEye, uint32_t* pnX, uint32_t* pnY, uint32_t* pnWidth, uint32_t* pnHeight);
+	void(OPENVR_FNTABLE_CALLTYPE* GetDXGIOutputInfo)(int32_t* pnAdapterIndex, int32_t* pnAdapterOutputIndex);
 };
 
 
@@ -1434,6 +2337,19 @@ public:
 	virtual float GetHeadsetViewAspectRatio() = 0;
 	virtual void SetHeadsetViewBlendRange(float flStartPct, float flEndPct) = 0;
 	virtual void GetHeadsetViewBlendRange(float* pStartPct, float* pEndPct) = 0;
+};
+
+struct VR_IVRHeadsetView_001_FnTable
+{
+	void(OPENVR_FNTABLE_CALLTYPE* SetHeadsetViewSize)(uint32_t nWidth, uint32_t nHeight);
+	void(OPENVR_FNTABLE_CALLTYPE* GetHeadsetViewSize)(uint32_t* pnWidth, uint32_t* pnHeight);
+	void(OPENVR_FNTABLE_CALLTYPE* SetHeadsetViewMode)(HeadsetViewMode_t eHeadsetViewMode);
+	HeadsetViewMode_t(OPENVR_FNTABLE_CALLTYPE* GetHeadsetViewMode)();
+	void(OPENVR_FNTABLE_CALLTYPE* SetHeadsetViewCropped)(bool bCropped);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetHeadsetViewCropped)();
+	float(OPENVR_FNTABLE_CALLTYPE* GetHeadsetViewAspectRatio)();
+	void(OPENVR_FNTABLE_CALLTYPE* SetHeadsetViewBlendRange)(float flStartPct, float flEndPct);
+	void(OPENVR_FNTABLE_CALLTYPE* GetHeadsetViewBlendRange)(float* pStartPct, float* pEndPct);
 };
 
 
@@ -1461,6 +2377,27 @@ public:
 	virtual EVRInputError ShowBindingsForActionSet(VR_ARRAY_COUNT(unSetCount) VRActiveActionSet_t* pSets, uint32_t unSizeOfVRSelectedActionSet_t, uint32_t unSetCount, VRInputValueHandle_t originToHighlight) = 0;
 };
 
+struct VR_IVRInput_003_FnTable
+{
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* SetActionManifestPath)(char* pchActionManifestPath);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetActionSetHandle)(char* pchActionSetName, VRActionSetHandle_t* pHandle);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetActionHandle)(char* pchActionName, VRActionHandle_t* pHandle);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetInputSourceHandle)(char* pchInputSourcePath, VRInputValueHandle_t* pHandle);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* UpdateActionState)(struct VRActiveActionSet_t* pSets, uint32_t unSizeOfVRSelectedActionSet_t, uint32_t unSetCount);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetDigitalActionData)(VRActionHandle_t action, struct InputDigitalActionData_t* pActionData, uint32_t unActionDataSize);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetAnalogActionData)(VRActionHandle_t action, struct InputAnalogActionData_t* pActionData, uint32_t unActionDataSize);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetPoseActionData)(VRActionHandle_t action, ETrackingUniverseOrigin eOrigin, float fPredictedSecondsFromNow, struct InputPoseActionData_t* pActionData, uint32_t unActionDataSize);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetSkeletalActionData)(VRActionHandle_t action, EVRSkeletalTransformSpace eBoneParent, float fPredictedSecondsFromNow, struct InputSkeletonActionData_t* pActionData, uint32_t unActionDataSize, struct VRBoneTransform_t* pTransformArray, uint32_t unTransformArrayCount);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetSkeletalActionDataCompressed)(VRActionHandle_t action, EVRSkeletalTransformSpace eBoneParent, float fPredictedSecondsFromNow, void* pvCompressedData, uint32_t unCompressedSize, uint32_t* punRequiredCompressedSize);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* UncompressSkeletalActionData)(void* pvCompressedBuffer, uint32_t unCompressedBufferSize, EVRSkeletalTransformSpace* peBoneParent, struct VRBoneTransform_t* pTransformArray, uint32_t unTransformArrayCount);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* TriggerHapticVibrationAction)(VRActionHandle_t action, float fStartSecondsFromNow, float fDurationSeconds, float fFrequency, float fAmplitude);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetActionOrigins)(VRActionSetHandle_t actionSetHandle, VRActionHandle_t digitalActionHandle, VRInputValueHandle_t* originsOut, uint32_t originOutCount);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetOriginLocalizedName)(VRInputValueHandle_t origin, char* pchNameArray, uint32_t unNameArraySize);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetOriginTrackedDeviceInfo)(VRInputValueHandle_t origin, struct InputOriginInfo_t* pOriginInfo, uint32_t unOriginInfoSize);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* ShowActionOrigins)(VRActionSetHandle_t actionSetHandle, VRActionHandle_t ulActionHandle);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* ShowBindingsForActionSet)(struct VRActiveActionSet_t* pSets, uint32_t unSizeOfVRSelectedActionSet_t, uint32_t unSetCount, VRInputValueHandle_t originToHighlight);
+};
+
 
 static const char* const IVRInput_004_Version = "IVRInput_004";
 
@@ -1485,6 +2422,28 @@ public:
 	virtual EVRInputError GetOriginTrackedDeviceInfo(VRInputValueHandle_t origin, InputOriginInfo_t* pOriginInfo, uint32_t unOriginInfoSize) = 0;
 	virtual EVRInputError ShowActionOrigins(VRActionSetHandle_t actionSetHandle, VRActionHandle_t ulActionHandle) = 0;
 	virtual EVRInputError ShowBindingsForActionSet(VR_ARRAY_COUNT(unSetCount) VRActiveActionSet_t* pSets, uint32_t unSizeOfVRSelectedActionSet_t, uint32_t unSetCount, VRInputValueHandle_t originToHighlight) = 0;
+};
+
+struct VR_IVRInput_004_FnTable
+{
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* SetActionManifestPath)(char* pchActionManifestPath);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetActionSetHandle)(char* pchActionSetName, VRActionSetHandle_t* pHandle);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetActionHandle)(char* pchActionName, VRActionHandle_t* pHandle);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetInputSourceHandle)(char* pchInputSourcePath, VRInputValueHandle_t* pHandle);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* UpdateActionState)(struct VRActiveActionSet_t* pSets, uint32_t unSizeOfVRSelectedActionSet_t, uint32_t unSetCount);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetDigitalActionData)(VRActionHandle_t action, struct InputDigitalActionData_t* pActionData, uint32_t unActionDataSize, VRInputValueHandle_t ulRestrictToDevice);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetAnalogActionData)(VRActionHandle_t action, struct InputAnalogActionData_t* pActionData, uint32_t unActionDataSize, VRInputValueHandle_t ulRestrictToDevice);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetPoseActionData)(VRActionHandle_t action, ETrackingUniverseOrigin eOrigin, float fPredictedSecondsFromNow, struct InputPoseActionData_t* pActionData, uint32_t unActionDataSize, VRInputValueHandle_t ulRestrictToDevice);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetSkeletalActionData)(VRActionHandle_t action, struct InputSkeletalActionData_t* pActionData, uint32_t unActionDataSize, VRInputValueHandle_t ulRestrictToDevice);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetSkeletalBoneData)(VRActionHandle_t action, EVRSkeletalTransformSpace eTransformSpace, EVRSkeletalMotionRange eMotionRange, struct VRBoneTransform_t* pTransformArray, uint32_t unTransformArrayCount, VRInputValueHandle_t ulRestrictToDevice);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetSkeletalBoneDataCompressed)(VRActionHandle_t action, EVRSkeletalTransformSpace eTransformSpace, EVRSkeletalMotionRange eMotionRange, void* pvCompressedData, uint32_t unCompressedSize, uint32_t* punRequiredCompressedSize, VRInputValueHandle_t ulRestrictToDevice);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* DecompressSkeletalBoneData)(void* pvCompressedBuffer, uint32_t unCompressedBufferSize, EVRSkeletalTransformSpace* peTransformSpace, struct VRBoneTransform_t* pTransformArray, uint32_t unTransformArrayCount);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* TriggerHapticVibrationAction)(VRActionHandle_t action, float fStartSecondsFromNow, float fDurationSeconds, float fFrequency, float fAmplitude, VRInputValueHandle_t ulRestrictToDevice);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetActionOrigins)(VRActionSetHandle_t actionSetHandle, VRActionHandle_t digitalActionHandle, VRInputValueHandle_t* originsOut, uint32_t originOutCount);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetOriginLocalizedName)(VRInputValueHandle_t origin, char* pchNameArray, uint32_t unNameArraySize);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetOriginTrackedDeviceInfo)(VRInputValueHandle_t origin, struct InputOriginInfo_t* pOriginInfo, uint32_t unOriginInfoSize);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* ShowActionOrigins)(VRActionSetHandle_t actionSetHandle, VRActionHandle_t ulActionHandle);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* ShowBindingsForActionSet)(struct VRActiveActionSet_t* pSets, uint32_t unSizeOfVRSelectedActionSet_t, uint32_t unSetCount, VRInputValueHandle_t originToHighlight);
 };
 
 
@@ -1518,6 +2477,35 @@ public:
 	virtual EVRInputError ShowActionOrigins(VRActionSetHandle_t actionSetHandle, VRActionHandle_t ulActionHandle) = 0;
 	virtual EVRInputError ShowBindingsForActionSet(VR_ARRAY_COUNT(unSetCount) VRActiveActionSet_t* pSets, uint32_t unSizeOfVRSelectedActionSet_t, uint32_t unSetCount, VRInputValueHandle_t originToHighlight) = 0;
 	virtual bool IsUsingLegacyInput() = 0;
+};
+
+struct VR_IVRInput_005_FnTable
+{
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* SetActionManifestPath)(char* pchActionManifestPath);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetActionSetHandle)(char* pchActionSetName, VRActionSetHandle_t* pHandle);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetActionHandle)(char* pchActionName, VRActionHandle_t* pHandle);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetInputSourceHandle)(char* pchInputSourcePath, VRInputValueHandle_t* pHandle);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* UpdateActionState)(struct VRActiveActionSet_t* pSets, uint32_t unSizeOfVRSelectedActionSet_t, uint32_t unSetCount);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetDigitalActionData)(VRActionHandle_t action, struct InputDigitalActionData_t* pActionData, uint32_t unActionDataSize, VRInputValueHandle_t ulRestrictToDevice);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetAnalogActionData)(VRActionHandle_t action, struct InputAnalogActionData_t* pActionData, uint32_t unActionDataSize, VRInputValueHandle_t ulRestrictToDevice);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetPoseActionData)(VRActionHandle_t action, ETrackingUniverseOrigin eOrigin, float fPredictedSecondsFromNow, struct InputPoseActionData_t* pActionData, uint32_t unActionDataSize, VRInputValueHandle_t ulRestrictToDevice);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetSkeletalActionData)(VRActionHandle_t action, struct InputSkeletalActionData_t* pActionData, uint32_t unActionDataSize);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetBoneCount)(VRActionHandle_t action, uint32_t* pBoneCount);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetBoneHierarchy)(VRActionHandle_t action, BoneIndex_t* pParentIndices, uint32_t unIndexArayCount);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetBoneName)(VRActionHandle_t action, BoneIndex_t nBoneIndex, char* pchBoneName, uint32_t unNameBufferSize);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetSkeletalReferenceTransforms)(VRActionHandle_t action, EVRSkeletalTransformSpace eTransformSpace, EVRSkeletalReferencePose eReferencePose, struct VRBoneTransform_t* pTransformArray, uint32_t unTransformArrayCount);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetSkeletalTrackingLevel)(VRActionHandle_t action, EVRSkeletalTrackingLevel* pSkeletalTrackingLevel);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetSkeletalBoneData)(VRActionHandle_t action, EVRSkeletalTransformSpace eTransformSpace, EVRSkeletalMotionRange eMotionRange, struct VRBoneTransform_t* pTransformArray, uint32_t unTransformArrayCount);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetSkeletalSummaryData)(VRActionHandle_t action, struct VRSkeletalSummaryData_t* pSkeletalSummaryData);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetSkeletalBoneDataCompressed)(VRActionHandle_t action, EVRSkeletalMotionRange eMotionRange, void* pvCompressedData, uint32_t unCompressedSize, uint32_t* punRequiredCompressedSize);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* DecompressSkeletalBoneData)(void* pvCompressedBuffer, uint32_t unCompressedBufferSize, EVRSkeletalTransformSpace eTransformSpace, struct VRBoneTransform_t* pTransformArray, uint32_t unTransformArrayCount);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* TriggerHapticVibrationAction)(VRActionHandle_t action, float fStartSecondsFromNow, float fDurationSeconds, float fFrequency, float fAmplitude, VRInputValueHandle_t ulRestrictToDevice);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetActionOrigins)(VRActionSetHandle_t actionSetHandle, VRActionHandle_t digitalActionHandle, VRInputValueHandle_t* originsOut, uint32_t originOutCount);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetOriginLocalizedName)(VRInputValueHandle_t origin, char* pchNameArray, uint32_t unNameArraySize, int32_t unStringSectionsToInclude);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetOriginTrackedDeviceInfo)(VRInputValueHandle_t origin, struct InputOriginInfo_t* pOriginInfo, uint32_t unOriginInfoSize);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* ShowActionOrigins)(VRActionSetHandle_t actionSetHandle, VRActionHandle_t ulActionHandle);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* ShowBindingsForActionSet)(struct VRActiveActionSet_t* pSets, uint32_t unSizeOfVRSelectedActionSet_t, uint32_t unSetCount, VRInputValueHandle_t originToHighlight);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsUsingLegacyInput)();
 };
 
 
@@ -1554,6 +2542,36 @@ public:
 	virtual bool IsUsingLegacyInput() = 0;
 };
 
+struct VR_IVRInput_006_FnTable
+{
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* SetActionManifestPath)(char* pchActionManifestPath);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetActionSetHandle)(char* pchActionSetName, VRActionSetHandle_t* pHandle);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetActionHandle)(char* pchActionName, VRActionHandle_t* pHandle);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetInputSourceHandle)(char* pchInputSourcePath, VRInputValueHandle_t* pHandle);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* UpdateActionState)(struct VRActiveActionSet_t* pSets, uint32_t unSizeOfVRSelectedActionSet_t, uint32_t unSetCount);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetDigitalActionData)(VRActionHandle_t action, struct InputDigitalActionData_t* pActionData, uint32_t unActionDataSize, VRInputValueHandle_t ulRestrictToDevice);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetAnalogActionData)(VRActionHandle_t action, struct InputAnalogActionData_t* pActionData, uint32_t unActionDataSize, VRInputValueHandle_t ulRestrictToDevice);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetPoseActionDataRelativeToNow)(VRActionHandle_t action, ETrackingUniverseOrigin eOrigin, float fPredictedSecondsFromNow, struct InputPoseActionData_t* pActionData, uint32_t unActionDataSize, VRInputValueHandle_t ulRestrictToDevice);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetPoseActionDataForNextFrame)(VRActionHandle_t action, ETrackingUniverseOrigin eOrigin, struct InputPoseActionData_t* pActionData, uint32_t unActionDataSize, VRInputValueHandle_t ulRestrictToDevice);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetSkeletalActionData)(VRActionHandle_t action, struct InputSkeletalActionData_t* pActionData, uint32_t unActionDataSize);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetBoneCount)(VRActionHandle_t action, uint32_t* pBoneCount);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetBoneHierarchy)(VRActionHandle_t action, BoneIndex_t* pParentIndices, uint32_t unIndexArayCount);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetBoneName)(VRActionHandle_t action, BoneIndex_t nBoneIndex, char* pchBoneName, uint32_t unNameBufferSize);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetSkeletalReferenceTransforms)(VRActionHandle_t action, EVRSkeletalTransformSpace eTransformSpace, EVRSkeletalReferencePose eReferencePose, struct VRBoneTransform_t* pTransformArray, uint32_t unTransformArrayCount);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetSkeletalTrackingLevel)(VRActionHandle_t action, EVRSkeletalTrackingLevel* pSkeletalTrackingLevel);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetSkeletalBoneData)(VRActionHandle_t action, EVRSkeletalTransformSpace eTransformSpace, EVRSkeletalMotionRange eMotionRange, struct VRBoneTransform_t* pTransformArray, uint32_t unTransformArrayCount);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetSkeletalSummaryData)(VRActionHandle_t action, EVRSummaryType eSummaryType, struct VRSkeletalSummaryData_t* pSkeletalSummaryData);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetSkeletalBoneDataCompressed)(VRActionHandle_t action, EVRSkeletalMotionRange eMotionRange, void* pvCompressedData, uint32_t unCompressedSize, uint32_t* punRequiredCompressedSize);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* DecompressSkeletalBoneData)(void* pvCompressedBuffer, uint32_t unCompressedBufferSize, EVRSkeletalTransformSpace eTransformSpace, struct VRBoneTransform_t* pTransformArray, uint32_t unTransformArrayCount);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* TriggerHapticVibrationAction)(VRActionHandle_t action, float fStartSecondsFromNow, float fDurationSeconds, float fFrequency, float fAmplitude, VRInputValueHandle_t ulRestrictToDevice);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetActionOrigins)(VRActionSetHandle_t actionSetHandle, VRActionHandle_t digitalActionHandle, VRInputValueHandle_t* originsOut, uint32_t originOutCount);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetOriginLocalizedName)(VRInputValueHandle_t origin, char* pchNameArray, uint32_t unNameArraySize, int32_t unStringSectionsToInclude);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetOriginTrackedDeviceInfo)(VRInputValueHandle_t origin, struct InputOriginInfo_t* pOriginInfo, uint32_t unOriginInfoSize);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* ShowActionOrigins)(VRActionSetHandle_t actionSetHandle, VRActionHandle_t ulActionHandle);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* ShowBindingsForActionSet)(struct VRActiveActionSet_t* pSets, uint32_t unSizeOfVRSelectedActionSet_t, uint32_t unSetCount, VRInputValueHandle_t originToHighlight);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsUsingLegacyInput)();
+};
+
 
 static const char* const IVRInput_007_Version = "IVRInput_007";
 
@@ -1588,6 +2606,38 @@ public:
 	virtual EVRInputError ShowBindingsForActionSet(VR_ARRAY_COUNT(unSetCount) VRActiveActionSet_t* pSets, uint32_t unSizeOfVRSelectedActionSet_t, uint32_t unSetCount, VRInputValueHandle_t originToHighlight) = 0;
 	virtual bool IsUsingLegacyInput() = 0;
 	virtual EVRInputError OpenBindingUI(const char* pchAppKey, VRActionSetHandle_t ulActionSetHandle, VRInputValueHandle_t ulDeviceHandle, bool bShowOnDesktop) = 0;
+};
+
+struct VR_IVRInput_007_FnTable
+{
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* SetActionManifestPath)(char* pchActionManifestPath);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetActionSetHandle)(char* pchActionSetName, VRActionSetHandle_t* pHandle);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetActionHandle)(char* pchActionName, VRActionHandle_t* pHandle);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetInputSourceHandle)(char* pchInputSourcePath, VRInputValueHandle_t* pHandle);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* UpdateActionState)(struct VRActiveActionSet_t* pSets, uint32_t unSizeOfVRSelectedActionSet_t, uint32_t unSetCount);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetDigitalActionData)(VRActionHandle_t action, struct InputDigitalActionData_t* pActionData, uint32_t unActionDataSize, VRInputValueHandle_t ulRestrictToDevice);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetAnalogActionData)(VRActionHandle_t action, struct InputAnalogActionData_t* pActionData, uint32_t unActionDataSize, VRInputValueHandle_t ulRestrictToDevice);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetPoseActionDataRelativeToNow)(VRActionHandle_t action, ETrackingUniverseOrigin eOrigin, float fPredictedSecondsFromNow, struct InputPoseActionData_t* pActionData, uint32_t unActionDataSize, VRInputValueHandle_t ulRestrictToDevice);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetPoseActionDataForNextFrame)(VRActionHandle_t action, ETrackingUniverseOrigin eOrigin, struct InputPoseActionData_t* pActionData, uint32_t unActionDataSize, VRInputValueHandle_t ulRestrictToDevice);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetSkeletalActionData)(VRActionHandle_t action, struct InputSkeletalActionData_t* pActionData, uint32_t unActionDataSize);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetBoneCount)(VRActionHandle_t action, uint32_t* pBoneCount);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetBoneHierarchy)(VRActionHandle_t action, BoneIndex_t* pParentIndices, uint32_t unIndexArayCount);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetBoneName)(VRActionHandle_t action, BoneIndex_t nBoneIndex, char* pchBoneName, uint32_t unNameBufferSize);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetSkeletalReferenceTransforms)(VRActionHandle_t action, EVRSkeletalTransformSpace eTransformSpace, EVRSkeletalReferencePose eReferencePose, struct VRBoneTransform_t* pTransformArray, uint32_t unTransformArrayCount);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetSkeletalTrackingLevel)(VRActionHandle_t action, EVRSkeletalTrackingLevel* pSkeletalTrackingLevel);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetSkeletalBoneData)(VRActionHandle_t action, EVRSkeletalTransformSpace eTransformSpace, EVRSkeletalMotionRange eMotionRange, struct VRBoneTransform_t* pTransformArray, uint32_t unTransformArrayCount);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetSkeletalSummaryData)(VRActionHandle_t action, EVRSummaryType eSummaryType, struct VRSkeletalSummaryData_t* pSkeletalSummaryData);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetSkeletalBoneDataCompressed)(VRActionHandle_t action, EVRSkeletalMotionRange eMotionRange, void* pvCompressedData, uint32_t unCompressedSize, uint32_t* punRequiredCompressedSize);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* DecompressSkeletalBoneData)(void* pvCompressedBuffer, uint32_t unCompressedBufferSize, EVRSkeletalTransformSpace eTransformSpace, struct VRBoneTransform_t* pTransformArray, uint32_t unTransformArrayCount);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* TriggerHapticVibrationAction)(VRActionHandle_t action, float fStartSecondsFromNow, float fDurationSeconds, float fFrequency, float fAmplitude, VRInputValueHandle_t ulRestrictToDevice);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetActionOrigins)(VRActionSetHandle_t actionSetHandle, VRActionHandle_t digitalActionHandle, VRInputValueHandle_t* originsOut, uint32_t originOutCount);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetOriginLocalizedName)(VRInputValueHandle_t origin, char* pchNameArray, uint32_t unNameArraySize, int32_t unStringSectionsToInclude);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetOriginTrackedDeviceInfo)(VRInputValueHandle_t origin, struct InputOriginInfo_t* pOriginInfo, uint32_t unOriginInfoSize);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetActionBindingInfo)(VRActionHandle_t action, struct InputBindingInfo_t* pOriginInfo, uint32_t unBindingInfoSize, uint32_t unBindingInfoCount, uint32_t* punReturnedBindingInfoCount);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* ShowActionOrigins)(VRActionSetHandle_t actionSetHandle, VRActionHandle_t ulActionHandle);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* ShowBindingsForActionSet)(struct VRActiveActionSet_t* pSets, uint32_t unSizeOfVRSelectedActionSet_t, uint32_t unSetCount, VRInputValueHandle_t originToHighlight);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsUsingLegacyInput)();
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* OpenBindingUI)(char* pchAppKey, VRActionSetHandle_t ulActionSetHandle, VRInputValueHandle_t ulDeviceHandle, bool bShowOnDesktop);
 };
 
 
@@ -1628,6 +2678,42 @@ public:
 	virtual bool IsUsingLegacyInput() = 0;
 	virtual EVRInputError OpenBindingUI(const char* pchAppKey, VRActionSetHandle_t ulActionSetHandle, VRInputValueHandle_t ulDeviceHandle, bool bShowOnDesktop) = 0;
 	virtual EVRInputError GetBindingVariant(vr::VRInputValueHandle_t ulDevicePath, VR_OUT_STRING() char* pchVariantArray, uint32_t unVariantArraySize) = 0;
+};
+
+struct VR_IVRInput_010_FnTable
+{
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* SetActionManifestPath)(char* pchActionManifestPath);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetActionSetHandle)(char* pchActionSetName, VRActionSetHandle_t* pHandle);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetActionHandle)(char* pchActionName, VRActionHandle_t* pHandle);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetInputSourceHandle)(char* pchInputSourcePath, VRInputValueHandle_t* pHandle);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* UpdateActionState)(struct VRActiveActionSet_t* pSets, uint32_t unSizeOfVRSelectedActionSet_t, uint32_t unSetCount);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetDigitalActionData)(VRActionHandle_t action, struct InputDigitalActionData_t* pActionData, uint32_t unActionDataSize, VRInputValueHandle_t ulRestrictToDevice);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetAnalogActionData)(VRActionHandle_t action, struct InputAnalogActionData_t* pActionData, uint32_t unActionDataSize, VRInputValueHandle_t ulRestrictToDevice);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetPoseActionDataRelativeToNow)(VRActionHandle_t action, ETrackingUniverseOrigin eOrigin, float fPredictedSecondsFromNow, struct InputPoseActionData_t* pActionData, uint32_t unActionDataSize, VRInputValueHandle_t ulRestrictToDevice);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetPoseActionDataForNextFrame)(VRActionHandle_t action, ETrackingUniverseOrigin eOrigin, struct InputPoseActionData_t* pActionData, uint32_t unActionDataSize, VRInputValueHandle_t ulRestrictToDevice);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetSkeletalActionData)(VRActionHandle_t action, struct InputSkeletalActionData_t* pActionData, uint32_t unActionDataSize);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetDominantHand)(ETrackedControllerRole* peDominantHand);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* SetDominantHand)(ETrackedControllerRole eDominantHand);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetBoneCount)(VRActionHandle_t action, uint32_t* pBoneCount);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetBoneHierarchy)(VRActionHandle_t action, BoneIndex_t* pParentIndices, uint32_t unIndexArayCount);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetBoneName)(VRActionHandle_t action, BoneIndex_t nBoneIndex, char* pchBoneName, uint32_t unNameBufferSize);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetSkeletalReferenceTransforms)(VRActionHandle_t action, EVRSkeletalTransformSpace eTransformSpace, EVRSkeletalReferencePose eReferencePose, struct VRBoneTransform_t* pTransformArray, uint32_t unTransformArrayCount);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetSkeletalTrackingLevel)(VRActionHandle_t action, EVRSkeletalTrackingLevel* pSkeletalTrackingLevel);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetSkeletalBoneData)(VRActionHandle_t action, EVRSkeletalTransformSpace eTransformSpace, EVRSkeletalMotionRange eMotionRange, struct VRBoneTransform_t* pTransformArray, uint32_t unTransformArrayCount);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetSkeletalSummaryData)(VRActionHandle_t action, EVRSummaryType eSummaryType, struct VRSkeletalSummaryData_t* pSkeletalSummaryData);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetSkeletalBoneDataCompressed)(VRActionHandle_t action, EVRSkeletalMotionRange eMotionRange, void* pvCompressedData, uint32_t unCompressedSize, uint32_t* punRequiredCompressedSize);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* DecompressSkeletalBoneData)(void* pvCompressedBuffer, uint32_t unCompressedBufferSize, EVRSkeletalTransformSpace eTransformSpace, struct VRBoneTransform_t* pTransformArray, uint32_t unTransformArrayCount);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* TriggerHapticVibrationAction)(VRActionHandle_t action, float fStartSecondsFromNow, float fDurationSeconds, float fFrequency, float fAmplitude, VRInputValueHandle_t ulRestrictToDevice);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetActionOrigins)(VRActionSetHandle_t actionSetHandle, VRActionHandle_t digitalActionHandle, VRInputValueHandle_t* originsOut, uint32_t originOutCount);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetOriginLocalizedName)(VRInputValueHandle_t origin, char* pchNameArray, uint32_t unNameArraySize, int32_t unStringSectionsToInclude);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetOriginTrackedDeviceInfo)(VRInputValueHandle_t origin, struct InputOriginInfo_t* pOriginInfo, uint32_t unOriginInfoSize);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetActionBindingInfo)(VRActionHandle_t action, struct InputBindingInfo_t* pOriginInfo, uint32_t unBindingInfoSize, uint32_t unBindingInfoCount, uint32_t* punReturnedBindingInfoCount);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* ShowActionOrigins)(VRActionSetHandle_t actionSetHandle, VRActionHandle_t ulActionHandle);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* ShowBindingsForActionSet)(struct VRActiveActionSet_t* pSets, uint32_t unSizeOfVRSelectedActionSet_t, uint32_t unSetCount, VRInputValueHandle_t originToHighlight);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetComponentStateForBinding)(char* pchRenderModelName, char* pchComponentName, struct InputBindingInfo_t* pOriginInfo, uint32_t unBindingInfoSize, uint32_t unBindingInfoCount, RenderModel_ComponentState_t* pComponentState);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsUsingLegacyInput)();
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* OpenBindingUI)(char* pchAppKey, VRActionSetHandle_t ulActionSetHandle, VRInputValueHandle_t ulDeviceHandle, bool bShowOnDesktop);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetBindingVariant)(VRInputValueHandle_t ulDevicePath, char* pchVariantArray, uint32_t unVariantArraySize);
 };
 
 
@@ -1672,6 +2758,44 @@ public:
 	virtual EVRInputError GetBindingVariant(vr::VRInputValueHandle_t ulDevicePath, VR_OUT_STRING() char* pchVariantArray, uint32_t unVariantArraySize) = 0;
 };
 
+struct VR_IVRInput_011_FnTable
+{
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* SetActionManifestPath)(char* pchActionManifestPath);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetActionSetHandle)(char* pchActionSetName, VRActionSetHandle_t* pHandle);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetActionHandle)(char* pchActionName, VRActionHandle_t* pHandle);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetInputSourceHandle)(char* pchInputSourcePath, VRInputValueHandle_t* pHandle);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* UpdateActionState)(struct VRActiveActionSet_t* pSets, uint32_t unSizeOfVRSelectedActionSet_t, uint32_t unSetCount);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetDigitalActionData)(VRActionHandle_t action, struct InputDigitalActionData_t* pActionData, uint32_t unActionDataSize, VRInputValueHandle_t ulRestrictToDevice);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetAnalogActionData)(VRActionHandle_t action, struct InputAnalogActionData_t* pActionData, uint32_t unActionDataSize, VRInputValueHandle_t ulRestrictToDevice);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetPoseActionDataRelativeToNow)(VRActionHandle_t action, ETrackingUniverseOrigin eOrigin, float fPredictedSecondsFromNow, struct InputPoseActionData_t* pActionData, uint32_t unActionDataSize, VRInputValueHandle_t ulRestrictToDevice);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetPoseActionDataForNextFrame)(VRActionHandle_t action, ETrackingUniverseOrigin eOrigin, struct InputPoseActionData_t* pActionData, uint32_t unActionDataSize, VRInputValueHandle_t ulRestrictToDevice);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetSkeletalActionData)(VRActionHandle_t action, struct InputSkeletalActionData_t* pActionData, uint32_t unActionDataSize);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetDominantHand)(ETrackedControllerRole* peDominantHand);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* SetDominantHand)(ETrackedControllerRole eDominantHand);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetEyeTrackingDataRelativeToNow)(VRActionHandle_t action, ETrackingUniverseOrigin eOrigin, float fPredictedSecondsFromNow, VREyeTrackingData_t* pEyeTrackingData, uint32_t ulEyeTrackingDataSize);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetEyeTrackingDataForNextFrame)(VRActionHandle_t action, ETrackingUniverseOrigin eOrigin, VREyeTrackingData_t* pEyeTrackingData, uint32_t ulEyeTrackingDataSize);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetBoneCount)(VRActionHandle_t action, uint32_t* pBoneCount);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetBoneHierarchy)(VRActionHandle_t action, BoneIndex_t* pParentIndices, uint32_t unIndexArayCount);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetBoneName)(VRActionHandle_t action, BoneIndex_t nBoneIndex, char* pchBoneName, uint32_t unNameBufferSize);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetSkeletalReferenceTransforms)(VRActionHandle_t action, EVRSkeletalTransformSpace eTransformSpace, EVRSkeletalReferencePose eReferencePose, struct VRBoneTransform_t* pTransformArray, uint32_t unTransformArrayCount);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetSkeletalTrackingLevel)(VRActionHandle_t action, EVRSkeletalTrackingLevel* pSkeletalTrackingLevel);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetSkeletalBoneData)(VRActionHandle_t action, EVRSkeletalTransformSpace eTransformSpace, EVRSkeletalMotionRange eMotionRange, struct VRBoneTransform_t* pTransformArray, uint32_t unTransformArrayCount);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetSkeletalSummaryData)(VRActionHandle_t action, EVRSummaryType eSummaryType, struct VRSkeletalSummaryData_t* pSkeletalSummaryData);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetSkeletalBoneDataCompressed)(VRActionHandle_t action, EVRSkeletalMotionRange eMotionRange, void* pvCompressedData, uint32_t unCompressedSize, uint32_t* punRequiredCompressedSize);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* DecompressSkeletalBoneData)(void* pvCompressedBuffer, uint32_t unCompressedBufferSize, EVRSkeletalTransformSpace eTransformSpace, struct VRBoneTransform_t* pTransformArray, uint32_t unTransformArrayCount);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* TriggerHapticVibrationAction)(VRActionHandle_t action, float fStartSecondsFromNow, float fDurationSeconds, float fFrequency, float fAmplitude, VRInputValueHandle_t ulRestrictToDevice);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetActionOrigins)(VRActionSetHandle_t actionSetHandle, VRActionHandle_t digitalActionHandle, VRInputValueHandle_t* originsOut, uint32_t originOutCount);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetOriginLocalizedName)(VRInputValueHandle_t origin, char* pchNameArray, uint32_t unNameArraySize, int32_t unStringSectionsToInclude);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetOriginTrackedDeviceInfo)(VRInputValueHandle_t origin, struct InputOriginInfo_t* pOriginInfo, uint32_t unOriginInfoSize);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetActionBindingInfo)(VRActionHandle_t action, struct InputBindingInfo_t* pOriginInfo, uint32_t unBindingInfoSize, uint32_t unBindingInfoCount, uint32_t* punReturnedBindingInfoCount);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* ShowActionOrigins)(VRActionSetHandle_t actionSetHandle, VRActionHandle_t ulActionHandle);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* ShowBindingsForActionSet)(struct VRActiveActionSet_t* pSets, uint32_t unSizeOfVRSelectedActionSet_t, uint32_t unSetCount, VRInputValueHandle_t originToHighlight);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetComponentStateForBinding)(char* pchRenderModelName, char* pchComponentName, struct InputBindingInfo_t* pOriginInfo, uint32_t unBindingInfoSize, uint32_t unBindingInfoCount, RenderModel_ComponentState_t* pComponentState);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsUsingLegacyInput)();
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* OpenBindingUI)(char* pchAppKey, VRActionSetHandle_t ulActionSetHandle, VRInputValueHandle_t ulDeviceHandle, bool bShowOnDesktop);
+	EVRInputError(OPENVR_FNTABLE_CALLTYPE* GetBindingVariant)(VRInputValueHandle_t ulDevicePath, char* pchVariantArray, uint32_t unVariantArraySize);
+};
+
 
 static const char* const IVRIOBuffer_001_Version = "IVRIOBuffer_001";
 
@@ -1683,6 +2807,15 @@ public:
 	virtual vr::EIOBufferError Read(vr::IOBufferHandle_t ulBuffer, void* pDst, uint32_t unBytes, uint32_t* punRead) = 0;
 	virtual vr::EIOBufferError Write(vr::IOBufferHandle_t ulBuffer, void* pSrc, uint32_t unBytes) = 0;
 	virtual vr::PropertyContainerHandle_t PropertyContainer(vr::IOBufferHandle_t ulBuffer) = 0;
+};
+
+struct VR_IVRIOBuffer_001_FnTable
+{
+	EIOBufferError(OPENVR_FNTABLE_CALLTYPE* Open)(char* pchPath, EIOBufferMode mode, uint32_t unElementSize, uint32_t unElements, IOBufferHandle_t* pulBuffer);
+	EIOBufferError(OPENVR_FNTABLE_CALLTYPE* Close)(IOBufferHandle_t ulBuffer);
+	EIOBufferError(OPENVR_FNTABLE_CALLTYPE* Read)(IOBufferHandle_t ulBuffer, void* pDst, uint32_t unBytes, uint32_t* punRead);
+	EIOBufferError(OPENVR_FNTABLE_CALLTYPE* Write)(IOBufferHandle_t ulBuffer, void* pSrc, uint32_t unBytes);
+	PropertyContainerHandle_t(OPENVR_FNTABLE_CALLTYPE* PropertyContainer)(IOBufferHandle_t ulBuffer);
 };
 
 
@@ -1697,6 +2830,16 @@ public:
 	virtual vr::EIOBufferError Write(vr::IOBufferHandle_t ulBuffer, void* pSrc, uint32_t unBytes) = 0;
 	virtual vr::PropertyContainerHandle_t PropertyContainer(vr::IOBufferHandle_t ulBuffer) = 0;
 	virtual bool HasReaders(vr::IOBufferHandle_t ulBuffer) = 0;
+};
+
+struct VR_IVRIOBuffer_002_FnTable
+{
+	EIOBufferError(OPENVR_FNTABLE_CALLTYPE* Open)(char* pchPath, EIOBufferMode mode, uint32_t unElementSize, uint32_t unElements, IOBufferHandle_t* pulBuffer);
+	EIOBufferError(OPENVR_FNTABLE_CALLTYPE* Close)(IOBufferHandle_t ulBuffer);
+	EIOBufferError(OPENVR_FNTABLE_CALLTYPE* Read)(IOBufferHandle_t ulBuffer, void* pDst, uint32_t unBytes, uint32_t* punRead);
+	EIOBufferError(OPENVR_FNTABLE_CALLTYPE* Write)(IOBufferHandle_t ulBuffer, void* pSrc, uint32_t unBytes);
+	PropertyContainerHandle_t(OPENVR_FNTABLE_CALLTYPE* PropertyContainer)(IOBufferHandle_t ulBuffer);
+	bool(OPENVR_FNTABLE_CALLTYPE* HasReaders)(IOBufferHandle_t ulBuffer);
 };
 
 
@@ -1719,6 +2862,20 @@ protected:
 	virtual ~IVRIPCResourceManagerClient_001() {};
 };
 
+struct VR_IVRIPCResourceManagerClient_001_FnTable
+{
+	bool(OPENVR_FNTABLE_CALLTYPE* NewSharedVulkanImage)(uint32_t nImageFormat, uint32_t nWidth, uint32_t nHeight, bool bRenderable, bool bMappable, bool bComputeAccess, uint32_t unMipLevels, uint32_t unArrayLayerCount, SharedTextureHandle_t* pSharedHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* NewSharedVulkanBuffer)(uint32_t nSize, uint32_t nUsageFlags, SharedTextureHandle_t* pSharedHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* NewSharedVulkanSemaphore)(SharedTextureHandle_t* pSharedHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* RefResource)(SharedTextureHandle_t hSharedHandle, uint64_t* pNewIpcHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* UnrefResource)(SharedTextureHandle_t hSharedHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetDmabufFormats)(uint32_t* pOutFormatCount, uint32_t* pOutFormats);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetDmabufModifiers)(EVRApplicationType eApplicationType, uint32_t unDRMFormat, uint32_t* pOutModifierCount, uint64_t* pOutModifiers);
+	bool(OPENVR_FNTABLE_CALLTYPE* ImportDmabuf)(EVRApplicationType eApplicationType, DmabufAttributes_t* pDmabufAttributes, SharedTextureHandle_t* pSharedHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* ReceiveSharedFd)(uint64_t ulIpcHandle, int* pOutFd);
+	void(OPENVR_FNTABLE_CALLTYPE* DestructIVRIPCResourceManagerClient)();
+};
+
 
 static const char* const IVRIPCResourceManagerClient_002_Version = "IVRIPCResourceManagerClient_002";
 
@@ -1739,6 +2896,20 @@ protected:
 	virtual ~IVRIPCResourceManagerClient_002() {};
 };
 
+struct VR_IVRIPCResourceManagerClient_002_FnTable
+{
+	bool(OPENVR_FNTABLE_CALLTYPE* NewSharedVulkanImage)(uint32_t nImageFormat, uint32_t nWidth, uint32_t nHeight, bool bRenderable, bool bMappable, bool bComputeAccess, uint32_t unMipLevels, uint32_t unArrayLayerCount, SharedTextureHandle_t* pSharedHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* NewSharedVulkanBuffer)(uint32_t nSize, uint32_t nUsageFlags, SharedTextureHandle_t* pSharedHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* NewSharedVulkanSemaphore)(bool bCounting, SharedTextureHandle_t* pSharedHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* RefResource)(SharedTextureHandle_t hSharedHandle, uint64_t* pNewIpcHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* UnrefResource)(SharedTextureHandle_t hSharedHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetDmabufFormats)(uint32_t* pOutFormatCount, uint32_t* pOutFormats);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetDmabufModifiers)(EVRApplicationType eApplicationType, uint32_t unDRMFormat, uint32_t* pOutModifierCount, uint64_t* pOutModifiers);
+	bool(OPENVR_FNTABLE_CALLTYPE* ImportDmabuf)(EVRApplicationType eApplicationType, DmabufAttributes_t* pDmabufAttributes, SharedTextureHandle_t* pSharedHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* ReceiveSharedFd)(uint64_t ulIpcHandle, int* pOutFd);
+	void(OPENVR_FNTABLE_CALLTYPE* DestructIVRIPCResourceManagerClient)();
+};
+
 
 static const char* const IVRIPCResourceManagerClient_003_Version = "IVRIPCResourceManagerClient_003";
 
@@ -1757,6 +2928,20 @@ public:
 
 protected:
 	virtual ~IVRIPCResourceManagerClient_003() {};
+};
+
+struct VR_IVRIPCResourceManagerClient_003_FnTable
+{
+	bool(OPENVR_FNTABLE_CALLTYPE* NewSharedVulkanImage)(uint32_t nImageFormat, uint32_t nWidth, uint32_t nHeight, bool bRenderable, bool bMappable, bool bComputeAccess, uint32_t unMipLevels, uint32_t unArrayLayerCount, uint32_t unAdditionalVkCreateFlags, uint32_t unAdditionalVkUsageFlags, SharedTextureHandle_t* pSharedHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* NewSharedVulkanBuffer)(uint32_t nSize, uint32_t nUsageFlags, SharedTextureHandle_t* pSharedHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* NewSharedVulkanSemaphore)(bool bCounting, SharedTextureHandle_t* pSharedHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* RefResource)(SharedTextureHandle_t hSharedHandle, uint64_t* pNewIpcHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* UnrefResource)(SharedTextureHandle_t hSharedHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetDmabufFormats)(uint32_t* pOutFormatCount, uint32_t* pOutFormats);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetDmabufModifiers)(EVRApplicationType eApplicationType, uint32_t unDRMFormat, uint32_t* pOutModifierCount, uint64_t* pOutModifiers);
+	bool(OPENVR_FNTABLE_CALLTYPE* ImportDmabuf)(EVRApplicationType eApplicationType, DmabufAttributes_t* pDmabufAttributes, SharedTextureHandle_t* pSharedHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* ReceiveSharedFd)(uint64_t ulIpcHandle, int* pOutFd);
+	void(OPENVR_FNTABLE_CALLTYPE* DestructIVRIPCResourceManagerClient)();
 };
 
 
@@ -1780,6 +2965,12 @@ class IVRNotifications_002
 public:
 	virtual EVRNotificationError CreateNotification(VROverlayHandle_t ulOverlayHandle, uint64_t ulUserValue, EVRNotificationType type, const char* pchText, EVRNotificationStyle style, const NotificationBitmap_t* pImage, VRNotificationId* pNotificationId) = 0;
 	virtual EVRNotificationError RemoveNotification(VRNotificationId notificationId) = 0;
+};
+
+struct VR_IVRNotifications_002_FnTable
+{
+	EVRNotificationError(OPENVR_FNTABLE_CALLTYPE* CreateNotification)(VROverlayHandle_t ulOverlayHandle, uint64_t ulUserValue, EVRNotificationType type, char* pchText, EVRNotificationStyle style, struct NotificationBitmap_t* pImage, VRNotificationId* pNotificationId);
+	EVRNotificationError(OPENVR_FNTABLE_CALLTYPE* RemoveNotification)(VRNotificationId notificationId);
 };
 
 
@@ -2319,6 +3510,73 @@ public:
 	virtual void SetKeyboardPositionForOverlay(VROverlayHandle_t ulOverlayHandle, HmdRect2_t avoidRect) = 0;
 };
 
+struct VR_IVROverlay_010_FnTable
+{
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* FindOverlay)(char* pchOverlayKey, VROverlayHandle_t* pOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* CreateOverlay)(char* pchOverlayKey, char* pchOverlayFriendlyName, VROverlayHandle_t* pOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* DestroyOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetHighQualityOverlay)(VROverlayHandle_t ulOverlayHandle);
+	VROverlayHandle_t(OPENVR_FNTABLE_CALLTYPE* GetHighQualityOverlay)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayKey)(VROverlayHandle_t ulOverlayHandle, char* pchValue, uint32_t unBufferSize, EVROverlayError* pError);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayName)(VROverlayHandle_t ulOverlayHandle, char* pchValue, uint32_t unBufferSize, EVROverlayError* pError);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayImageData)(VROverlayHandle_t ulOverlayHandle, void* pvBuffer, uint32_t unBufferSize, uint32_t* punWidth, uint32_t* punHeight);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetOverlayErrorNameFromEnum)(EVROverlayError error);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayFlag)(VROverlayHandle_t ulOverlayHandle, VROverlayFlags eOverlayFlag, bool bEnabled);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayFlag)(VROverlayHandle_t ulOverlayHandle, VROverlayFlags eOverlayFlag, bool* pbEnabled);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayColor)(VROverlayHandle_t ulOverlayHandle, float fRed, float fGreen, float fBlue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayColor)(VROverlayHandle_t ulOverlayHandle, float* pfRed, float* pfGreen, float* pfBlue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayAlpha)(VROverlayHandle_t ulOverlayHandle, float fAlpha);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayAlpha)(VROverlayHandle_t ulOverlayHandle, float* pfAlpha);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayWidthInMeters)(VROverlayHandle_t ulOverlayHandle, float fWidthInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayWidthInMeters)(VROverlayHandle_t ulOverlayHandle, float* pfWidthInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayAutoCurveDistanceRangeInMeters)(VROverlayHandle_t ulOverlayHandle, float fMinDistanceInMeters, float fMaxDistanceInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayAutoCurveDistanceRangeInMeters)(VROverlayHandle_t ulOverlayHandle, float* pfMinDistanceInMeters, float* pfMaxDistanceInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTextureColorSpace)(VROverlayHandle_t ulOverlayHandle, EColorSpace eTextureColorSpace);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureColorSpace)(VROverlayHandle_t ulOverlayHandle, EColorSpace* peTextureColorSpace);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTextureBounds)(VROverlayHandle_t ulOverlayHandle, struct VRTextureBounds_t* pOverlayTextureBounds);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureBounds)(VROverlayHandle_t ulOverlayHandle, struct VRTextureBounds_t* pOverlayTextureBounds);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformType)(VROverlayHandle_t ulOverlayHandle, VROverlayTransformType* peTransformType);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformAbsolute)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin eTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformAbsolute)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin* peTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformTrackedDeviceRelative)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t unTrackedDevice, struct HmdMatrix34_t* pmatTrackedDeviceToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformTrackedDeviceRelative)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t* punTrackedDevice, struct HmdMatrix34_t* pmatTrackedDeviceToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformTrackedDeviceComponent)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t unDeviceIndex, char* pchComponentName);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformTrackedDeviceComponent)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t* punDeviceIndex, char* pchComponentName, uint32_t unComponentNameSize);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* HideOverlay)(VROverlayHandle_t ulOverlayHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsOverlayVisible)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetTransformForOverlayCoordinates)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin eTrackingOrigin, struct HmdVector2_t coordinatesInOverlay, struct HmdMatrix34_t* pmatTransform);
+	bool(OPENVR_FNTABLE_CALLTYPE* PollNextOverlayEvent)(VROverlayHandle_t ulOverlayHandle, struct VREvent_t* pEvent, uint32_t uncbVREvent);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayInputMethod)(VROverlayHandle_t ulOverlayHandle, VROverlayInputMethod* peInputMethod);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayInputMethod)(VROverlayHandle_t ulOverlayHandle, VROverlayInputMethod eInputMethod);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayMouseScale)(VROverlayHandle_t ulOverlayHandle, struct HmdVector2_t* pvecMouseScale);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayMouseScale)(VROverlayHandle_t ulOverlayHandle, struct HmdVector2_t* pvecMouseScale);
+	bool(OPENVR_FNTABLE_CALLTYPE* ComputeOverlayIntersection)(VROverlayHandle_t ulOverlayHandle, struct VROverlayIntersectionParams_t* pParams, struct VROverlayIntersectionResults_t* pResults);
+	bool(OPENVR_FNTABLE_CALLTYPE* HandleControllerOverlayInteractionAsMouse)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t unControllerDeviceIndex);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsHoverTargetOverlay)(VROverlayHandle_t ulOverlayHandle);
+	VROverlayHandle_t(OPENVR_FNTABLE_CALLTYPE* GetGamepadFocusOverlay)();
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetGamepadFocusOverlay)(VROverlayHandle_t ulNewFocusOverlay);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayNeighbor)(EOverlayDirection eDirection, VROverlayHandle_t ulFrom, VROverlayHandle_t ulTo);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* MoveGamepadFocusToNeighbor)(EOverlayDirection eDirection, VROverlayHandle_t ulFrom);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTexture)(VROverlayHandle_t ulOverlayHandle, struct Texture_t* pTexture);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ClearOverlayTexture)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayRaw)(VROverlayHandle_t ulOverlayHandle, void* pvBuffer, uint32_t unWidth, uint32_t unHeight, uint32_t unDepth);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayFromFile)(VROverlayHandle_t ulOverlayHandle, char* pchFilePath);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* CreateDashboardOverlay)(char* pchOverlayKey, char* pchOverlayFriendlyName, VROverlayHandle_t* pMainHandle, VROverlayHandle_t* pThumbnailHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsDashboardVisible)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsActiveDashboardOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetDashboardOverlaySceneProcess)(VROverlayHandle_t ulOverlayHandle, uint32_t unProcessId);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetDashboardOverlaySceneProcess)(VROverlayHandle_t ulOverlayHandle, uint32_t* punProcessId);
+	void(OPENVR_FNTABLE_CALLTYPE* ShowDashboard)(char* pchOverlayToShow);
+	TrackedDeviceIndex_t(OPENVR_FNTABLE_CALLTYPE* GetPrimaryDashboardDevice)();
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowKeyboard)(EGamepadTextInputMode eInputMode, EGamepadTextInputLineMode eLineInputMode, char* pchDescription, uint32_t unCharMax, char* pchExistingText, bool bUseMinimalMode, uint64_t uUserValue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowKeyboardForOverlay)(VROverlayHandle_t ulOverlayHandle, EGamepadTextInputMode eInputMode, EGamepadTextInputLineMode eLineInputMode, char* pchDescription, uint32_t unCharMax, char* pchExistingText, bool bUseMinimalMode, uint64_t uUserValue);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetKeyboardText)(char* pchText, uint32_t cchText);
+	void(OPENVR_FNTABLE_CALLTYPE* HideKeyboard)();
+	void(OPENVR_FNTABLE_CALLTYPE* SetKeyboardTransformAbsolute)(ETrackingUniverseOrigin eTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToKeyboardTransform);
+	void(OPENVR_FNTABLE_CALLTYPE* SetKeyboardPositionForOverlay)(VROverlayHandle_t ulOverlayHandle, struct HmdRect2_t avoidRect);
+};
+
 
 static const char* const IVROverlay_011_Version = "IVROverlay_011";
 
@@ -2392,6 +3650,77 @@ public:
 	virtual void HideKeyboard() = 0;
 	virtual void SetKeyboardTransformAbsolute(ETrackingUniverseOrigin eTrackingOrigin, const HmdMatrix34_t* pmatTrackingOriginToKeyboardTransform) = 0;
 	virtual void SetKeyboardPositionForOverlay(VROverlayHandle_t ulOverlayHandle, HmdRect2_t avoidRect) = 0;
+};
+
+struct VR_IVROverlay_011_FnTable
+{
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* FindOverlay)(char* pchOverlayKey, VROverlayHandle_t* pOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* CreateOverlay)(char* pchOverlayKey, char* pchOverlayFriendlyName, VROverlayHandle_t* pOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* DestroyOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetHighQualityOverlay)(VROverlayHandle_t ulOverlayHandle);
+	VROverlayHandle_t(OPENVR_FNTABLE_CALLTYPE* GetHighQualityOverlay)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayKey)(VROverlayHandle_t ulOverlayHandle, char* pchValue, uint32_t unBufferSize, EVROverlayError* pError);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayName)(VROverlayHandle_t ulOverlayHandle, char* pchValue, uint32_t unBufferSize, EVROverlayError* pError);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayImageData)(VROverlayHandle_t ulOverlayHandle, void* pvBuffer, uint32_t unBufferSize, uint32_t* punWidth, uint32_t* punHeight);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetOverlayErrorNameFromEnum)(EVROverlayError error);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayRenderingPid)(VROverlayHandle_t ulOverlayHandle, uint32_t unPID);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayRenderingPid)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayFlag)(VROverlayHandle_t ulOverlayHandle, VROverlayFlags eOverlayFlag, bool bEnabled);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayFlag)(VROverlayHandle_t ulOverlayHandle, VROverlayFlags eOverlayFlag, bool* pbEnabled);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayColor)(VROverlayHandle_t ulOverlayHandle, float fRed, float fGreen, float fBlue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayColor)(VROverlayHandle_t ulOverlayHandle, float* pfRed, float* pfGreen, float* pfBlue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayAlpha)(VROverlayHandle_t ulOverlayHandle, float fAlpha);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayAlpha)(VROverlayHandle_t ulOverlayHandle, float* pfAlpha);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayWidthInMeters)(VROverlayHandle_t ulOverlayHandle, float fWidthInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayWidthInMeters)(VROverlayHandle_t ulOverlayHandle, float* pfWidthInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayAutoCurveDistanceRangeInMeters)(VROverlayHandle_t ulOverlayHandle, float fMinDistanceInMeters, float fMaxDistanceInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayAutoCurveDistanceRangeInMeters)(VROverlayHandle_t ulOverlayHandle, float* pfMinDistanceInMeters, float* pfMaxDistanceInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTextureColorSpace)(VROverlayHandle_t ulOverlayHandle, EColorSpace eTextureColorSpace);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureColorSpace)(VROverlayHandle_t ulOverlayHandle, EColorSpace* peTextureColorSpace);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTextureBounds)(VROverlayHandle_t ulOverlayHandle, struct VRTextureBounds_t* pOverlayTextureBounds);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureBounds)(VROverlayHandle_t ulOverlayHandle, struct VRTextureBounds_t* pOverlayTextureBounds);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformType)(VROverlayHandle_t ulOverlayHandle, VROverlayTransformType* peTransformType);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformAbsolute)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin eTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformAbsolute)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin* peTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformTrackedDeviceRelative)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t unTrackedDevice, struct HmdMatrix34_t* pmatTrackedDeviceToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformTrackedDeviceRelative)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t* punTrackedDevice, struct HmdMatrix34_t* pmatTrackedDeviceToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformTrackedDeviceComponent)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t unDeviceIndex, char* pchComponentName);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformTrackedDeviceComponent)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t* punDeviceIndex, char* pchComponentName, uint32_t unComponentNameSize);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* HideOverlay)(VROverlayHandle_t ulOverlayHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsOverlayVisible)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetTransformForOverlayCoordinates)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin eTrackingOrigin, struct HmdVector2_t coordinatesInOverlay, struct HmdMatrix34_t* pmatTransform);
+	bool(OPENVR_FNTABLE_CALLTYPE* PollNextOverlayEvent)(VROverlayHandle_t ulOverlayHandle, struct VREvent_t* pEvent, uint32_t uncbVREvent);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayInputMethod)(VROverlayHandle_t ulOverlayHandle, VROverlayInputMethod* peInputMethod);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayInputMethod)(VROverlayHandle_t ulOverlayHandle, VROverlayInputMethod eInputMethod);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayMouseScale)(VROverlayHandle_t ulOverlayHandle, struct HmdVector2_t* pvecMouseScale);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayMouseScale)(VROverlayHandle_t ulOverlayHandle, struct HmdVector2_t* pvecMouseScale);
+	bool(OPENVR_FNTABLE_CALLTYPE* ComputeOverlayIntersection)(VROverlayHandle_t ulOverlayHandle, struct VROverlayIntersectionParams_t* pParams, struct VROverlayIntersectionResults_t* pResults);
+	bool(OPENVR_FNTABLE_CALLTYPE* HandleControllerOverlayInteractionAsMouse)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t unControllerDeviceIndex);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsHoverTargetOverlay)(VROverlayHandle_t ulOverlayHandle);
+	VROverlayHandle_t(OPENVR_FNTABLE_CALLTYPE* GetGamepadFocusOverlay)();
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetGamepadFocusOverlay)(VROverlayHandle_t ulNewFocusOverlay);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayNeighbor)(EOverlayDirection eDirection, VROverlayHandle_t ulFrom, VROverlayHandle_t ulTo);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* MoveGamepadFocusToNeighbor)(EOverlayDirection eDirection, VROverlayHandle_t ulFrom);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTexture)(VROverlayHandle_t ulOverlayHandle, struct Texture_t* pTexture);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ClearOverlayTexture)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayRaw)(VROverlayHandle_t ulOverlayHandle, void* pvBuffer, uint32_t unWidth, uint32_t unHeight, uint32_t unDepth);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayFromFile)(VROverlayHandle_t ulOverlayHandle, char* pchFilePath);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTexture)(VROverlayHandle_t ulOverlayHandle, void** pNativeTextureHandle, void* pNativeTextureRef, uint32_t* pWidth, uint32_t* pHeight, uint32_t* pNativeFormat, EGraphicsAPIConvention* pAPI, EColorSpace* pColorSpace);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ReleaseNativeOverlayHandle)(VROverlayHandle_t ulOverlayHandle, void* pNativeTextureHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* CreateDashboardOverlay)(char* pchOverlayKey, char* pchOverlayFriendlyName, VROverlayHandle_t* pMainHandle, VROverlayHandle_t* pThumbnailHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsDashboardVisible)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsActiveDashboardOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetDashboardOverlaySceneProcess)(VROverlayHandle_t ulOverlayHandle, uint32_t unProcessId);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetDashboardOverlaySceneProcess)(VROverlayHandle_t ulOverlayHandle, uint32_t* punProcessId);
+	void(OPENVR_FNTABLE_CALLTYPE* ShowDashboard)(char* pchOverlayToShow);
+	TrackedDeviceIndex_t(OPENVR_FNTABLE_CALLTYPE* GetPrimaryDashboardDevice)();
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowKeyboard)(EGamepadTextInputMode eInputMode, EGamepadTextInputLineMode eLineInputMode, char* pchDescription, uint32_t unCharMax, char* pchExistingText, bool bUseMinimalMode, uint64_t uUserValue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowKeyboardForOverlay)(VROverlayHandle_t ulOverlayHandle, EGamepadTextInputMode eInputMode, EGamepadTextInputLineMode eLineInputMode, char* pchDescription, uint32_t unCharMax, char* pchExistingText, bool bUseMinimalMode, uint64_t uUserValue);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetKeyboardText)(char* pchText, uint32_t cchText);
+	void(OPENVR_FNTABLE_CALLTYPE* HideKeyboard)();
+	void(OPENVR_FNTABLE_CALLTYPE* SetKeyboardTransformAbsolute)(ETrackingUniverseOrigin eTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToKeyboardTransform);
+	void(OPENVR_FNTABLE_CALLTYPE* SetKeyboardPositionForOverlay)(VROverlayHandle_t ulOverlayHandle, struct HmdRect2_t avoidRect);
 };
 
 
@@ -2468,6 +3797,78 @@ public:
 	virtual void HideKeyboard() = 0;
 	virtual void SetKeyboardTransformAbsolute(ETrackingUniverseOrigin eTrackingOrigin, const HmdMatrix34_t* pmatTrackingOriginToKeyboardTransform) = 0;
 	virtual void SetKeyboardPositionForOverlay(VROverlayHandle_t ulOverlayHandle, HmdRect2_t avoidRect) = 0;
+};
+
+struct VR_IVROverlay_012_FnTable
+{
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* FindOverlay)(char* pchOverlayKey, VROverlayHandle_t* pOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* CreateOverlay)(char* pchOverlayKey, char* pchOverlayFriendlyName, VROverlayHandle_t* pOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* DestroyOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetHighQualityOverlay)(VROverlayHandle_t ulOverlayHandle);
+	VROverlayHandle_t(OPENVR_FNTABLE_CALLTYPE* GetHighQualityOverlay)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayKey)(VROverlayHandle_t ulOverlayHandle, char* pchValue, uint32_t unBufferSize, EVROverlayError* pError);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayName)(VROverlayHandle_t ulOverlayHandle, char* pchValue, uint32_t unBufferSize, EVROverlayError* pError);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayImageData)(VROverlayHandle_t ulOverlayHandle, void* pvBuffer, uint32_t unBufferSize, uint32_t* punWidth, uint32_t* punHeight);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetOverlayErrorNameFromEnum)(EVROverlayError error);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayRenderingPid)(VROverlayHandle_t ulOverlayHandle, uint32_t unPID);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayRenderingPid)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayFlag)(VROverlayHandle_t ulOverlayHandle, VROverlayFlags eOverlayFlag, bool bEnabled);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayFlag)(VROverlayHandle_t ulOverlayHandle, VROverlayFlags eOverlayFlag, bool* pbEnabled);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayColor)(VROverlayHandle_t ulOverlayHandle, float fRed, float fGreen, float fBlue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayColor)(VROverlayHandle_t ulOverlayHandle, float* pfRed, float* pfGreen, float* pfBlue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayAlpha)(VROverlayHandle_t ulOverlayHandle, float fAlpha);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayAlpha)(VROverlayHandle_t ulOverlayHandle, float* pfAlpha);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayWidthInMeters)(VROverlayHandle_t ulOverlayHandle, float fWidthInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayWidthInMeters)(VROverlayHandle_t ulOverlayHandle, float* pfWidthInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayAutoCurveDistanceRangeInMeters)(VROverlayHandle_t ulOverlayHandle, float fMinDistanceInMeters, float fMaxDistanceInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayAutoCurveDistanceRangeInMeters)(VROverlayHandle_t ulOverlayHandle, float* pfMinDistanceInMeters, float* pfMaxDistanceInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTextureColorSpace)(VROverlayHandle_t ulOverlayHandle, EColorSpace eTextureColorSpace);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureColorSpace)(VROverlayHandle_t ulOverlayHandle, EColorSpace* peTextureColorSpace);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTextureBounds)(VROverlayHandle_t ulOverlayHandle, struct VRTextureBounds_t* pOverlayTextureBounds);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureBounds)(VROverlayHandle_t ulOverlayHandle, struct VRTextureBounds_t* pOverlayTextureBounds);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformType)(VROverlayHandle_t ulOverlayHandle, VROverlayTransformType* peTransformType);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformAbsolute)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin eTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformAbsolute)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin* peTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformTrackedDeviceRelative)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t unTrackedDevice, struct HmdMatrix34_t* pmatTrackedDeviceToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformTrackedDeviceRelative)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t* punTrackedDevice, struct HmdMatrix34_t* pmatTrackedDeviceToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformTrackedDeviceComponent)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t unDeviceIndex, char* pchComponentName);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformTrackedDeviceComponent)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t* punDeviceIndex, char* pchComponentName, uint32_t unComponentNameSize);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* HideOverlay)(VROverlayHandle_t ulOverlayHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsOverlayVisible)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetTransformForOverlayCoordinates)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin eTrackingOrigin, struct HmdVector2_t coordinatesInOverlay, struct HmdMatrix34_t* pmatTransform);
+	bool(OPENVR_FNTABLE_CALLTYPE* PollNextOverlayEvent)(VROverlayHandle_t ulOverlayHandle, struct VREvent_t* pEvent, uint32_t uncbVREvent);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayInputMethod)(VROverlayHandle_t ulOverlayHandle, VROverlayInputMethod* peInputMethod);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayInputMethod)(VROverlayHandle_t ulOverlayHandle, VROverlayInputMethod eInputMethod);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayMouseScale)(VROverlayHandle_t ulOverlayHandle, struct HmdVector2_t* pvecMouseScale);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayMouseScale)(VROverlayHandle_t ulOverlayHandle, struct HmdVector2_t* pvecMouseScale);
+	bool(OPENVR_FNTABLE_CALLTYPE* ComputeOverlayIntersection)(VROverlayHandle_t ulOverlayHandle, struct VROverlayIntersectionParams_t* pParams, struct VROverlayIntersectionResults_t* pResults);
+	bool(OPENVR_FNTABLE_CALLTYPE* HandleControllerOverlayInteractionAsMouse)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t unControllerDeviceIndex);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsHoverTargetOverlay)(VROverlayHandle_t ulOverlayHandle);
+	VROverlayHandle_t(OPENVR_FNTABLE_CALLTYPE* GetGamepadFocusOverlay)();
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetGamepadFocusOverlay)(VROverlayHandle_t ulNewFocusOverlay);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayNeighbor)(EOverlayDirection eDirection, VROverlayHandle_t ulFrom, VROverlayHandle_t ulTo);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* MoveGamepadFocusToNeighbor)(EOverlayDirection eDirection, VROverlayHandle_t ulFrom);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTexture)(VROverlayHandle_t ulOverlayHandle, struct Texture_t* pTexture);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ClearOverlayTexture)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayRaw)(VROverlayHandle_t ulOverlayHandle, void* pvBuffer, uint32_t unWidth, uint32_t unHeight, uint32_t unDepth);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayFromFile)(VROverlayHandle_t ulOverlayHandle, char* pchFilePath);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTexture)(VROverlayHandle_t ulOverlayHandle, void** pNativeTextureHandle, void* pNativeTextureRef, uint32_t* pWidth, uint32_t* pHeight, uint32_t* pNativeFormat, EGraphicsAPIConvention* pAPI, EColorSpace* pColorSpace);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ReleaseNativeOverlayHandle)(VROverlayHandle_t ulOverlayHandle, void* pNativeTextureHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureSize)(VROverlayHandle_t ulOverlayHandle, uint32_t* pWidth, uint32_t* pHeight);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* CreateDashboardOverlay)(char* pchOverlayKey, char* pchOverlayFriendlyName, VROverlayHandle_t* pMainHandle, VROverlayHandle_t* pThumbnailHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsDashboardVisible)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsActiveDashboardOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetDashboardOverlaySceneProcess)(VROverlayHandle_t ulOverlayHandle, uint32_t unProcessId);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetDashboardOverlaySceneProcess)(VROverlayHandle_t ulOverlayHandle, uint32_t* punProcessId);
+	void(OPENVR_FNTABLE_CALLTYPE* ShowDashboard)(char* pchOverlayToShow);
+	TrackedDeviceIndex_t(OPENVR_FNTABLE_CALLTYPE* GetPrimaryDashboardDevice)();
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowKeyboard)(EGamepadTextInputMode eInputMode, EGamepadTextInputLineMode eLineInputMode, char* pchDescription, uint32_t unCharMax, char* pchExistingText, bool bUseMinimalMode, uint64_t uUserValue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowKeyboardForOverlay)(VROverlayHandle_t ulOverlayHandle, EGamepadTextInputMode eInputMode, EGamepadTextInputLineMode eLineInputMode, char* pchDescription, uint32_t unCharMax, char* pchExistingText, bool bUseMinimalMode, uint64_t uUserValue);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetKeyboardText)(char* pchText, uint32_t cchText);
+	void(OPENVR_FNTABLE_CALLTYPE* HideKeyboard)();
+	void(OPENVR_FNTABLE_CALLTYPE* SetKeyboardTransformAbsolute)(ETrackingUniverseOrigin eTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToKeyboardTransform);
+	void(OPENVR_FNTABLE_CALLTYPE* SetKeyboardPositionForOverlay)(VROverlayHandle_t ulOverlayHandle, struct HmdRect2_t avoidRect);
 };
 
 
@@ -2551,6 +3952,83 @@ public:
 	virtual EVROverlayError SetOverlayIntersectionMask(VROverlayHandle_t ulOverlayHandle, VROverlayIntersectionMaskPrimitive_t* pMaskPrimitives, uint32_t unNumMaskPrimitives, uint32_t unPrimitiveSize = sizeof(VROverlayIntersectionMaskPrimitive_t)) = 0;
 };
 
+struct VR_IVROverlay_013_FnTable
+{
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* FindOverlay)(char* pchOverlayKey, VROverlayHandle_t* pOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* CreateOverlay)(char* pchOverlayKey, char* pchOverlayFriendlyName, VROverlayHandle_t* pOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* DestroyOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetHighQualityOverlay)(VROverlayHandle_t ulOverlayHandle);
+	VROverlayHandle_t(OPENVR_FNTABLE_CALLTYPE* GetHighQualityOverlay)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayKey)(VROverlayHandle_t ulOverlayHandle, char* pchValue, uint32_t unBufferSize, EVROverlayError* pError);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayName)(VROverlayHandle_t ulOverlayHandle, char* pchValue, uint32_t unBufferSize, EVROverlayError* pError);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayImageData)(VROverlayHandle_t ulOverlayHandle, void* pvBuffer, uint32_t unBufferSize, uint32_t* punWidth, uint32_t* punHeight);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetOverlayErrorNameFromEnum)(EVROverlayError error);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayRenderingPid)(VROverlayHandle_t ulOverlayHandle, uint32_t unPID);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayRenderingPid)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayFlag)(VROverlayHandle_t ulOverlayHandle, VROverlayFlags eOverlayFlag, bool bEnabled);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayFlag)(VROverlayHandle_t ulOverlayHandle, VROverlayFlags eOverlayFlag, bool* pbEnabled);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayColor)(VROverlayHandle_t ulOverlayHandle, float fRed, float fGreen, float fBlue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayColor)(VROverlayHandle_t ulOverlayHandle, float* pfRed, float* pfGreen, float* pfBlue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayAlpha)(VROverlayHandle_t ulOverlayHandle, float fAlpha);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayAlpha)(VROverlayHandle_t ulOverlayHandle, float* pfAlpha);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTexelAspect)(VROverlayHandle_t ulOverlayHandle, float fTexelAspect);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTexelAspect)(VROverlayHandle_t ulOverlayHandle, float* pfTexelAspect);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlaySortOrder)(VROverlayHandle_t ulOverlayHandle, uint32_t unSortOrder);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlaySortOrder)(VROverlayHandle_t ulOverlayHandle, uint32_t* punSortOrder);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayWidthInMeters)(VROverlayHandle_t ulOverlayHandle, float fWidthInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayWidthInMeters)(VROverlayHandle_t ulOverlayHandle, float* pfWidthInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayAutoCurveDistanceRangeInMeters)(VROverlayHandle_t ulOverlayHandle, float fMinDistanceInMeters, float fMaxDistanceInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayAutoCurveDistanceRangeInMeters)(VROverlayHandle_t ulOverlayHandle, float* pfMinDistanceInMeters, float* pfMaxDistanceInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTextureColorSpace)(VROverlayHandle_t ulOverlayHandle, EColorSpace eTextureColorSpace);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureColorSpace)(VROverlayHandle_t ulOverlayHandle, EColorSpace* peTextureColorSpace);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTextureBounds)(VROverlayHandle_t ulOverlayHandle, struct VRTextureBounds_t* pOverlayTextureBounds);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureBounds)(VROverlayHandle_t ulOverlayHandle, struct VRTextureBounds_t* pOverlayTextureBounds);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformType)(VROverlayHandle_t ulOverlayHandle, VROverlayTransformType* peTransformType);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformAbsolute)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin eTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformAbsolute)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin* peTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformTrackedDeviceRelative)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t unTrackedDevice, struct HmdMatrix34_t* pmatTrackedDeviceToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformTrackedDeviceRelative)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t* punTrackedDevice, struct HmdMatrix34_t* pmatTrackedDeviceToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformTrackedDeviceComponent)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t unDeviceIndex, char* pchComponentName);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformTrackedDeviceComponent)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t* punDeviceIndex, char* pchComponentName, uint32_t unComponentNameSize);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* HideOverlay)(VROverlayHandle_t ulOverlayHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsOverlayVisible)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetTransformForOverlayCoordinates)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin eTrackingOrigin, struct HmdVector2_t coordinatesInOverlay, struct HmdMatrix34_t* pmatTransform);
+	bool(OPENVR_FNTABLE_CALLTYPE* PollNextOverlayEvent)(VROverlayHandle_t ulOverlayHandle, struct VREvent_t* pEvent, uint32_t uncbVREvent);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayInputMethod)(VROverlayHandle_t ulOverlayHandle, VROverlayInputMethod* peInputMethod);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayInputMethod)(VROverlayHandle_t ulOverlayHandle, VROverlayInputMethod eInputMethod);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayMouseScale)(VROverlayHandle_t ulOverlayHandle, struct HmdVector2_t* pvecMouseScale);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayMouseScale)(VROverlayHandle_t ulOverlayHandle, struct HmdVector2_t* pvecMouseScale);
+	bool(OPENVR_FNTABLE_CALLTYPE* ComputeOverlayIntersection)(VROverlayHandle_t ulOverlayHandle, struct VROverlayIntersectionParams_t* pParams, struct VROverlayIntersectionResults_t* pResults);
+	bool(OPENVR_FNTABLE_CALLTYPE* HandleControllerOverlayInteractionAsMouse)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t unControllerDeviceIndex);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsHoverTargetOverlay)(VROverlayHandle_t ulOverlayHandle);
+	VROverlayHandle_t(OPENVR_FNTABLE_CALLTYPE* GetGamepadFocusOverlay)();
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetGamepadFocusOverlay)(VROverlayHandle_t ulNewFocusOverlay);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayNeighbor)(EOverlayDirection eDirection, VROverlayHandle_t ulFrom, VROverlayHandle_t ulTo);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* MoveGamepadFocusToNeighbor)(EOverlayDirection eDirection, VROverlayHandle_t ulFrom);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTexture)(VROverlayHandle_t ulOverlayHandle, struct Texture_t* pTexture);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ClearOverlayTexture)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayRaw)(VROverlayHandle_t ulOverlayHandle, void* pvBuffer, uint32_t unWidth, uint32_t unHeight, uint32_t unDepth);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayFromFile)(VROverlayHandle_t ulOverlayHandle, char* pchFilePath);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTexture)(VROverlayHandle_t ulOverlayHandle, void** pNativeTextureHandle, void* pNativeTextureRef, uint32_t* pWidth, uint32_t* pHeight, uint32_t* pNativeFormat, EGraphicsAPIConvention* pAPI, EColorSpace* pColorSpace);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ReleaseNativeOverlayHandle)(VROverlayHandle_t ulOverlayHandle, void* pNativeTextureHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureSize)(VROverlayHandle_t ulOverlayHandle, uint32_t* pWidth, uint32_t* pHeight);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* CreateDashboardOverlay)(char* pchOverlayKey, char* pchOverlayFriendlyName, VROverlayHandle_t* pMainHandle, VROverlayHandle_t* pThumbnailHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsDashboardVisible)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsActiveDashboardOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetDashboardOverlaySceneProcess)(VROverlayHandle_t ulOverlayHandle, uint32_t unProcessId);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetDashboardOverlaySceneProcess)(VROverlayHandle_t ulOverlayHandle, uint32_t* punProcessId);
+	void(OPENVR_FNTABLE_CALLTYPE* ShowDashboard)(char* pchOverlayToShow);
+	TrackedDeviceIndex_t(OPENVR_FNTABLE_CALLTYPE* GetPrimaryDashboardDevice)();
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowKeyboard)(EGamepadTextInputMode eInputMode, EGamepadTextInputLineMode eLineInputMode, char* pchDescription, uint32_t unCharMax, char* pchExistingText, bool bUseMinimalMode, uint64_t uUserValue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowKeyboardForOverlay)(VROverlayHandle_t ulOverlayHandle, EGamepadTextInputMode eInputMode, EGamepadTextInputLineMode eLineInputMode, char* pchDescription, uint32_t unCharMax, char* pchExistingText, bool bUseMinimalMode, uint64_t uUserValue);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetKeyboardText)(char* pchText, uint32_t cchText);
+	void(OPENVR_FNTABLE_CALLTYPE* HideKeyboard)();
+	void(OPENVR_FNTABLE_CALLTYPE* SetKeyboardTransformAbsolute)(ETrackingUniverseOrigin eTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToKeyboardTransform);
+	void(OPENVR_FNTABLE_CALLTYPE* SetKeyboardPositionForOverlay)(VROverlayHandle_t ulOverlayHandle, struct HmdRect2_t avoidRect);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayIntersectionMask)(VROverlayHandle_t ulOverlayHandle, struct VROverlayIntersectionMaskPrimitive_t* pMaskPrimitives, uint32_t unNumMaskPrimitives, uint32_t unPrimitiveSize);
+};
+
 
 static const char* const IVROverlay_014_Version = "IVROverlay_014";
 
@@ -2632,6 +4110,85 @@ public:
 	virtual EVROverlayError SetOverlayIntersectionMask(VROverlayHandle_t ulOverlayHandle, VROverlayIntersectionMaskPrimitive_t* pMaskPrimitives, uint32_t unNumMaskPrimitives, uint32_t unPrimitiveSize = sizeof(VROverlayIntersectionMaskPrimitive_t)) = 0;
 	virtual EVROverlayError GetOverlayFlags(VROverlayHandle_t ulOverlayHandle, uint32_t* pFlags) = 0;
 	virtual VRMessageOverlayResponse ShowMessageOverlay(const char* pchText, const char* pchCaption, const char* pchButton0Text, const char* pchButton1Text = nullptr, const char* pchButton2Text = nullptr, const char* pchButton3Text = nullptr) = 0;
+};
+
+struct VR_IVROverlay_014_FnTable
+{
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* FindOverlay)(char* pchOverlayKey, VROverlayHandle_t* pOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* CreateOverlay)(char* pchOverlayKey, char* pchOverlayFriendlyName, VROverlayHandle_t* pOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* DestroyOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetHighQualityOverlay)(VROverlayHandle_t ulOverlayHandle);
+	VROverlayHandle_t(OPENVR_FNTABLE_CALLTYPE* GetHighQualityOverlay)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayKey)(VROverlayHandle_t ulOverlayHandle, char* pchValue, uint32_t unBufferSize, EVROverlayError* pError);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayName)(VROverlayHandle_t ulOverlayHandle, char* pchValue, uint32_t unBufferSize, EVROverlayError* pError);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayImageData)(VROverlayHandle_t ulOverlayHandle, void* pvBuffer, uint32_t unBufferSize, uint32_t* punWidth, uint32_t* punHeight);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetOverlayErrorNameFromEnum)(EVROverlayError error);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayRenderingPid)(VROverlayHandle_t ulOverlayHandle, uint32_t unPID);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayRenderingPid)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayFlag)(VROverlayHandle_t ulOverlayHandle, VROverlayFlags eOverlayFlag, bool bEnabled);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayFlag)(VROverlayHandle_t ulOverlayHandle, VROverlayFlags eOverlayFlag, bool* pbEnabled);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayColor)(VROverlayHandle_t ulOverlayHandle, float fRed, float fGreen, float fBlue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayColor)(VROverlayHandle_t ulOverlayHandle, float* pfRed, float* pfGreen, float* pfBlue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayAlpha)(VROverlayHandle_t ulOverlayHandle, float fAlpha);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayAlpha)(VROverlayHandle_t ulOverlayHandle, float* pfAlpha);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTexelAspect)(VROverlayHandle_t ulOverlayHandle, float fTexelAspect);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTexelAspect)(VROverlayHandle_t ulOverlayHandle, float* pfTexelAspect);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlaySortOrder)(VROverlayHandle_t ulOverlayHandle, uint32_t unSortOrder);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlaySortOrder)(VROverlayHandle_t ulOverlayHandle, uint32_t* punSortOrder);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayWidthInMeters)(VROverlayHandle_t ulOverlayHandle, float fWidthInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayWidthInMeters)(VROverlayHandle_t ulOverlayHandle, float* pfWidthInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayAutoCurveDistanceRangeInMeters)(VROverlayHandle_t ulOverlayHandle, float fMinDistanceInMeters, float fMaxDistanceInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayAutoCurveDistanceRangeInMeters)(VROverlayHandle_t ulOverlayHandle, float* pfMinDistanceInMeters, float* pfMaxDistanceInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTextureColorSpace)(VROverlayHandle_t ulOverlayHandle, EColorSpace eTextureColorSpace);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureColorSpace)(VROverlayHandle_t ulOverlayHandle, EColorSpace* peTextureColorSpace);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTextureBounds)(VROverlayHandle_t ulOverlayHandle, struct VRTextureBounds_t* pOverlayTextureBounds);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureBounds)(VROverlayHandle_t ulOverlayHandle, struct VRTextureBounds_t* pOverlayTextureBounds);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformType)(VROverlayHandle_t ulOverlayHandle, VROverlayTransformType* peTransformType);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformAbsolute)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin eTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformAbsolute)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin* peTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformTrackedDeviceRelative)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t unTrackedDevice, struct HmdMatrix34_t* pmatTrackedDeviceToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformTrackedDeviceRelative)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t* punTrackedDevice, struct HmdMatrix34_t* pmatTrackedDeviceToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformTrackedDeviceComponent)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t unDeviceIndex, char* pchComponentName);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformTrackedDeviceComponent)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t* punDeviceIndex, char* pchComponentName, uint32_t unComponentNameSize);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* HideOverlay)(VROverlayHandle_t ulOverlayHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsOverlayVisible)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetTransformForOverlayCoordinates)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin eTrackingOrigin, struct HmdVector2_t coordinatesInOverlay, struct HmdMatrix34_t* pmatTransform);
+	bool(OPENVR_FNTABLE_CALLTYPE* PollNextOverlayEvent)(VROverlayHandle_t ulOverlayHandle, struct VREvent_t* pEvent, uint32_t uncbVREvent);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayInputMethod)(VROverlayHandle_t ulOverlayHandle, VROverlayInputMethod* peInputMethod);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayInputMethod)(VROverlayHandle_t ulOverlayHandle, VROverlayInputMethod eInputMethod);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayMouseScale)(VROverlayHandle_t ulOverlayHandle, struct HmdVector2_t* pvecMouseScale);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayMouseScale)(VROverlayHandle_t ulOverlayHandle, struct HmdVector2_t* pvecMouseScale);
+	bool(OPENVR_FNTABLE_CALLTYPE* ComputeOverlayIntersection)(VROverlayHandle_t ulOverlayHandle, struct VROverlayIntersectionParams_t* pParams, struct VROverlayIntersectionResults_t* pResults);
+	bool(OPENVR_FNTABLE_CALLTYPE* HandleControllerOverlayInteractionAsMouse)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t unControllerDeviceIndex);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsHoverTargetOverlay)(VROverlayHandle_t ulOverlayHandle);
+	VROverlayHandle_t(OPENVR_FNTABLE_CALLTYPE* GetGamepadFocusOverlay)();
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetGamepadFocusOverlay)(VROverlayHandle_t ulNewFocusOverlay);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayNeighbor)(EOverlayDirection eDirection, VROverlayHandle_t ulFrom, VROverlayHandle_t ulTo);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* MoveGamepadFocusToNeighbor)(EOverlayDirection eDirection, VROverlayHandle_t ulFrom);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTexture)(VROverlayHandle_t ulOverlayHandle, struct Texture_t* pTexture);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ClearOverlayTexture)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayRaw)(VROverlayHandle_t ulOverlayHandle, void* pvBuffer, uint32_t unWidth, uint32_t unHeight, uint32_t unDepth);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayFromFile)(VROverlayHandle_t ulOverlayHandle, char* pchFilePath);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTexture)(VROverlayHandle_t ulOverlayHandle, void** pNativeTextureHandle, void* pNativeTextureRef, uint32_t* pWidth, uint32_t* pHeight, uint32_t* pNativeFormat, ETextureType* pAPIType, EColorSpace* pColorSpace, struct VRTextureBounds_t* pTextureBounds);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ReleaseNativeOverlayHandle)(VROverlayHandle_t ulOverlayHandle, void* pNativeTextureHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureSize)(VROverlayHandle_t ulOverlayHandle, uint32_t* pWidth, uint32_t* pHeight);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* CreateDashboardOverlay)(char* pchOverlayKey, char* pchOverlayFriendlyName, VROverlayHandle_t* pMainHandle, VROverlayHandle_t* pThumbnailHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsDashboardVisible)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsActiveDashboardOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetDashboardOverlaySceneProcess)(VROverlayHandle_t ulOverlayHandle, uint32_t unProcessId);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetDashboardOverlaySceneProcess)(VROverlayHandle_t ulOverlayHandle, uint32_t* punProcessId);
+	void(OPENVR_FNTABLE_CALLTYPE* ShowDashboard)(char* pchOverlayToShow);
+	TrackedDeviceIndex_t(OPENVR_FNTABLE_CALLTYPE* GetPrimaryDashboardDevice)();
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowKeyboard)(EGamepadTextInputMode eInputMode, EGamepadTextInputLineMode eLineInputMode, char* pchDescription, uint32_t unCharMax, char* pchExistingText, bool bUseMinimalMode, uint64_t uUserValue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowKeyboardForOverlay)(VROverlayHandle_t ulOverlayHandle, EGamepadTextInputMode eInputMode, EGamepadTextInputLineMode eLineInputMode, char* pchDescription, uint32_t unCharMax, char* pchExistingText, bool bUseMinimalMode, uint64_t uUserValue);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetKeyboardText)(char* pchText, uint32_t cchText);
+	void(OPENVR_FNTABLE_CALLTYPE* HideKeyboard)();
+	void(OPENVR_FNTABLE_CALLTYPE* SetKeyboardTransformAbsolute)(ETrackingUniverseOrigin eTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToKeyboardTransform);
+	void(OPENVR_FNTABLE_CALLTYPE* SetKeyboardPositionForOverlay)(VROverlayHandle_t ulOverlayHandle, struct HmdRect2_t avoidRect);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayIntersectionMask)(VROverlayHandle_t ulOverlayHandle, struct VROverlayIntersectionMaskPrimitive_t* pMaskPrimitives, uint32_t unNumMaskPrimitives, uint32_t unPrimitiveSize);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayFlags)(VROverlayHandle_t ulOverlayHandle, uint32_t* pFlags);
+	VRMessageOverlayResponse(OPENVR_FNTABLE_CALLTYPE* ShowMessageOverlay)(char* pchText, char* pchCaption, char* pchButton0Text, char* pchButton1Text, char* pchButton2Text, char* pchButton3Text);
 };
 
 
@@ -2721,6 +4278,91 @@ public:
 	virtual EVROverlayError GetOverlayFlags(VROverlayHandle_t ulOverlayHandle, uint32_t* pFlags) = 0;
 	virtual VRMessageOverlayResponse ShowMessageOverlay(const char* pchText, const char* pchCaption, const char* pchButton0Text, const char* pchButton1Text = nullptr, const char* pchButton2Text = nullptr, const char* pchButton3Text = nullptr) = 0;
 	virtual void CloseMessageOverlay() = 0;
+};
+
+struct VR_IVROverlay_016_FnTable
+{
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* FindOverlay)(char* pchOverlayKey, VROverlayHandle_t* pOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* CreateOverlay)(char* pchOverlayKey, char* pchOverlayName, VROverlayHandle_t* pOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* DestroyOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetHighQualityOverlay)(VROverlayHandle_t ulOverlayHandle);
+	VROverlayHandle_t(OPENVR_FNTABLE_CALLTYPE* GetHighQualityOverlay)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayKey)(VROverlayHandle_t ulOverlayHandle, char* pchValue, uint32_t unBufferSize, EVROverlayError* pError);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayName)(VROverlayHandle_t ulOverlayHandle, char* pchValue, uint32_t unBufferSize, EVROverlayError* pError);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayName)(VROverlayHandle_t ulOverlayHandle, char* pchName);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayImageData)(VROverlayHandle_t ulOverlayHandle, void* pvBuffer, uint32_t unBufferSize, uint32_t* punWidth, uint32_t* punHeight);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetOverlayErrorNameFromEnum)(EVROverlayError error);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayRenderingPid)(VROverlayHandle_t ulOverlayHandle, uint32_t unPID);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayRenderingPid)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayFlag)(VROverlayHandle_t ulOverlayHandle, VROverlayFlags eOverlayFlag, bool bEnabled);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayFlag)(VROverlayHandle_t ulOverlayHandle, VROverlayFlags eOverlayFlag, bool* pbEnabled);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayColor)(VROverlayHandle_t ulOverlayHandle, float fRed, float fGreen, float fBlue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayColor)(VROverlayHandle_t ulOverlayHandle, float* pfRed, float* pfGreen, float* pfBlue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayAlpha)(VROverlayHandle_t ulOverlayHandle, float fAlpha);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayAlpha)(VROverlayHandle_t ulOverlayHandle, float* pfAlpha);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTexelAspect)(VROverlayHandle_t ulOverlayHandle, float fTexelAspect);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTexelAspect)(VROverlayHandle_t ulOverlayHandle, float* pfTexelAspect);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlaySortOrder)(VROverlayHandle_t ulOverlayHandle, uint32_t unSortOrder);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlaySortOrder)(VROverlayHandle_t ulOverlayHandle, uint32_t* punSortOrder);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayWidthInMeters)(VROverlayHandle_t ulOverlayHandle, float fWidthInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayWidthInMeters)(VROverlayHandle_t ulOverlayHandle, float* pfWidthInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayAutoCurveDistanceRangeInMeters)(VROverlayHandle_t ulOverlayHandle, float fMinDistanceInMeters, float fMaxDistanceInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayAutoCurveDistanceRangeInMeters)(VROverlayHandle_t ulOverlayHandle, float* pfMinDistanceInMeters, float* pfMaxDistanceInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTextureColorSpace)(VROverlayHandle_t ulOverlayHandle, EColorSpace eTextureColorSpace);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureColorSpace)(VROverlayHandle_t ulOverlayHandle, EColorSpace* peTextureColorSpace);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTextureBounds)(VROverlayHandle_t ulOverlayHandle, struct VRTextureBounds_t* pOverlayTextureBounds);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureBounds)(VROverlayHandle_t ulOverlayHandle, struct VRTextureBounds_t* pOverlayTextureBounds);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayRenderModel)(VROverlayHandle_t ulOverlayHandle, char* pchValue, uint32_t unBufferSize, struct HmdColor_t* pColor, EVROverlayError* pError);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayRenderModel)(VROverlayHandle_t ulOverlayHandle, char* pchRenderModel, struct HmdColor_t* pColor);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformType)(VROverlayHandle_t ulOverlayHandle, VROverlayTransformType* peTransformType);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformAbsolute)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin eTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformAbsolute)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin* peTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformTrackedDeviceRelative)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t unTrackedDevice, struct HmdMatrix34_t* pmatTrackedDeviceToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformTrackedDeviceRelative)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t* punTrackedDevice, struct HmdMatrix34_t* pmatTrackedDeviceToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformTrackedDeviceComponent)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t unDeviceIndex, char* pchComponentName);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformTrackedDeviceComponent)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t* punDeviceIndex, char* pchComponentName, uint32_t unComponentNameSize);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformOverlayRelative)(VROverlayHandle_t ulOverlayHandle, VROverlayHandle_t* ulOverlayHandleParent, struct HmdMatrix34_t* pmatParentOverlayToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformOverlayRelative)(VROverlayHandle_t ulOverlayHandle, VROverlayHandle_t ulOverlayHandleParent, struct HmdMatrix34_t* pmatParentOverlayToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* HideOverlay)(VROverlayHandle_t ulOverlayHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsOverlayVisible)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetTransformForOverlayCoordinates)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin eTrackingOrigin, struct HmdVector2_t coordinatesInOverlay, struct HmdMatrix34_t* pmatTransform);
+	bool(OPENVR_FNTABLE_CALLTYPE* PollNextOverlayEvent)(VROverlayHandle_t ulOverlayHandle, struct VREvent_t* pEvent, uint32_t uncbVREvent);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayInputMethod)(VROverlayHandle_t ulOverlayHandle, VROverlayInputMethod* peInputMethod);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayInputMethod)(VROverlayHandle_t ulOverlayHandle, VROverlayInputMethod eInputMethod);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayMouseScale)(VROverlayHandle_t ulOverlayHandle, struct HmdVector2_t* pvecMouseScale);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayMouseScale)(VROverlayHandle_t ulOverlayHandle, struct HmdVector2_t* pvecMouseScale);
+	bool(OPENVR_FNTABLE_CALLTYPE* ComputeOverlayIntersection)(VROverlayHandle_t ulOverlayHandle, struct VROverlayIntersectionParams_t* pParams, struct VROverlayIntersectionResults_t* pResults);
+	bool(OPENVR_FNTABLE_CALLTYPE* HandleControllerOverlayInteractionAsMouse)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t unControllerDeviceIndex);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsHoverTargetOverlay)(VROverlayHandle_t ulOverlayHandle);
+	VROverlayHandle_t(OPENVR_FNTABLE_CALLTYPE* GetGamepadFocusOverlay)();
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetGamepadFocusOverlay)(VROverlayHandle_t ulNewFocusOverlay);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayNeighbor)(EOverlayDirection eDirection, VROverlayHandle_t ulFrom, VROverlayHandle_t ulTo);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* MoveGamepadFocusToNeighbor)(EOverlayDirection eDirection, VROverlayHandle_t ulFrom);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTexture)(VROverlayHandle_t ulOverlayHandle, struct Texture_t* pTexture);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ClearOverlayTexture)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayRaw)(VROverlayHandle_t ulOverlayHandle, void* pvBuffer, uint32_t unWidth, uint32_t unHeight, uint32_t unDepth);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayFromFile)(VROverlayHandle_t ulOverlayHandle, char* pchFilePath);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTexture)(VROverlayHandle_t ulOverlayHandle, void** pNativeTextureHandle, void* pNativeTextureRef, uint32_t* pWidth, uint32_t* pHeight, uint32_t* pNativeFormat, ETextureType* pAPIType, EColorSpace* pColorSpace, struct VRTextureBounds_t* pTextureBounds);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ReleaseNativeOverlayHandle)(VROverlayHandle_t ulOverlayHandle, void* pNativeTextureHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureSize)(VROverlayHandle_t ulOverlayHandle, uint32_t* pWidth, uint32_t* pHeight);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* CreateDashboardOverlay)(char* pchOverlayKey, char* pchOverlayFriendlyName, VROverlayHandle_t* pMainHandle, VROverlayHandle_t* pThumbnailHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsDashboardVisible)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsActiveDashboardOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetDashboardOverlaySceneProcess)(VROverlayHandle_t ulOverlayHandle, uint32_t unProcessId);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetDashboardOverlaySceneProcess)(VROverlayHandle_t ulOverlayHandle, uint32_t* punProcessId);
+	void(OPENVR_FNTABLE_CALLTYPE* ShowDashboard)(char* pchOverlayToShow);
+	TrackedDeviceIndex_t(OPENVR_FNTABLE_CALLTYPE* GetPrimaryDashboardDevice)();
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowKeyboard)(EGamepadTextInputMode eInputMode, EGamepadTextInputLineMode eLineInputMode, char* pchDescription, uint32_t unCharMax, char* pchExistingText, bool bUseMinimalMode, uint64_t uUserValue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowKeyboardForOverlay)(VROverlayHandle_t ulOverlayHandle, EGamepadTextInputMode eInputMode, EGamepadTextInputLineMode eLineInputMode, char* pchDescription, uint32_t unCharMax, char* pchExistingText, bool bUseMinimalMode, uint64_t uUserValue);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetKeyboardText)(char* pchText, uint32_t cchText);
+	void(OPENVR_FNTABLE_CALLTYPE* HideKeyboard)();
+	void(OPENVR_FNTABLE_CALLTYPE* SetKeyboardTransformAbsolute)(ETrackingUniverseOrigin eTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToKeyboardTransform);
+	void(OPENVR_FNTABLE_CALLTYPE* SetKeyboardPositionForOverlay)(VROverlayHandle_t ulOverlayHandle, struct HmdRect2_t avoidRect);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayIntersectionMask)(VROverlayHandle_t ulOverlayHandle, struct VROverlayIntersectionMaskPrimitive_t* pMaskPrimitives, uint32_t unNumMaskPrimitives, uint32_t unPrimitiveSize);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayFlags)(VROverlayHandle_t ulOverlayHandle, uint32_t* pFlags);
+	VRMessageOverlayResponse(OPENVR_FNTABLE_CALLTYPE* ShowMessageOverlay)(char* pchText, char* pchCaption, char* pchButton0Text, char* pchButton1Text, char* pchButton2Text, char* pchButton3Text);
+	void(OPENVR_FNTABLE_CALLTYPE* CloseMessageOverlay)();
 };
 
 
@@ -2814,6 +4456,93 @@ public:
 	virtual void CloseMessageOverlay() = 0;
 };
 
+struct VR_IVROverlay_017_FnTable
+{
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* FindOverlay)(char* pchOverlayKey, VROverlayHandle_t* pOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* CreateOverlay)(char* pchOverlayKey, char* pchOverlayName, VROverlayHandle_t* pOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* DestroyOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetHighQualityOverlay)(VROverlayHandle_t ulOverlayHandle);
+	VROverlayHandle_t(OPENVR_FNTABLE_CALLTYPE* GetHighQualityOverlay)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayKey)(VROverlayHandle_t ulOverlayHandle, char* pchValue, uint32_t unBufferSize, EVROverlayError* pError);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayName)(VROverlayHandle_t ulOverlayHandle, char* pchValue, uint32_t unBufferSize, EVROverlayError* pError);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayName)(VROverlayHandle_t ulOverlayHandle, char* pchName);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayImageData)(VROverlayHandle_t ulOverlayHandle, void* pvBuffer, uint32_t unBufferSize, uint32_t* punWidth, uint32_t* punHeight);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetOverlayErrorNameFromEnum)(EVROverlayError error);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayRenderingPid)(VROverlayHandle_t ulOverlayHandle, uint32_t unPID);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayRenderingPid)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayFlag)(VROverlayHandle_t ulOverlayHandle, VROverlayFlags eOverlayFlag, bool bEnabled);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayFlag)(VROverlayHandle_t ulOverlayHandle, VROverlayFlags eOverlayFlag, bool* pbEnabled);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayColor)(VROverlayHandle_t ulOverlayHandle, float fRed, float fGreen, float fBlue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayColor)(VROverlayHandle_t ulOverlayHandle, float* pfRed, float* pfGreen, float* pfBlue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayAlpha)(VROverlayHandle_t ulOverlayHandle, float fAlpha);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayAlpha)(VROverlayHandle_t ulOverlayHandle, float* pfAlpha);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTexelAspect)(VROverlayHandle_t ulOverlayHandle, float fTexelAspect);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTexelAspect)(VROverlayHandle_t ulOverlayHandle, float* pfTexelAspect);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlaySortOrder)(VROverlayHandle_t ulOverlayHandle, uint32_t unSortOrder);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlaySortOrder)(VROverlayHandle_t ulOverlayHandle, uint32_t* punSortOrder);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayWidthInMeters)(VROverlayHandle_t ulOverlayHandle, float fWidthInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayWidthInMeters)(VROverlayHandle_t ulOverlayHandle, float* pfWidthInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayAutoCurveDistanceRangeInMeters)(VROverlayHandle_t ulOverlayHandle, float fMinDistanceInMeters, float fMaxDistanceInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayAutoCurveDistanceRangeInMeters)(VROverlayHandle_t ulOverlayHandle, float* pfMinDistanceInMeters, float* pfMaxDistanceInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTextureColorSpace)(VROverlayHandle_t ulOverlayHandle, EColorSpace eTextureColorSpace);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureColorSpace)(VROverlayHandle_t ulOverlayHandle, EColorSpace* peTextureColorSpace);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTextureBounds)(VROverlayHandle_t ulOverlayHandle, struct VRTextureBounds_t* pOverlayTextureBounds);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureBounds)(VROverlayHandle_t ulOverlayHandle, struct VRTextureBounds_t* pOverlayTextureBounds);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayRenderModel)(VROverlayHandle_t ulOverlayHandle, char* pchValue, uint32_t unBufferSize, struct HmdColor_t* pColor, EVROverlayError* pError);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayRenderModel)(VROverlayHandle_t ulOverlayHandle, char* pchRenderModel, struct HmdColor_t* pColor);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformType)(VROverlayHandle_t ulOverlayHandle, VROverlayTransformType* peTransformType);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformAbsolute)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin eTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformAbsolute)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin* peTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformTrackedDeviceRelative)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t unTrackedDevice, struct HmdMatrix34_t* pmatTrackedDeviceToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformTrackedDeviceRelative)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t* punTrackedDevice, struct HmdMatrix34_t* pmatTrackedDeviceToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformTrackedDeviceComponent)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t unDeviceIndex, char* pchComponentName);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformTrackedDeviceComponent)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t* punDeviceIndex, char* pchComponentName, uint32_t unComponentNameSize);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformOverlayRelative)(VROverlayHandle_t ulOverlayHandle, VROverlayHandle_t* ulOverlayHandleParent, struct HmdMatrix34_t* pmatParentOverlayToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformOverlayRelative)(VROverlayHandle_t ulOverlayHandle, VROverlayHandle_t ulOverlayHandleParent, struct HmdMatrix34_t* pmatParentOverlayToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* HideOverlay)(VROverlayHandle_t ulOverlayHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsOverlayVisible)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetTransformForOverlayCoordinates)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin eTrackingOrigin, struct HmdVector2_t coordinatesInOverlay, struct HmdMatrix34_t* pmatTransform);
+	bool(OPENVR_FNTABLE_CALLTYPE* PollNextOverlayEvent)(VROverlayHandle_t ulOverlayHandle, struct VREvent_t* pEvent, uint32_t uncbVREvent);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayInputMethod)(VROverlayHandle_t ulOverlayHandle, VROverlayInputMethod* peInputMethod);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayInputMethod)(VROverlayHandle_t ulOverlayHandle, VROverlayInputMethod eInputMethod);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayMouseScale)(VROverlayHandle_t ulOverlayHandle, struct HmdVector2_t* pvecMouseScale);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayMouseScale)(VROverlayHandle_t ulOverlayHandle, struct HmdVector2_t* pvecMouseScale);
+	bool(OPENVR_FNTABLE_CALLTYPE* ComputeOverlayIntersection)(VROverlayHandle_t ulOverlayHandle, struct VROverlayIntersectionParams_t* pParams, struct VROverlayIntersectionResults_t* pResults);
+	bool(OPENVR_FNTABLE_CALLTYPE* HandleControllerOverlayInteractionAsMouse)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t unControllerDeviceIndex);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsHoverTargetOverlay)(VROverlayHandle_t ulOverlayHandle);
+	VROverlayHandle_t(OPENVR_FNTABLE_CALLTYPE* GetGamepadFocusOverlay)();
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetGamepadFocusOverlay)(VROverlayHandle_t ulNewFocusOverlay);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayNeighbor)(EOverlayDirection eDirection, VROverlayHandle_t ulFrom, VROverlayHandle_t ulTo);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* MoveGamepadFocusToNeighbor)(EOverlayDirection eDirection, VROverlayHandle_t ulFrom);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayDualAnalogTransform)(VROverlayHandle_t ulOverlay, EDualAnalogWhich eWhich, struct HmdVector2_t& vCenter, float fRadius);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayDualAnalogTransform)(VROverlayHandle_t ulOverlay, EDualAnalogWhich eWhich, struct HmdVector2_t* pvCenter, float* pfRadius);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTexture)(VROverlayHandle_t ulOverlayHandle, struct Texture_t* pTexture);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ClearOverlayTexture)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayRaw)(VROverlayHandle_t ulOverlayHandle, void* pvBuffer, uint32_t unWidth, uint32_t unHeight, uint32_t unDepth);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayFromFile)(VROverlayHandle_t ulOverlayHandle, char* pchFilePath);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTexture)(VROverlayHandle_t ulOverlayHandle, void** pNativeTextureHandle, void* pNativeTextureRef, uint32_t* pWidth, uint32_t* pHeight, uint32_t* pNativeFormat, ETextureType* pAPIType, EColorSpace* pColorSpace, struct VRTextureBounds_t* pTextureBounds);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ReleaseNativeOverlayHandle)(VROverlayHandle_t ulOverlayHandle, void* pNativeTextureHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureSize)(VROverlayHandle_t ulOverlayHandle, uint32_t* pWidth, uint32_t* pHeight);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* CreateDashboardOverlay)(char* pchOverlayKey, char* pchOverlayFriendlyName, VROverlayHandle_t* pMainHandle, VROverlayHandle_t* pThumbnailHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsDashboardVisible)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsActiveDashboardOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetDashboardOverlaySceneProcess)(VROverlayHandle_t ulOverlayHandle, uint32_t unProcessId);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetDashboardOverlaySceneProcess)(VROverlayHandle_t ulOverlayHandle, uint32_t* punProcessId);
+	void(OPENVR_FNTABLE_CALLTYPE* ShowDashboard)(char* pchOverlayToShow);
+	TrackedDeviceIndex_t(OPENVR_FNTABLE_CALLTYPE* GetPrimaryDashboardDevice)();
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowKeyboard)(EGamepadTextInputMode eInputMode, EGamepadTextInputLineMode eLineInputMode, char* pchDescription, uint32_t unCharMax, char* pchExistingText, bool bUseMinimalMode, uint64_t uUserValue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowKeyboardForOverlay)(VROverlayHandle_t ulOverlayHandle, EGamepadTextInputMode eInputMode, EGamepadTextInputLineMode eLineInputMode, char* pchDescription, uint32_t unCharMax, char* pchExistingText, bool bUseMinimalMode, uint64_t uUserValue);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetKeyboardText)(char* pchText, uint32_t cchText);
+	void(OPENVR_FNTABLE_CALLTYPE* HideKeyboard)();
+	void(OPENVR_FNTABLE_CALLTYPE* SetKeyboardTransformAbsolute)(ETrackingUniverseOrigin eTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToKeyboardTransform);
+	void(OPENVR_FNTABLE_CALLTYPE* SetKeyboardPositionForOverlay)(VROverlayHandle_t ulOverlayHandle, struct HmdRect2_t avoidRect);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayIntersectionMask)(VROverlayHandle_t ulOverlayHandle, struct VROverlayIntersectionMaskPrimitive_t* pMaskPrimitives, uint32_t unNumMaskPrimitives, uint32_t unPrimitiveSize);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayFlags)(VROverlayHandle_t ulOverlayHandle, uint32_t* pFlags);
+	VRMessageOverlayResponse(OPENVR_FNTABLE_CALLTYPE* ShowMessageOverlay)(char* pchText, char* pchCaption, char* pchButton0Text, char* pchButton1Text, char* pchButton2Text, char* pchButton3Text);
+	void(OPENVR_FNTABLE_CALLTYPE* CloseMessageOverlay)();
+};
+
 
 static const char* const IVROverlay_018_Version = "IVROverlay_018";
 
@@ -2902,6 +4631,92 @@ public:
 	virtual EVROverlayError GetOverlayFlags(VROverlayHandle_t ulOverlayHandle, uint32_t* pFlags) = 0;
 	virtual VRMessageOverlayResponse ShowMessageOverlay(const char* pchText, const char* pchCaption, const char* pchButton0Text, const char* pchButton1Text = nullptr, const char* pchButton2Text = nullptr, const char* pchButton3Text = nullptr) = 0;
 	virtual void CloseMessageOverlay() = 0;
+};
+
+struct VR_IVROverlay_018_FnTable
+{
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* FindOverlay)(char* pchOverlayKey, VROverlayHandle_t* pOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* CreateOverlay)(char* pchOverlayKey, char* pchOverlayName, VROverlayHandle_t* pOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* DestroyOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetHighQualityOverlay)(VROverlayHandle_t ulOverlayHandle);
+	VROverlayHandle_t(OPENVR_FNTABLE_CALLTYPE* GetHighQualityOverlay)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayKey)(VROverlayHandle_t ulOverlayHandle, char* pchValue, uint32_t unBufferSize, EVROverlayError* pError);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayName)(VROverlayHandle_t ulOverlayHandle, char* pchValue, uint32_t unBufferSize, EVROverlayError* pError);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayName)(VROverlayHandle_t ulOverlayHandle, char* pchName);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayImageData)(VROverlayHandle_t ulOverlayHandle, void* pvBuffer, uint32_t unBufferSize, uint32_t* punWidth, uint32_t* punHeight);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetOverlayErrorNameFromEnum)(EVROverlayError error);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayRenderingPid)(VROverlayHandle_t ulOverlayHandle, uint32_t unPID);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayRenderingPid)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayFlag)(VROverlayHandle_t ulOverlayHandle, VROverlayFlags eOverlayFlag, bool bEnabled);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayFlag)(VROverlayHandle_t ulOverlayHandle, VROverlayFlags eOverlayFlag, bool* pbEnabled);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayColor)(VROverlayHandle_t ulOverlayHandle, float fRed, float fGreen, float fBlue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayColor)(VROverlayHandle_t ulOverlayHandle, float* pfRed, float* pfGreen, float* pfBlue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayAlpha)(VROverlayHandle_t ulOverlayHandle, float fAlpha);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayAlpha)(VROverlayHandle_t ulOverlayHandle, float* pfAlpha);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTexelAspect)(VROverlayHandle_t ulOverlayHandle, float fTexelAspect);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTexelAspect)(VROverlayHandle_t ulOverlayHandle, float* pfTexelAspect);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlaySortOrder)(VROverlayHandle_t ulOverlayHandle, uint32_t unSortOrder);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlaySortOrder)(VROverlayHandle_t ulOverlayHandle, uint32_t* punSortOrder);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayWidthInMeters)(VROverlayHandle_t ulOverlayHandle, float fWidthInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayWidthInMeters)(VROverlayHandle_t ulOverlayHandle, float* pfWidthInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayAutoCurveDistanceRangeInMeters)(VROverlayHandle_t ulOverlayHandle, float fMinDistanceInMeters, float fMaxDistanceInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayAutoCurveDistanceRangeInMeters)(VROverlayHandle_t ulOverlayHandle, float* pfMinDistanceInMeters, float* pfMaxDistanceInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTextureColorSpace)(VROverlayHandle_t ulOverlayHandle, EColorSpace eTextureColorSpace);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureColorSpace)(VROverlayHandle_t ulOverlayHandle, EColorSpace* peTextureColorSpace);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTextureBounds)(VROverlayHandle_t ulOverlayHandle, struct VRTextureBounds_t* pOverlayTextureBounds);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureBounds)(VROverlayHandle_t ulOverlayHandle, struct VRTextureBounds_t* pOverlayTextureBounds);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayRenderModel)(VROverlayHandle_t ulOverlayHandle, char* pchValue, uint32_t unBufferSize, struct HmdColor_t* pColor, EVROverlayError* pError);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayRenderModel)(VROverlayHandle_t ulOverlayHandle, char* pchRenderModel, struct HmdColor_t* pColor);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformType)(VROverlayHandle_t ulOverlayHandle, VROverlayTransformType* peTransformType);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformAbsolute)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin eTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformAbsolute)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin* peTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformTrackedDeviceRelative)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t unTrackedDevice, struct HmdMatrix34_t* pmatTrackedDeviceToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformTrackedDeviceRelative)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t* punTrackedDevice, struct HmdMatrix34_t* pmatTrackedDeviceToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformTrackedDeviceComponent)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t unDeviceIndex, char* pchComponentName);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformTrackedDeviceComponent)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t* punDeviceIndex, char* pchComponentName, uint32_t unComponentNameSize);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformOverlayRelative)(VROverlayHandle_t ulOverlayHandle, VROverlayHandle_t* ulOverlayHandleParent, struct HmdMatrix34_t* pmatParentOverlayToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformOverlayRelative)(VROverlayHandle_t ulOverlayHandle, VROverlayHandle_t ulOverlayHandleParent, struct HmdMatrix34_t* pmatParentOverlayToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* HideOverlay)(VROverlayHandle_t ulOverlayHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsOverlayVisible)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetTransformForOverlayCoordinates)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin eTrackingOrigin, struct HmdVector2_t coordinatesInOverlay, struct HmdMatrix34_t* pmatTransform);
+	bool(OPENVR_FNTABLE_CALLTYPE* PollNextOverlayEvent)(VROverlayHandle_t ulOverlayHandle, struct VREvent_t* pEvent, uint32_t uncbVREvent);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayInputMethod)(VROverlayHandle_t ulOverlayHandle, VROverlayInputMethod* peInputMethod);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayInputMethod)(VROverlayHandle_t ulOverlayHandle, VROverlayInputMethod eInputMethod);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayMouseScale)(VROverlayHandle_t ulOverlayHandle, struct HmdVector2_t* pvecMouseScale);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayMouseScale)(VROverlayHandle_t ulOverlayHandle, struct HmdVector2_t* pvecMouseScale);
+	bool(OPENVR_FNTABLE_CALLTYPE* ComputeOverlayIntersection)(VROverlayHandle_t ulOverlayHandle, struct VROverlayIntersectionParams_t* pParams, struct VROverlayIntersectionResults_t* pResults);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsHoverTargetOverlay)(VROverlayHandle_t ulOverlayHandle);
+	VROverlayHandle_t(OPENVR_FNTABLE_CALLTYPE* GetGamepadFocusOverlay)();
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetGamepadFocusOverlay)(VROverlayHandle_t ulNewFocusOverlay);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayNeighbor)(EOverlayDirection eDirection, VROverlayHandle_t ulFrom, VROverlayHandle_t ulTo);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* MoveGamepadFocusToNeighbor)(EOverlayDirection eDirection, VROverlayHandle_t ulFrom);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayDualAnalogTransform)(VROverlayHandle_t ulOverlay, EDualAnalogWhich eWhich, struct HmdVector2_t& vCenter, float fRadius);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayDualAnalogTransform)(VROverlayHandle_t ulOverlay, EDualAnalogWhich eWhich, struct HmdVector2_t* pvCenter, float* pfRadius);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTexture)(VROverlayHandle_t ulOverlayHandle, struct Texture_t* pTexture);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ClearOverlayTexture)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayRaw)(VROverlayHandle_t ulOverlayHandle, void* pvBuffer, uint32_t unWidth, uint32_t unHeight, uint32_t unDepth);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayFromFile)(VROverlayHandle_t ulOverlayHandle, char* pchFilePath);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTexture)(VROverlayHandle_t ulOverlayHandle, void** pNativeTextureHandle, void* pNativeTextureRef, uint32_t* pWidth, uint32_t* pHeight, uint32_t* pNativeFormat, ETextureType* pAPIType, EColorSpace* pColorSpace, struct VRTextureBounds_t* pTextureBounds);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ReleaseNativeOverlayHandle)(VROverlayHandle_t ulOverlayHandle, void* pNativeTextureHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureSize)(VROverlayHandle_t ulOverlayHandle, uint32_t* pWidth, uint32_t* pHeight);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* CreateDashboardOverlay)(char* pchOverlayKey, char* pchOverlayFriendlyName, VROverlayHandle_t* pMainHandle, VROverlayHandle_t* pThumbnailHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsDashboardVisible)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsActiveDashboardOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetDashboardOverlaySceneProcess)(VROverlayHandle_t ulOverlayHandle, uint32_t unProcessId);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetDashboardOverlaySceneProcess)(VROverlayHandle_t ulOverlayHandle, uint32_t* punProcessId);
+	void(OPENVR_FNTABLE_CALLTYPE* ShowDashboard)(char* pchOverlayToShow);
+	TrackedDeviceIndex_t(OPENVR_FNTABLE_CALLTYPE* GetPrimaryDashboardDevice)();
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowKeyboard)(EGamepadTextInputMode eInputMode, EGamepadTextInputLineMode eLineInputMode, char* pchDescription, uint32_t unCharMax, char* pchExistingText, bool bUseMinimalMode, uint64_t uUserValue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowKeyboardForOverlay)(VROverlayHandle_t ulOverlayHandle, EGamepadTextInputMode eInputMode, EGamepadTextInputLineMode eLineInputMode, char* pchDescription, uint32_t unCharMax, char* pchExistingText, bool bUseMinimalMode, uint64_t uUserValue);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetKeyboardText)(char* pchText, uint32_t cchText);
+	void(OPENVR_FNTABLE_CALLTYPE* HideKeyboard)();
+	void(OPENVR_FNTABLE_CALLTYPE* SetKeyboardTransformAbsolute)(ETrackingUniverseOrigin eTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToKeyboardTransform);
+	void(OPENVR_FNTABLE_CALLTYPE* SetKeyboardPositionForOverlay)(VROverlayHandle_t ulOverlayHandle, struct HmdRect2_t avoidRect);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayIntersectionMask)(VROverlayHandle_t ulOverlayHandle, struct VROverlayIntersectionMaskPrimitive_t* pMaskPrimitives, uint32_t unNumMaskPrimitives, uint32_t unPrimitiveSize);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayFlags)(VROverlayHandle_t ulOverlayHandle, uint32_t* pFlags);
+	VRMessageOverlayResponse(OPENVR_FNTABLE_CALLTYPE* ShowMessageOverlay)(char* pchText, char* pchCaption, char* pchButton0Text, char* pchButton1Text, char* pchButton2Text, char* pchButton3Text);
+	void(OPENVR_FNTABLE_CALLTYPE* CloseMessageOverlay)();
 };
 
 
@@ -2994,6 +4809,92 @@ public:
 	virtual void CloseMessageOverlay() = 0;
 };
 
+struct VR_IVROverlay_019_FnTable
+{
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* FindOverlay)(char* pchOverlayKey, VROverlayHandle_t* pOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* CreateOverlay)(char* pchOverlayKey, char* pchOverlayName, VROverlayHandle_t* pOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* DestroyOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetHighQualityOverlay)(VROverlayHandle_t ulOverlayHandle);
+	VROverlayHandle_t(OPENVR_FNTABLE_CALLTYPE* GetHighQualityOverlay)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayKey)(VROverlayHandle_t ulOverlayHandle, char* pchValue, uint32_t unBufferSize, EVROverlayError* pError);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayName)(VROverlayHandle_t ulOverlayHandle, char* pchValue, uint32_t unBufferSize, EVROverlayError* pError);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayName)(VROverlayHandle_t ulOverlayHandle, char* pchName);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayImageData)(VROverlayHandle_t ulOverlayHandle, void* pvBuffer, uint32_t unBufferSize, uint32_t* punWidth, uint32_t* punHeight);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetOverlayErrorNameFromEnum)(EVROverlayError error);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayRenderingPid)(VROverlayHandle_t ulOverlayHandle, uint32_t unPID);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayRenderingPid)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayFlag)(VROverlayHandle_t ulOverlayHandle, VROverlayFlags eOverlayFlag, bool bEnabled);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayFlag)(VROverlayHandle_t ulOverlayHandle, VROverlayFlags eOverlayFlag, bool* pbEnabled);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayColor)(VROverlayHandle_t ulOverlayHandle, float fRed, float fGreen, float fBlue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayColor)(VROverlayHandle_t ulOverlayHandle, float* pfRed, float* pfGreen, float* pfBlue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayAlpha)(VROverlayHandle_t ulOverlayHandle, float fAlpha);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayAlpha)(VROverlayHandle_t ulOverlayHandle, float* pfAlpha);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTexelAspect)(VROverlayHandle_t ulOverlayHandle, float fTexelAspect);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTexelAspect)(VROverlayHandle_t ulOverlayHandle, float* pfTexelAspect);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlaySortOrder)(VROverlayHandle_t ulOverlayHandle, uint32_t unSortOrder);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlaySortOrder)(VROverlayHandle_t ulOverlayHandle, uint32_t* punSortOrder);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayWidthInMeters)(VROverlayHandle_t ulOverlayHandle, float fWidthInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayWidthInMeters)(VROverlayHandle_t ulOverlayHandle, float* pfWidthInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayAutoCurveDistanceRangeInMeters)(VROverlayHandle_t ulOverlayHandle, float fMinDistanceInMeters, float fMaxDistanceInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayAutoCurveDistanceRangeInMeters)(VROverlayHandle_t ulOverlayHandle, float* pfMinDistanceInMeters, float* pfMaxDistanceInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTextureColorSpace)(VROverlayHandle_t ulOverlayHandle, EColorSpace eTextureColorSpace);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureColorSpace)(VROverlayHandle_t ulOverlayHandle, EColorSpace* peTextureColorSpace);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTextureBounds)(VROverlayHandle_t ulOverlayHandle, struct VRTextureBounds_t* pOverlayTextureBounds);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureBounds)(VROverlayHandle_t ulOverlayHandle, struct VRTextureBounds_t* pOverlayTextureBounds);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayRenderModel)(VROverlayHandle_t ulOverlayHandle, char* pchValue, uint32_t unBufferSize, struct HmdColor_t* pColor, EVROverlayError* pError);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayRenderModel)(VROverlayHandle_t ulOverlayHandle, char* pchRenderModel, struct HmdColor_t* pColor);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformType)(VROverlayHandle_t ulOverlayHandle, VROverlayTransformType* peTransformType);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformAbsolute)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin eTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformAbsolute)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin* peTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformTrackedDeviceRelative)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t unTrackedDevice, struct HmdMatrix34_t* pmatTrackedDeviceToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformTrackedDeviceRelative)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t* punTrackedDevice, struct HmdMatrix34_t* pmatTrackedDeviceToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformTrackedDeviceComponent)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t unDeviceIndex, char* pchComponentName);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformTrackedDeviceComponent)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t* punDeviceIndex, char* pchComponentName, uint32_t unComponentNameSize);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformOverlayRelative)(VROverlayHandle_t ulOverlayHandle, VROverlayHandle_t* ulOverlayHandleParent, struct HmdMatrix34_t* pmatParentOverlayToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformOverlayRelative)(VROverlayHandle_t ulOverlayHandle, VROverlayHandle_t ulOverlayHandleParent, struct HmdMatrix34_t* pmatParentOverlayToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* HideOverlay)(VROverlayHandle_t ulOverlayHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsOverlayVisible)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetTransformForOverlayCoordinates)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin eTrackingOrigin, struct HmdVector2_t coordinatesInOverlay, struct HmdMatrix34_t* pmatTransform);
+	bool(OPENVR_FNTABLE_CALLTYPE* PollNextOverlayEvent)(VROverlayHandle_t ulOverlayHandle, struct VREvent_t* pEvent, uint32_t uncbVREvent);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayInputMethod)(VROverlayHandle_t ulOverlayHandle, VROverlayInputMethod* peInputMethod);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayInputMethod)(VROverlayHandle_t ulOverlayHandle, VROverlayInputMethod eInputMethod);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayMouseScale)(VROverlayHandle_t ulOverlayHandle, struct HmdVector2_t* pvecMouseScale);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayMouseScale)(VROverlayHandle_t ulOverlayHandle, struct HmdVector2_t* pvecMouseScale);
+	bool(OPENVR_FNTABLE_CALLTYPE* ComputeOverlayIntersection)(VROverlayHandle_t ulOverlayHandle, struct VROverlayIntersectionParams_t* pParams, struct VROverlayIntersectionResults_t* pResults);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsHoverTargetOverlay)(VROverlayHandle_t ulOverlayHandle);
+	VROverlayHandle_t(OPENVR_FNTABLE_CALLTYPE* GetGamepadFocusOverlay)();
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetGamepadFocusOverlay)(VROverlayHandle_t ulNewFocusOverlay);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayNeighbor)(EOverlayDirection eDirection, VROverlayHandle_t ulFrom, VROverlayHandle_t ulTo);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* MoveGamepadFocusToNeighbor)(EOverlayDirection eDirection, VROverlayHandle_t ulFrom);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayDualAnalogTransform)(VROverlayHandle_t ulOverlay, EDualAnalogWhich eWhich, struct HmdVector2_t* pvCenter, float fRadius);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayDualAnalogTransform)(VROverlayHandle_t ulOverlay, EDualAnalogWhich eWhich, struct HmdVector2_t* pvCenter, float* pfRadius);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTexture)(VROverlayHandle_t ulOverlayHandle, struct Texture_t* pTexture);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ClearOverlayTexture)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayRaw)(VROverlayHandle_t ulOverlayHandle, void* pvBuffer, uint32_t unWidth, uint32_t unHeight, uint32_t unDepth);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayFromFile)(VROverlayHandle_t ulOverlayHandle, char* pchFilePath);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTexture)(VROverlayHandle_t ulOverlayHandle, void** pNativeTextureHandle, void* pNativeTextureRef, uint32_t* pWidth, uint32_t* pHeight, uint32_t* pNativeFormat, ETextureType* pAPIType, EColorSpace* pColorSpace, struct VRTextureBounds_t* pTextureBounds);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ReleaseNativeOverlayHandle)(VROverlayHandle_t ulOverlayHandle, void* pNativeTextureHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureSize)(VROverlayHandle_t ulOverlayHandle, uint32_t* pWidth, uint32_t* pHeight);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* CreateDashboardOverlay)(char* pchOverlayKey, char* pchOverlayFriendlyName, VROverlayHandle_t* pMainHandle, VROverlayHandle_t* pThumbnailHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsDashboardVisible)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsActiveDashboardOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetDashboardOverlaySceneProcess)(VROverlayHandle_t ulOverlayHandle, uint32_t unProcessId);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetDashboardOverlaySceneProcess)(VROverlayHandle_t ulOverlayHandle, uint32_t* punProcessId);
+	void(OPENVR_FNTABLE_CALLTYPE* ShowDashboard)(char* pchOverlayToShow);
+	TrackedDeviceIndex_t(OPENVR_FNTABLE_CALLTYPE* GetPrimaryDashboardDevice)();
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowKeyboard)(EGamepadTextInputMode eInputMode, EGamepadTextInputLineMode eLineInputMode, char* pchDescription, uint32_t unCharMax, char* pchExistingText, bool bUseMinimalMode, uint64_t uUserValue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowKeyboardForOverlay)(VROverlayHandle_t ulOverlayHandle, EGamepadTextInputMode eInputMode, EGamepadTextInputLineMode eLineInputMode, char* pchDescription, uint32_t unCharMax, char* pchExistingText, bool bUseMinimalMode, uint64_t uUserValue);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetKeyboardText)(char* pchText, uint32_t cchText);
+	void(OPENVR_FNTABLE_CALLTYPE* HideKeyboard)();
+	void(OPENVR_FNTABLE_CALLTYPE* SetKeyboardTransformAbsolute)(ETrackingUniverseOrigin eTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToKeyboardTransform);
+	void(OPENVR_FNTABLE_CALLTYPE* SetKeyboardPositionForOverlay)(VROverlayHandle_t ulOverlayHandle, struct HmdRect2_t avoidRect);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayIntersectionMask)(VROverlayHandle_t ulOverlayHandle, struct VROverlayIntersectionMaskPrimitive_t* pMaskPrimitives, uint32_t unNumMaskPrimitives, uint32_t unPrimitiveSize);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayFlags)(VROverlayHandle_t ulOverlayHandle, uint32_t* pFlags);
+	VRMessageOverlayResponse(OPENVR_FNTABLE_CALLTYPE* ShowMessageOverlay)(char* pchText, char* pchCaption, char* pchButton0Text, char* pchButton1Text, char* pchButton2Text, char* pchButton3Text);
+	void(OPENVR_FNTABLE_CALLTYPE* CloseMessageOverlay)();
+};
+
 
 static const char* const IVROverlay_020_Version = "IVROverlay_020";
 
@@ -3082,6 +4983,90 @@ public:
 	virtual void CloseMessageOverlay() = 0;
 };
 
+struct VR_IVROverlay_020_FnTable
+{
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* FindOverlay)(char* pchOverlayKey, VROverlayHandle_t* pOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* CreateOverlay)(char* pchOverlayKey, char* pchOverlayName, VROverlayHandle_t* pOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* DestroyOverlay)(VROverlayHandle_t ulOverlayHandle);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayKey)(VROverlayHandle_t ulOverlayHandle, char* pchValue, uint32_t unBufferSize, EVROverlayError* pError);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayName)(VROverlayHandle_t ulOverlayHandle, char* pchValue, uint32_t unBufferSize, EVROverlayError* pError);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayName)(VROverlayHandle_t ulOverlayHandle, char* pchName);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayImageData)(VROverlayHandle_t ulOverlayHandle, void* pvBuffer, uint32_t unBufferSize, uint32_t* punWidth, uint32_t* punHeight);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetOverlayErrorNameFromEnum)(EVROverlayError error);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayRenderingPid)(VROverlayHandle_t ulOverlayHandle, uint32_t unPID);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayRenderingPid)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayFlag)(VROverlayHandle_t ulOverlayHandle, VROverlayFlags eOverlayFlag, bool bEnabled);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayFlag)(VROverlayHandle_t ulOverlayHandle, VROverlayFlags eOverlayFlag, bool* pbEnabled);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayColor)(VROverlayHandle_t ulOverlayHandle, float fRed, float fGreen, float fBlue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayColor)(VROverlayHandle_t ulOverlayHandle, float* pfRed, float* pfGreen, float* pfBlue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayAlpha)(VROverlayHandle_t ulOverlayHandle, float fAlpha);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayAlpha)(VROverlayHandle_t ulOverlayHandle, float* pfAlpha);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTexelAspect)(VROverlayHandle_t ulOverlayHandle, float fTexelAspect);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTexelAspect)(VROverlayHandle_t ulOverlayHandle, float* pfTexelAspect);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlaySortOrder)(VROverlayHandle_t ulOverlayHandle, uint32_t unSortOrder);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlaySortOrder)(VROverlayHandle_t ulOverlayHandle, uint32_t* punSortOrder);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayWidthInMeters)(VROverlayHandle_t ulOverlayHandle, float fWidthInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayWidthInMeters)(VROverlayHandle_t ulOverlayHandle, float* pfWidthInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayAutoCurveDistanceRangeInMeters)(VROverlayHandle_t ulOverlayHandle, float fMinDistanceInMeters, float fMaxDistanceInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayAutoCurveDistanceRangeInMeters)(VROverlayHandle_t ulOverlayHandle, float* pfMinDistanceInMeters, float* pfMaxDistanceInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTextureColorSpace)(VROverlayHandle_t ulOverlayHandle, EColorSpace eTextureColorSpace);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureColorSpace)(VROverlayHandle_t ulOverlayHandle, EColorSpace* peTextureColorSpace);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTextureBounds)(VROverlayHandle_t ulOverlayHandle, struct VRTextureBounds_t* pOverlayTextureBounds);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureBounds)(VROverlayHandle_t ulOverlayHandle, struct VRTextureBounds_t* pOverlayTextureBounds);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayRenderModel)(VROverlayHandle_t ulOverlayHandle, char* pchValue, uint32_t unBufferSize, struct HmdColor_t* pColor, EVROverlayError* pError);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayRenderModel)(VROverlayHandle_t ulOverlayHandle, char* pchRenderModel, struct HmdColor_t* pColor);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformType)(VROverlayHandle_t ulOverlayHandle, VROverlayTransformType* peTransformType);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformAbsolute)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin eTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformAbsolute)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin* peTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformTrackedDeviceRelative)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t unTrackedDevice, struct HmdMatrix34_t* pmatTrackedDeviceToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformTrackedDeviceRelative)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t* punTrackedDevice, struct HmdMatrix34_t* pmatTrackedDeviceToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformTrackedDeviceComponent)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t unDeviceIndex, char* pchComponentName);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformTrackedDeviceComponent)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t* punDeviceIndex, char* pchComponentName, uint32_t unComponentNameSize);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformOverlayRelative)(VROverlayHandle_t ulOverlayHandle, VROverlayHandle_t* ulOverlayHandleParent, struct HmdMatrix34_t* pmatParentOverlayToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformOverlayRelative)(VROverlayHandle_t ulOverlayHandle, VROverlayHandle_t ulOverlayHandleParent, struct HmdMatrix34_t* pmatParentOverlayToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* HideOverlay)(VROverlayHandle_t ulOverlayHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsOverlayVisible)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetTransformForOverlayCoordinates)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin eTrackingOrigin, struct HmdVector2_t coordinatesInOverlay, struct HmdMatrix34_t* pmatTransform);
+	bool(OPENVR_FNTABLE_CALLTYPE* PollNextOverlayEvent)(VROverlayHandle_t ulOverlayHandle, struct VREvent_t* pEvent, uint32_t uncbVREvent);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayInputMethod)(VROverlayHandle_t ulOverlayHandle, VROverlayInputMethod* peInputMethod);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayInputMethod)(VROverlayHandle_t ulOverlayHandle, VROverlayInputMethod eInputMethod);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayMouseScale)(VROverlayHandle_t ulOverlayHandle, struct HmdVector2_t* pvecMouseScale);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayMouseScale)(VROverlayHandle_t ulOverlayHandle, struct HmdVector2_t* pvecMouseScale);
+	bool(OPENVR_FNTABLE_CALLTYPE* ComputeOverlayIntersection)(VROverlayHandle_t ulOverlayHandle, struct VROverlayIntersectionParams_t* pParams, struct VROverlayIntersectionResults_t* pResults);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsHoverTargetOverlay)(VROverlayHandle_t ulOverlayHandle);
+	VROverlayHandle_t(OPENVR_FNTABLE_CALLTYPE* GetGamepadFocusOverlay)();
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetGamepadFocusOverlay)(VROverlayHandle_t ulNewFocusOverlay);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayNeighbor)(EOverlayDirection eDirection, VROverlayHandle_t ulFrom, VROverlayHandle_t ulTo);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* MoveGamepadFocusToNeighbor)(EOverlayDirection eDirection, VROverlayHandle_t ulFrom);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayDualAnalogTransform)(VROverlayHandle_t ulOverlay, EDualAnalogWhich eWhich, struct HmdVector2_t* pvCenter, float fRadius);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayDualAnalogTransform)(VROverlayHandle_t ulOverlay, EDualAnalogWhich eWhich, struct HmdVector2_t* pvCenter, float* pfRadius);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTexture)(VROverlayHandle_t ulOverlayHandle, struct Texture_t* pTexture);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ClearOverlayTexture)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayRaw)(VROverlayHandle_t ulOverlayHandle, void* pvBuffer, uint32_t unWidth, uint32_t unHeight, uint32_t unDepth);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayFromFile)(VROverlayHandle_t ulOverlayHandle, char* pchFilePath);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTexture)(VROverlayHandle_t ulOverlayHandle, void** pNativeTextureHandle, void* pNativeTextureRef, uint32_t* pWidth, uint32_t* pHeight, uint32_t* pNativeFormat, ETextureType* pAPIType, EColorSpace* pColorSpace, struct VRTextureBounds_t* pTextureBounds);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ReleaseNativeOverlayHandle)(VROverlayHandle_t ulOverlayHandle, void* pNativeTextureHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureSize)(VROverlayHandle_t ulOverlayHandle, uint32_t* pWidth, uint32_t* pHeight);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* CreateDashboardOverlay)(char* pchOverlayKey, char* pchOverlayFriendlyName, VROverlayHandle_t* pMainHandle, VROverlayHandle_t* pThumbnailHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsDashboardVisible)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsActiveDashboardOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetDashboardOverlaySceneProcess)(VROverlayHandle_t ulOverlayHandle, uint32_t unProcessId);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetDashboardOverlaySceneProcess)(VROverlayHandle_t ulOverlayHandle, uint32_t* punProcessId);
+	void(OPENVR_FNTABLE_CALLTYPE* ShowDashboard)(char* pchOverlayToShow);
+	TrackedDeviceIndex_t(OPENVR_FNTABLE_CALLTYPE* GetPrimaryDashboardDevice)();
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowKeyboard)(EGamepadTextInputMode eInputMode, EGamepadTextInputLineMode eLineInputMode, char* pchDescription, uint32_t unCharMax, char* pchExistingText, bool bUseMinimalMode, uint64_t uUserValue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowKeyboardForOverlay)(VROverlayHandle_t ulOverlayHandle, EGamepadTextInputMode eInputMode, EGamepadTextInputLineMode eLineInputMode, char* pchDescription, uint32_t unCharMax, char* pchExistingText, bool bUseMinimalMode, uint64_t uUserValue);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetKeyboardText)(char* pchText, uint32_t cchText);
+	void(OPENVR_FNTABLE_CALLTYPE* HideKeyboard)();
+	void(OPENVR_FNTABLE_CALLTYPE* SetKeyboardTransformAbsolute)(ETrackingUniverseOrigin eTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToKeyboardTransform);
+	void(OPENVR_FNTABLE_CALLTYPE* SetKeyboardPositionForOverlay)(VROverlayHandle_t ulOverlayHandle, struct HmdRect2_t avoidRect);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayIntersectionMask)(VROverlayHandle_t ulOverlayHandle, struct VROverlayIntersectionMaskPrimitive_t* pMaskPrimitives, uint32_t unNumMaskPrimitives, uint32_t unPrimitiveSize);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayFlags)(VROverlayHandle_t ulOverlayHandle, uint32_t* pFlags);
+	VRMessageOverlayResponse(OPENVR_FNTABLE_CALLTYPE* ShowMessageOverlay)(char* pchText, char* pchCaption, char* pchButton0Text, char* pchButton1Text, char* pchButton2Text, char* pchButton3Text);
+	void(OPENVR_FNTABLE_CALLTYPE* CloseMessageOverlay)();
+};
+
 
 static const char* const IVROverlay_021_Version = "IVROverlay_021";
 
@@ -3164,6 +5149,86 @@ public:
 	virtual EVROverlayError GetOverlayFlags(VROverlayHandle_t ulOverlayHandle, uint32_t* pFlags) = 0;
 	virtual VRMessageOverlayResponse ShowMessageOverlay(const char* pchText, const char* pchCaption, const char* pchButton0Text, const char* pchButton1Text = nullptr, const char* pchButton2Text = nullptr, const char* pchButton3Text = nullptr) = 0;
 	virtual void CloseMessageOverlay() = 0;
+};
+
+struct VR_IVROverlay_021_FnTable
+{
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* FindOverlay)(char* pchOverlayKey, VROverlayHandle_t* pOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* CreateOverlay)(char* pchOverlayKey, char* pchOverlayName, VROverlayHandle_t* pOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* DestroyOverlay)(VROverlayHandle_t ulOverlayHandle);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayKey)(VROverlayHandle_t ulOverlayHandle, char* pchValue, uint32_t unBufferSize, EVROverlayError* pError);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayName)(VROverlayHandle_t ulOverlayHandle, char* pchValue, uint32_t unBufferSize, EVROverlayError* pError);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayName)(VROverlayHandle_t ulOverlayHandle, char* pchName);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayImageData)(VROverlayHandle_t ulOverlayHandle, void* pvBuffer, uint32_t unBufferSize, uint32_t* punWidth, uint32_t* punHeight);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetOverlayErrorNameFromEnum)(EVROverlayError error);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayRenderingPid)(VROverlayHandle_t ulOverlayHandle, uint32_t unPID);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayRenderingPid)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayFlag)(VROverlayHandle_t ulOverlayHandle, VROverlayFlags eOverlayFlag, bool bEnabled);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayFlag)(VROverlayHandle_t ulOverlayHandle, VROverlayFlags eOverlayFlag, bool* pbEnabled);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayColor)(VROverlayHandle_t ulOverlayHandle, float fRed, float fGreen, float fBlue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayColor)(VROverlayHandle_t ulOverlayHandle, float* pfRed, float* pfGreen, float* pfBlue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayAlpha)(VROverlayHandle_t ulOverlayHandle, float fAlpha);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayAlpha)(VROverlayHandle_t ulOverlayHandle, float* pfAlpha);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTexelAspect)(VROverlayHandle_t ulOverlayHandle, float fTexelAspect);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTexelAspect)(VROverlayHandle_t ulOverlayHandle, float* pfTexelAspect);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlaySortOrder)(VROverlayHandle_t ulOverlayHandle, uint32_t unSortOrder);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlaySortOrder)(VROverlayHandle_t ulOverlayHandle, uint32_t* punSortOrder);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayWidthInMeters)(VROverlayHandle_t ulOverlayHandle, float fWidthInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayWidthInMeters)(VROverlayHandle_t ulOverlayHandle, float* pfWidthInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayCurvature)(VROverlayHandle_t ulOverlayHandle, float fCurvature);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayCurvature)(VROverlayHandle_t ulOverlayHandle, float* pfCurvature);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTextureColorSpace)(VROverlayHandle_t ulOverlayHandle, EColorSpace eTextureColorSpace);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureColorSpace)(VROverlayHandle_t ulOverlayHandle, EColorSpace* peTextureColorSpace);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTextureBounds)(VROverlayHandle_t ulOverlayHandle, struct VRTextureBounds_t* pOverlayTextureBounds);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureBounds)(VROverlayHandle_t ulOverlayHandle, struct VRTextureBounds_t* pOverlayTextureBounds);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayRenderModel)(VROverlayHandle_t ulOverlayHandle, char* pchValue, uint32_t unBufferSize, struct HmdColor_t* pColor, EVROverlayError* pError);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayRenderModel)(VROverlayHandle_t ulOverlayHandle, char* pchRenderModel, struct HmdColor_t* pColor);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformType)(VROverlayHandle_t ulOverlayHandle, VROverlayTransformType* peTransformType);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformAbsolute)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin eTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformAbsolute)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin* peTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformTrackedDeviceRelative)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t unTrackedDevice, struct HmdMatrix34_t* pmatTrackedDeviceToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformTrackedDeviceRelative)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t* punTrackedDevice, struct HmdMatrix34_t* pmatTrackedDeviceToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformTrackedDeviceComponent)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t unDeviceIndex, char* pchComponentName);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformTrackedDeviceComponent)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t* punDeviceIndex, char* pchComponentName, uint32_t unComponentNameSize);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformOverlayRelative)(VROverlayHandle_t ulOverlayHandle, VROverlayHandle_t* ulOverlayHandleParent, struct HmdMatrix34_t* pmatParentOverlayToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformOverlayRelative)(VROverlayHandle_t ulOverlayHandle, VROverlayHandle_t ulOverlayHandleParent, struct HmdMatrix34_t* pmatParentOverlayToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* HideOverlay)(VROverlayHandle_t ulOverlayHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsOverlayVisible)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetTransformForOverlayCoordinates)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin eTrackingOrigin, struct HmdVector2_t coordinatesInOverlay, struct HmdMatrix34_t* pmatTransform);
+	bool(OPENVR_FNTABLE_CALLTYPE* PollNextOverlayEvent)(VROverlayHandle_t ulOverlayHandle, struct VREvent_t* pEvent, uint32_t uncbVREvent);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayInputMethod)(VROverlayHandle_t ulOverlayHandle, VROverlayInputMethod* peInputMethod);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayInputMethod)(VROverlayHandle_t ulOverlayHandle, VROverlayInputMethod eInputMethod);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayMouseScale)(VROverlayHandle_t ulOverlayHandle, struct HmdVector2_t* pvecMouseScale);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayMouseScale)(VROverlayHandle_t ulOverlayHandle, struct HmdVector2_t* pvecMouseScale);
+	bool(OPENVR_FNTABLE_CALLTYPE* ComputeOverlayIntersection)(VROverlayHandle_t ulOverlayHandle, struct VROverlayIntersectionParams_t* pParams, struct VROverlayIntersectionResults_t* pResults);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsHoverTargetOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayDualAnalogTransform)(VROverlayHandle_t ulOverlay, EDualAnalogWhich eWhich, struct HmdVector2_t* pvCenter, float fRadius);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayDualAnalogTransform)(VROverlayHandle_t ulOverlay, EDualAnalogWhich eWhich, struct HmdVector2_t* pvCenter, float* pfRadius);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTexture)(VROverlayHandle_t ulOverlayHandle, struct Texture_t* pTexture);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ClearOverlayTexture)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayRaw)(VROverlayHandle_t ulOverlayHandle, void* pvBuffer, uint32_t unWidth, uint32_t unHeight, uint32_t unDepth);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayFromFile)(VROverlayHandle_t ulOverlayHandle, char* pchFilePath);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTexture)(VROverlayHandle_t ulOverlayHandle, void** pNativeTextureHandle, void* pNativeTextureRef, uint32_t* pWidth, uint32_t* pHeight, uint32_t* pNativeFormat, ETextureType* pAPIType, EColorSpace* pColorSpace, struct VRTextureBounds_t* pTextureBounds);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ReleaseNativeOverlayHandle)(VROverlayHandle_t ulOverlayHandle, void* pNativeTextureHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureSize)(VROverlayHandle_t ulOverlayHandle, uint32_t* pWidth, uint32_t* pHeight);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* CreateDashboardOverlay)(char* pchOverlayKey, char* pchOverlayFriendlyName, VROverlayHandle_t* pMainHandle, VROverlayHandle_t* pThumbnailHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsDashboardVisible)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsActiveDashboardOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetDashboardOverlaySceneProcess)(VROverlayHandle_t ulOverlayHandle, uint32_t unProcessId);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetDashboardOverlaySceneProcess)(VROverlayHandle_t ulOverlayHandle, uint32_t* punProcessId);
+	void(OPENVR_FNTABLE_CALLTYPE* ShowDashboard)(char* pchOverlayToShow);
+	TrackedDeviceIndex_t(OPENVR_FNTABLE_CALLTYPE* GetPrimaryDashboardDevice)();
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowKeyboard)(EGamepadTextInputMode eInputMode, EGamepadTextInputLineMode eLineInputMode, char* pchDescription, uint32_t unCharMax, char* pchExistingText, bool bUseMinimalMode, uint64_t uUserValue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowKeyboardForOverlay)(VROverlayHandle_t ulOverlayHandle, EGamepadTextInputMode eInputMode, EGamepadTextInputLineMode eLineInputMode, char* pchDescription, uint32_t unCharMax, char* pchExistingText, bool bUseMinimalMode, uint64_t uUserValue);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetKeyboardText)(char* pchText, uint32_t cchText);
+	void(OPENVR_FNTABLE_CALLTYPE* HideKeyboard)();
+	void(OPENVR_FNTABLE_CALLTYPE* SetKeyboardTransformAbsolute)(ETrackingUniverseOrigin eTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToKeyboardTransform);
+	void(OPENVR_FNTABLE_CALLTYPE* SetKeyboardPositionForOverlay)(VROverlayHandle_t ulOverlayHandle, struct HmdRect2_t avoidRect);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayIntersectionMask)(VROverlayHandle_t ulOverlayHandle, struct VROverlayIntersectionMaskPrimitive_t* pMaskPrimitives, uint32_t unNumMaskPrimitives, uint32_t unPrimitiveSize);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayFlags)(VROverlayHandle_t ulOverlayHandle, uint32_t* pFlags);
+	VRMessageOverlayResponse(OPENVR_FNTABLE_CALLTYPE* ShowMessageOverlay)(char* pchText, char* pchCaption, char* pchButton0Text, char* pchButton1Text, char* pchButton2Text, char* pchButton3Text);
+	void(OPENVR_FNTABLE_CALLTYPE* CloseMessageOverlay)();
 };
 
 
@@ -3256,6 +5321,92 @@ public:
 	virtual void CloseMessageOverlay() = 0;
 };
 
+struct VR_IVROverlay_022_FnTable
+{
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* FindOverlay)(char* pchOverlayKey, VROverlayHandle_t* pOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* CreateOverlay)(char* pchOverlayKey, char* pchOverlayName, VROverlayHandle_t* pOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* DestroyOverlay)(VROverlayHandle_t ulOverlayHandle);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayKey)(VROverlayHandle_t ulOverlayHandle, char* pchValue, uint32_t unBufferSize, EVROverlayError* pError);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayName)(VROverlayHandle_t ulOverlayHandle, char* pchValue, uint32_t unBufferSize, EVROverlayError* pError);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayName)(VROverlayHandle_t ulOverlayHandle, char* pchName);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayImageData)(VROverlayHandle_t ulOverlayHandle, void* pvBuffer, uint32_t unBufferSize, uint32_t* punWidth, uint32_t* punHeight);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetOverlayErrorNameFromEnum)(EVROverlayError error);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayRenderingPid)(VROverlayHandle_t ulOverlayHandle, uint32_t unPID);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayRenderingPid)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayFlag)(VROverlayHandle_t ulOverlayHandle, VROverlayFlags eOverlayFlag, bool bEnabled);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayFlag)(VROverlayHandle_t ulOverlayHandle, VROverlayFlags eOverlayFlag, bool* pbEnabled);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayFlags)(VROverlayHandle_t ulOverlayHandle, uint32_t* pFlags);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayColor)(VROverlayHandle_t ulOverlayHandle, float fRed, float fGreen, float fBlue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayColor)(VROverlayHandle_t ulOverlayHandle, float* pfRed, float* pfGreen, float* pfBlue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayAlpha)(VROverlayHandle_t ulOverlayHandle, float fAlpha);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayAlpha)(VROverlayHandle_t ulOverlayHandle, float* pfAlpha);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTexelAspect)(VROverlayHandle_t ulOverlayHandle, float fTexelAspect);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTexelAspect)(VROverlayHandle_t ulOverlayHandle, float* pfTexelAspect);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlaySortOrder)(VROverlayHandle_t ulOverlayHandle, uint32_t unSortOrder);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlaySortOrder)(VROverlayHandle_t ulOverlayHandle, uint32_t* punSortOrder);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayWidthInMeters)(VROverlayHandle_t ulOverlayHandle, float fWidthInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayWidthInMeters)(VROverlayHandle_t ulOverlayHandle, float* pfWidthInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayCurvature)(VROverlayHandle_t ulOverlayHandle, float fCurvature);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayCurvature)(VROverlayHandle_t ulOverlayHandle, float* pfCurvature);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTextureColorSpace)(VROverlayHandle_t ulOverlayHandle, EColorSpace eTextureColorSpace);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureColorSpace)(VROverlayHandle_t ulOverlayHandle, EColorSpace* peTextureColorSpace);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTextureBounds)(VROverlayHandle_t ulOverlayHandle, struct VRTextureBounds_t* pOverlayTextureBounds);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureBounds)(VROverlayHandle_t ulOverlayHandle, struct VRTextureBounds_t* pOverlayTextureBounds);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayRenderModel)(VROverlayHandle_t ulOverlayHandle, char* pchValue, uint32_t unBufferSize, struct HmdColor_t* pColor, EVROverlayError* pError);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayRenderModel)(VROverlayHandle_t ulOverlayHandle, char* pchRenderModel, struct HmdColor_t* pColor);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformType)(VROverlayHandle_t ulOverlayHandle, VROverlayTransformType* peTransformType);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformAbsolute)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin eTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformAbsolute)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin* peTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformTrackedDeviceRelative)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t unTrackedDevice, struct HmdMatrix34_t* pmatTrackedDeviceToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformTrackedDeviceRelative)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t* punTrackedDevice, struct HmdMatrix34_t* pmatTrackedDeviceToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformTrackedDeviceComponent)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t unDeviceIndex, char* pchComponentName);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformTrackedDeviceComponent)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t* punDeviceIndex, char* pchComponentName, uint32_t unComponentNameSize);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformOverlayRelative)(VROverlayHandle_t ulOverlayHandle, VROverlayHandle_t* ulOverlayHandleParent, struct HmdMatrix34_t* pmatParentOverlayToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformOverlayRelative)(VROverlayHandle_t ulOverlayHandle, VROverlayHandle_t ulOverlayHandleParent, struct HmdMatrix34_t* pmatParentOverlayToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformCursor)(VROverlayHandle_t ulCursorOverlayHandle, struct HmdVector2_t* pvHotspot);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformCursor)(VROverlayHandle_t ulOverlayHandle, struct HmdVector2_t* pvHotspot);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* HideOverlay)(VROverlayHandle_t ulOverlayHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsOverlayVisible)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetTransformForOverlayCoordinates)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin eTrackingOrigin, struct HmdVector2_t coordinatesInOverlay, struct HmdMatrix34_t* pmatTransform);
+	bool(OPENVR_FNTABLE_CALLTYPE* PollNextOverlayEvent)(VROverlayHandle_t ulOverlayHandle, struct VREvent_t* pEvent, uint32_t uncbVREvent);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayInputMethod)(VROverlayHandle_t ulOverlayHandle, VROverlayInputMethod* peInputMethod);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayInputMethod)(VROverlayHandle_t ulOverlayHandle, VROverlayInputMethod eInputMethod);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayMouseScale)(VROverlayHandle_t ulOverlayHandle, struct HmdVector2_t* pvecMouseScale);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayMouseScale)(VROverlayHandle_t ulOverlayHandle, struct HmdVector2_t* pvecMouseScale);
+	bool(OPENVR_FNTABLE_CALLTYPE* ComputeOverlayIntersection)(VROverlayHandle_t ulOverlayHandle, struct VROverlayIntersectionParams_t* pParams, struct VROverlayIntersectionResults_t* pResults);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsHoverTargetOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayDualAnalogTransform)(VROverlayHandle_t ulOverlay, EDualAnalogWhich eWhich, struct HmdVector2_t* pvCenter, float fRadius);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayDualAnalogTransform)(VROverlayHandle_t ulOverlay, EDualAnalogWhich eWhich, struct HmdVector2_t* pvCenter, float* pfRadius);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayIntersectionMask)(VROverlayHandle_t ulOverlayHandle, struct VROverlayIntersectionMaskPrimitive_t* pMaskPrimitives, uint32_t unNumMaskPrimitives, uint32_t unPrimitiveSize);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* TriggerLaserMouseHapticVibration)(VROverlayHandle_t ulOverlayHandle, float fDurationSeconds, float fFrequency, float fAmplitude);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayCursor)(VROverlayHandle_t ulOverlayHandle, VROverlayHandle_t ulCursorHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayCursorPositionOverride)(VROverlayHandle_t ulOverlayHandle, struct HmdVector2_t* pvCursor);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ClearOverlayCursorPositionOverride)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTexture)(VROverlayHandle_t ulOverlayHandle, struct Texture_t* pTexture);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ClearOverlayTexture)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayRaw)(VROverlayHandle_t ulOverlayHandle, void* pvBuffer, uint32_t unWidth, uint32_t unHeight, uint32_t unBytesPerPixel);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayFromFile)(VROverlayHandle_t ulOverlayHandle, char* pchFilePath);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTexture)(VROverlayHandle_t ulOverlayHandle, void** pNativeTextureHandle, void* pNativeTextureRef, uint32_t* pWidth, uint32_t* pHeight, uint32_t* pNativeFormat, ETextureType* pAPIType, EColorSpace* pColorSpace, struct VRTextureBounds_t* pTextureBounds);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ReleaseNativeOverlayHandle)(VROverlayHandle_t ulOverlayHandle, void* pNativeTextureHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureSize)(VROverlayHandle_t ulOverlayHandle, uint32_t* pWidth, uint32_t* pHeight);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* CreateDashboardOverlay)(char* pchOverlayKey, char* pchOverlayFriendlyName, VROverlayHandle_t* pMainHandle, VROverlayHandle_t* pThumbnailHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsDashboardVisible)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsActiveDashboardOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetDashboardOverlaySceneProcess)(VROverlayHandle_t ulOverlayHandle, uint32_t unProcessId);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetDashboardOverlaySceneProcess)(VROverlayHandle_t ulOverlayHandle, uint32_t* punProcessId);
+	void(OPENVR_FNTABLE_CALLTYPE* ShowDashboard)(char* pchOverlayToShow);
+	TrackedDeviceIndex_t(OPENVR_FNTABLE_CALLTYPE* GetPrimaryDashboardDevice)();
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowKeyboard)(EGamepadTextInputMode eInputMode, EGamepadTextInputLineMode eLineInputMode, char* pchDescription, uint32_t unCharMax, char* pchExistingText, bool bUseMinimalMode, uint64_t uUserValue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowKeyboardForOverlay)(VROverlayHandle_t ulOverlayHandle, EGamepadTextInputMode eInputMode, EGamepadTextInputLineMode eLineInputMode, char* pchDescription, uint32_t unCharMax, char* pchExistingText, bool bUseMinimalMode, uint64_t uUserValue);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetKeyboardText)(char* pchText, uint32_t cchText);
+	void(OPENVR_FNTABLE_CALLTYPE* HideKeyboard)();
+	void(OPENVR_FNTABLE_CALLTYPE* SetKeyboardTransformAbsolute)(ETrackingUniverseOrigin eTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToKeyboardTransform);
+	void(OPENVR_FNTABLE_CALLTYPE* SetKeyboardPositionForOverlay)(VROverlayHandle_t ulOverlayHandle, struct HmdRect2_t avoidRect);
+	VRMessageOverlayResponse(OPENVR_FNTABLE_CALLTYPE* ShowMessageOverlay)(char* pchText, char* pchCaption, char* pchButton0Text, char* pchButton1Text, char* pchButton2Text, char* pchButton3Text);
+	void(OPENVR_FNTABLE_CALLTYPE* CloseMessageOverlay)();
+};
+
 
 static const char* const IVROverlay_024_Version = "IVROverlay_024";
 
@@ -3340,6 +5491,88 @@ public:
 	virtual void SetKeyboardPositionForOverlay(VROverlayHandle_t ulOverlayHandle, HmdRect2_t avoidRect) = 0;
 	virtual VRMessageOverlayResponse ShowMessageOverlay(const char* pchText, const char* pchCaption, const char* pchButton0Text, const char* pchButton1Text = nullptr, const char* pchButton2Text = nullptr, const char* pchButton3Text = nullptr) = 0;
 	virtual void CloseMessageOverlay() = 0;
+};
+
+struct VR_IVROverlay_024_FnTable
+{
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* FindOverlay)(char* pchOverlayKey, VROverlayHandle_t* pOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* CreateOverlay)(char* pchOverlayKey, char* pchOverlayName, VROverlayHandle_t* pOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* DestroyOverlay)(VROverlayHandle_t ulOverlayHandle);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayKey)(VROverlayHandle_t ulOverlayHandle, char* pchValue, uint32_t unBufferSize, EVROverlayError* pError);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayName)(VROverlayHandle_t ulOverlayHandle, char* pchValue, uint32_t unBufferSize, EVROverlayError* pError);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayName)(VROverlayHandle_t ulOverlayHandle, char* pchName);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayImageData)(VROverlayHandle_t ulOverlayHandle, void* pvBuffer, uint32_t unBufferSize, uint32_t* punWidth, uint32_t* punHeight);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetOverlayErrorNameFromEnum)(EVROverlayError error);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayRenderingPid)(VROverlayHandle_t ulOverlayHandle, uint32_t unPID);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayRenderingPid)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayFlag)(VROverlayHandle_t ulOverlayHandle, VROverlayFlags eOverlayFlag, bool bEnabled);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayFlag)(VROverlayHandle_t ulOverlayHandle, VROverlayFlags eOverlayFlag, bool* pbEnabled);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayFlags)(VROverlayHandle_t ulOverlayHandle, uint32_t* pFlags);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayColor)(VROverlayHandle_t ulOverlayHandle, float fRed, float fGreen, float fBlue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayColor)(VROverlayHandle_t ulOverlayHandle, float* pfRed, float* pfGreen, float* pfBlue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayAlpha)(VROverlayHandle_t ulOverlayHandle, float fAlpha);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayAlpha)(VROverlayHandle_t ulOverlayHandle, float* pfAlpha);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTexelAspect)(VROverlayHandle_t ulOverlayHandle, float fTexelAspect);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTexelAspect)(VROverlayHandle_t ulOverlayHandle, float* pfTexelAspect);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlaySortOrder)(VROverlayHandle_t ulOverlayHandle, uint32_t unSortOrder);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlaySortOrder)(VROverlayHandle_t ulOverlayHandle, uint32_t* punSortOrder);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayWidthInMeters)(VROverlayHandle_t ulOverlayHandle, float fWidthInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayWidthInMeters)(VROverlayHandle_t ulOverlayHandle, float* pfWidthInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayCurvature)(VROverlayHandle_t ulOverlayHandle, float fCurvature);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayCurvature)(VROverlayHandle_t ulOverlayHandle, float* pfCurvature);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTextureColorSpace)(VROverlayHandle_t ulOverlayHandle, EColorSpace eTextureColorSpace);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureColorSpace)(VROverlayHandle_t ulOverlayHandle, EColorSpace* peTextureColorSpace);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTextureBounds)(VROverlayHandle_t ulOverlayHandle, struct VRTextureBounds_t* pOverlayTextureBounds);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureBounds)(VROverlayHandle_t ulOverlayHandle, struct VRTextureBounds_t* pOverlayTextureBounds);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformType)(VROverlayHandle_t ulOverlayHandle, VROverlayTransformType* peTransformType);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformAbsolute)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin eTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformAbsolute)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin* peTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformTrackedDeviceRelative)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t unTrackedDevice, struct HmdMatrix34_t* pmatTrackedDeviceToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformTrackedDeviceRelative)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t* punTrackedDevice, struct HmdMatrix34_t* pmatTrackedDeviceToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformTrackedDeviceComponent)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t unDeviceIndex, char* pchComponentName);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformTrackedDeviceComponent)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t* punDeviceIndex, char* pchComponentName, uint32_t unComponentNameSize);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformOverlayRelative)(VROverlayHandle_t ulOverlayHandle, VROverlayHandle_t* ulOverlayHandleParent, struct HmdMatrix34_t* pmatParentOverlayToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformOverlayRelative)(VROverlayHandle_t ulOverlayHandle, VROverlayHandle_t ulOverlayHandleParent, struct HmdMatrix34_t* pmatParentOverlayToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformCursor)(VROverlayHandle_t ulCursorOverlayHandle, struct HmdVector2_t* pvHotspot);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformCursor)(VROverlayHandle_t ulOverlayHandle, struct HmdVector2_t* pvHotspot);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* HideOverlay)(VROverlayHandle_t ulOverlayHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsOverlayVisible)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetTransformForOverlayCoordinates)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin eTrackingOrigin, struct HmdVector2_t coordinatesInOverlay, struct HmdMatrix34_t* pmatTransform);
+	bool(OPENVR_FNTABLE_CALLTYPE* PollNextOverlayEvent)(VROverlayHandle_t ulOverlayHandle, struct VREvent_t* pEvent, uint32_t uncbVREvent);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayInputMethod)(VROverlayHandle_t ulOverlayHandle, VROverlayInputMethod* peInputMethod);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayInputMethod)(VROverlayHandle_t ulOverlayHandle, VROverlayInputMethod eInputMethod);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayMouseScale)(VROverlayHandle_t ulOverlayHandle, struct HmdVector2_t* pvecMouseScale);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayMouseScale)(VROverlayHandle_t ulOverlayHandle, struct HmdVector2_t* pvecMouseScale);
+	bool(OPENVR_FNTABLE_CALLTYPE* ComputeOverlayIntersection)(VROverlayHandle_t ulOverlayHandle, struct VROverlayIntersectionParams_t* pParams, struct VROverlayIntersectionResults_t* pResults);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsHoverTargetOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayIntersectionMask)(VROverlayHandle_t ulOverlayHandle, struct VROverlayIntersectionMaskPrimitive_t* pMaskPrimitives, uint32_t unNumMaskPrimitives, uint32_t unPrimitiveSize);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* TriggerLaserMouseHapticVibration)(VROverlayHandle_t ulOverlayHandle, float fDurationSeconds, float fFrequency, float fAmplitude);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayCursor)(VROverlayHandle_t ulOverlayHandle, VROverlayHandle_t ulCursorHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayCursorPositionOverride)(VROverlayHandle_t ulOverlayHandle, struct HmdVector2_t* pvCursor);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ClearOverlayCursorPositionOverride)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTexture)(VROverlayHandle_t ulOverlayHandle, struct Texture_t* pTexture);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ClearOverlayTexture)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayRaw)(VROverlayHandle_t ulOverlayHandle, void* pvBuffer, uint32_t unWidth, uint32_t unHeight, uint32_t unBytesPerPixel);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayFromFile)(VROverlayHandle_t ulOverlayHandle, char* pchFilePath);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTexture)(VROverlayHandle_t ulOverlayHandle, void** pNativeTextureHandle, void* pNativeTextureRef, uint32_t* pWidth, uint32_t* pHeight, uint32_t* pNativeFormat, ETextureType* pAPIType, EColorSpace* pColorSpace, struct VRTextureBounds_t* pTextureBounds);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ReleaseNativeOverlayHandle)(VROverlayHandle_t ulOverlayHandle, void* pNativeTextureHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureSize)(VROverlayHandle_t ulOverlayHandle, uint32_t* pWidth, uint32_t* pHeight);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* CreateDashboardOverlay)(char* pchOverlayKey, char* pchOverlayFriendlyName, VROverlayHandle_t* pMainHandle, VROverlayHandle_t* pThumbnailHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsDashboardVisible)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsActiveDashboardOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetDashboardOverlaySceneProcess)(VROverlayHandle_t ulOverlayHandle, uint32_t unProcessId);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetDashboardOverlaySceneProcess)(VROverlayHandle_t ulOverlayHandle, uint32_t* punProcessId);
+	void(OPENVR_FNTABLE_CALLTYPE* ShowDashboard)(char* pchOverlayToShow);
+	TrackedDeviceIndex_t(OPENVR_FNTABLE_CALLTYPE* GetPrimaryDashboardDevice)();
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowKeyboard)(EGamepadTextInputMode eInputMode, EGamepadTextInputLineMode eLineInputMode, uint32_t unFlags, char* pchDescription, uint32_t unCharMax, char* pchExistingText, uint64_t uUserValue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowKeyboardForOverlay)(VROverlayHandle_t ulOverlayHandle, EGamepadTextInputMode eInputMode, EGamepadTextInputLineMode eLineInputMode, uint32_t unFlags, char* pchDescription, uint32_t unCharMax, char* pchExistingText, uint64_t uUserValue);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetKeyboardText)(char* pchText, uint32_t cchText);
+	void(OPENVR_FNTABLE_CALLTYPE* HideKeyboard)();
+	void(OPENVR_FNTABLE_CALLTYPE* SetKeyboardTransformAbsolute)(ETrackingUniverseOrigin eTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToKeyboardTransform);
+	void(OPENVR_FNTABLE_CALLTYPE* SetKeyboardPositionForOverlay)(VROverlayHandle_t ulOverlayHandle, struct HmdRect2_t avoidRect);
+	VRMessageOverlayResponse(OPENVR_FNTABLE_CALLTYPE* ShowMessageOverlay)(char* pchText, char* pchCaption, char* pchButton0Text, char* pchButton1Text, char* pchButton2Text, char* pchButton3Text);
+	void(OPENVR_FNTABLE_CALLTYPE* CloseMessageOverlay)();
 };
 
 
@@ -3427,6 +5660,89 @@ public:
 	virtual void SetKeyboardPositionForOverlay(VROverlayHandle_t ulOverlayHandle, HmdRect2_t avoidRect) = 0;
 	virtual VRMessageOverlayResponse ShowMessageOverlay(const char* pchText, const char* pchCaption, const char* pchButton0Text, const char* pchButton1Text = nullptr, const char* pchButton2Text = nullptr, const char* pchButton3Text = nullptr) = 0;
 	virtual void CloseMessageOverlay() = 0;
+};
+
+struct VR_IVROverlay_025_FnTable
+{
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* FindOverlay)(char* pchOverlayKey, VROverlayHandle_t* pOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* CreateOverlay)(char* pchOverlayKey, char* pchOverlayName, VROverlayHandle_t* pOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* DestroyOverlay)(VROverlayHandle_t ulOverlayHandle);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayKey)(VROverlayHandle_t ulOverlayHandle, char* pchValue, uint32_t unBufferSize, EVROverlayError* pError);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayName)(VROverlayHandle_t ulOverlayHandle, char* pchValue, uint32_t unBufferSize, EVROverlayError* pError);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayName)(VROverlayHandle_t ulOverlayHandle, char* pchName);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayImageData)(VROverlayHandle_t ulOverlayHandle, void* pvBuffer, uint32_t unBufferSize, uint32_t* punWidth, uint32_t* punHeight);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetOverlayErrorNameFromEnum)(EVROverlayError error);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayRenderingPid)(VROverlayHandle_t ulOverlayHandle, uint32_t unPID);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayRenderingPid)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayFlag)(VROverlayHandle_t ulOverlayHandle, VROverlayFlags eOverlayFlag, bool bEnabled);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayFlag)(VROverlayHandle_t ulOverlayHandle, VROverlayFlags eOverlayFlag, bool* pbEnabled);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayFlags)(VROverlayHandle_t ulOverlayHandle, uint32_t* pFlags);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayColor)(VROverlayHandle_t ulOverlayHandle, float fRed, float fGreen, float fBlue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayColor)(VROverlayHandle_t ulOverlayHandle, float* pfRed, float* pfGreen, float* pfBlue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayAlpha)(VROverlayHandle_t ulOverlayHandle, float fAlpha);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayAlpha)(VROverlayHandle_t ulOverlayHandle, float* pfAlpha);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTexelAspect)(VROverlayHandle_t ulOverlayHandle, float fTexelAspect);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTexelAspect)(VROverlayHandle_t ulOverlayHandle, float* pfTexelAspect);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlaySortOrder)(VROverlayHandle_t ulOverlayHandle, uint32_t unSortOrder);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlaySortOrder)(VROverlayHandle_t ulOverlayHandle, uint32_t* punSortOrder);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayWidthInMeters)(VROverlayHandle_t ulOverlayHandle, float fWidthInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayWidthInMeters)(VROverlayHandle_t ulOverlayHandle, float* pfWidthInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayCurvature)(VROverlayHandle_t ulOverlayHandle, float fCurvature);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayCurvature)(VROverlayHandle_t ulOverlayHandle, float* pfCurvature);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTextureColorSpace)(VROverlayHandle_t ulOverlayHandle, EColorSpace eTextureColorSpace);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureColorSpace)(VROverlayHandle_t ulOverlayHandle, EColorSpace* peTextureColorSpace);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTextureBounds)(VROverlayHandle_t ulOverlayHandle, struct VRTextureBounds_t* pOverlayTextureBounds);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureBounds)(VROverlayHandle_t ulOverlayHandle, struct VRTextureBounds_t* pOverlayTextureBounds);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformType)(VROverlayHandle_t ulOverlayHandle, VROverlayTransformType* peTransformType);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformAbsolute)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin eTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformAbsolute)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin* peTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformTrackedDeviceRelative)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t unTrackedDevice, struct HmdMatrix34_t* pmatTrackedDeviceToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformTrackedDeviceRelative)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t* punTrackedDevice, struct HmdMatrix34_t* pmatTrackedDeviceToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformTrackedDeviceComponent)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t unDeviceIndex, char* pchComponentName);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformTrackedDeviceComponent)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t* punDeviceIndex, char* pchComponentName, uint32_t unComponentNameSize);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformOverlayRelative)(VROverlayHandle_t ulOverlayHandle, VROverlayHandle_t* ulOverlayHandleParent, struct HmdMatrix34_t* pmatParentOverlayToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformOverlayRelative)(VROverlayHandle_t ulOverlayHandle, VROverlayHandle_t ulOverlayHandleParent, struct HmdMatrix34_t* pmatParentOverlayToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformCursor)(VROverlayHandle_t ulCursorOverlayHandle, struct HmdVector2_t* pvHotspot);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformCursor)(VROverlayHandle_t ulOverlayHandle, struct HmdVector2_t* pvHotspot);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformProjection)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin eTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToOverlayTransform, struct VROverlayProjection_t* pProjection, EVREye eEye);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* HideOverlay)(VROverlayHandle_t ulOverlayHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsOverlayVisible)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetTransformForOverlayCoordinates)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin eTrackingOrigin, struct HmdVector2_t coordinatesInOverlay, struct HmdMatrix34_t* pmatTransform);
+	bool(OPENVR_FNTABLE_CALLTYPE* PollNextOverlayEvent)(VROverlayHandle_t ulOverlayHandle, struct VREvent_t* pEvent, uint32_t uncbVREvent);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayInputMethod)(VROverlayHandle_t ulOverlayHandle, VROverlayInputMethod* peInputMethod);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayInputMethod)(VROverlayHandle_t ulOverlayHandle, VROverlayInputMethod eInputMethod);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayMouseScale)(VROverlayHandle_t ulOverlayHandle, struct HmdVector2_t* pvecMouseScale);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayMouseScale)(VROverlayHandle_t ulOverlayHandle, struct HmdVector2_t* pvecMouseScale);
+	bool(OPENVR_FNTABLE_CALLTYPE* ComputeOverlayIntersection)(VROverlayHandle_t ulOverlayHandle, struct VROverlayIntersectionParams_t* pParams, struct VROverlayIntersectionResults_t* pResults);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsHoverTargetOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayIntersectionMask)(VROverlayHandle_t ulOverlayHandle, struct VROverlayIntersectionMaskPrimitive_t* pMaskPrimitives, uint32_t unNumMaskPrimitives, uint32_t unPrimitiveSize);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* TriggerLaserMouseHapticVibration)(VROverlayHandle_t ulOverlayHandle, float fDurationSeconds, float fFrequency, float fAmplitude);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayCursor)(VROverlayHandle_t ulOverlayHandle, VROverlayHandle_t ulCursorHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayCursorPositionOverride)(VROverlayHandle_t ulOverlayHandle, struct HmdVector2_t* pvCursor);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ClearOverlayCursorPositionOverride)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTexture)(VROverlayHandle_t ulOverlayHandle, struct Texture_t* pTexture);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ClearOverlayTexture)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayRaw)(VROverlayHandle_t ulOverlayHandle, void* pvBuffer, uint32_t unWidth, uint32_t unHeight, uint32_t unBytesPerPixel);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayFromFile)(VROverlayHandle_t ulOverlayHandle, char* pchFilePath);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTexture)(VROverlayHandle_t ulOverlayHandle, void** pNativeTextureHandle, void* pNativeTextureRef, uint32_t* pWidth, uint32_t* pHeight, uint32_t* pNativeFormat, ETextureType* pAPIType, EColorSpace* pColorSpace, struct VRTextureBounds_t* pTextureBounds);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ReleaseNativeOverlayHandle)(VROverlayHandle_t ulOverlayHandle, void* pNativeTextureHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureSize)(VROverlayHandle_t ulOverlayHandle, uint32_t* pWidth, uint32_t* pHeight);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* CreateDashboardOverlay)(char* pchOverlayKey, char* pchOverlayFriendlyName, VROverlayHandle_t* pMainHandle, VROverlayHandle_t* pThumbnailHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsDashboardVisible)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsActiveDashboardOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetDashboardOverlaySceneProcess)(VROverlayHandle_t ulOverlayHandle, uint32_t unProcessId);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetDashboardOverlaySceneProcess)(VROverlayHandle_t ulOverlayHandle, uint32_t* punProcessId);
+	void(OPENVR_FNTABLE_CALLTYPE* ShowDashboard)(char* pchOverlayToShow);
+	TrackedDeviceIndex_t(OPENVR_FNTABLE_CALLTYPE* GetPrimaryDashboardDevice)();
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowKeyboard)(EGamepadTextInputMode eInputMode, EGamepadTextInputLineMode eLineInputMode, uint32_t unFlags, char* pchDescription, uint32_t unCharMax, char* pchExistingText, uint64_t uUserValue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowKeyboardForOverlay)(VROverlayHandle_t ulOverlayHandle, EGamepadTextInputMode eInputMode, EGamepadTextInputLineMode eLineInputMode, uint32_t unFlags, char* pchDescription, uint32_t unCharMax, char* pchExistingText, uint64_t uUserValue);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetKeyboardText)(char* pchText, uint32_t cchText);
+	void(OPENVR_FNTABLE_CALLTYPE* HideKeyboard)();
+	void(OPENVR_FNTABLE_CALLTYPE* SetKeyboardTransformAbsolute)(ETrackingUniverseOrigin eTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToKeyboardTransform);
+	void(OPENVR_FNTABLE_CALLTYPE* SetKeyboardPositionForOverlay)(VROverlayHandle_t ulOverlayHandle, struct HmdRect2_t avoidRect);
+	VRMessageOverlayResponse(OPENVR_FNTABLE_CALLTYPE* ShowMessageOverlay)(char* pchText, char* pchCaption, char* pchButton0Text, char* pchButton1Text, char* pchButton2Text, char* pchButton3Text);
+	void(OPENVR_FNTABLE_CALLTYPE* CloseMessageOverlay)();
 };
 
 
@@ -3519,6 +5835,92 @@ public:
 	virtual void CloseMessageOverlay() = 0;
 };
 
+struct VR_IVROverlay_026_FnTable
+{
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* FindOverlay)(char* pchOverlayKey, VROverlayHandle_t* pOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* CreateOverlay)(char* pchOverlayKey, char* pchOverlayName, VROverlayHandle_t* pOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* DestroyOverlay)(VROverlayHandle_t ulOverlayHandle);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayKey)(VROverlayHandle_t ulOverlayHandle, char* pchValue, uint32_t unBufferSize, EVROverlayError* pError);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayName)(VROverlayHandle_t ulOverlayHandle, char* pchValue, uint32_t unBufferSize, EVROverlayError* pError);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayName)(VROverlayHandle_t ulOverlayHandle, char* pchName);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayImageData)(VROverlayHandle_t ulOverlayHandle, void* pvBuffer, uint32_t unBufferSize, uint32_t* punWidth, uint32_t* punHeight);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetOverlayErrorNameFromEnum)(EVROverlayError error);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayRenderingPid)(VROverlayHandle_t ulOverlayHandle, uint32_t unPID);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayRenderingPid)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayFlag)(VROverlayHandle_t ulOverlayHandle, VROverlayFlags eOverlayFlag, bool bEnabled);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayFlag)(VROverlayHandle_t ulOverlayHandle, VROverlayFlags eOverlayFlag, bool* pbEnabled);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayFlags)(VROverlayHandle_t ulOverlayHandle, uint32_t* pFlags);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayColor)(VROverlayHandle_t ulOverlayHandle, float fRed, float fGreen, float fBlue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayColor)(VROverlayHandle_t ulOverlayHandle, float* pfRed, float* pfGreen, float* pfBlue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayAlpha)(VROverlayHandle_t ulOverlayHandle, float fAlpha);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayAlpha)(VROverlayHandle_t ulOverlayHandle, float* pfAlpha);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTexelAspect)(VROverlayHandle_t ulOverlayHandle, float fTexelAspect);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTexelAspect)(VROverlayHandle_t ulOverlayHandle, float* pfTexelAspect);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlaySortOrder)(VROverlayHandle_t ulOverlayHandle, uint32_t unSortOrder);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlaySortOrder)(VROverlayHandle_t ulOverlayHandle, uint32_t* punSortOrder);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayWidthInMeters)(VROverlayHandle_t ulOverlayHandle, float fWidthInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayWidthInMeters)(VROverlayHandle_t ulOverlayHandle, float* pfWidthInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayCurvature)(VROverlayHandle_t ulOverlayHandle, float fCurvature);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayCurvature)(VROverlayHandle_t ulOverlayHandle, float* pfCurvature);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayPreCurvePitch)(VROverlayHandle_t ulOverlayHandle, float fRadians);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayPreCurvePitch)(VROverlayHandle_t ulOverlayHandle, float* pfRadians);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTextureColorSpace)(VROverlayHandle_t ulOverlayHandle, EColorSpace eTextureColorSpace);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureColorSpace)(VROverlayHandle_t ulOverlayHandle, EColorSpace* peTextureColorSpace);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTextureBounds)(VROverlayHandle_t ulOverlayHandle, struct VRTextureBounds_t* pOverlayTextureBounds);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureBounds)(VROverlayHandle_t ulOverlayHandle, struct VRTextureBounds_t* pOverlayTextureBounds);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformType)(VROverlayHandle_t ulOverlayHandle, VROverlayTransformType* peTransformType);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformAbsolute)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin eTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformAbsolute)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin* peTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformTrackedDeviceRelative)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t unTrackedDevice, struct HmdMatrix34_t* pmatTrackedDeviceToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformTrackedDeviceRelative)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t* punTrackedDevice, struct HmdMatrix34_t* pmatTrackedDeviceToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformTrackedDeviceComponent)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t unDeviceIndex, char* pchComponentName);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformTrackedDeviceComponent)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t* punDeviceIndex, char* pchComponentName, uint32_t unComponentNameSize);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformOverlayRelative)(VROverlayHandle_t ulOverlayHandle, VROverlayHandle_t* ulOverlayHandleParent, struct HmdMatrix34_t* pmatParentOverlayToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformOverlayRelative)(VROverlayHandle_t ulOverlayHandle, VROverlayHandle_t ulOverlayHandleParent, struct HmdMatrix34_t* pmatParentOverlayToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformCursor)(VROverlayHandle_t ulCursorOverlayHandle, struct HmdVector2_t* pvHotspot);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformCursor)(VROverlayHandle_t ulOverlayHandle, struct HmdVector2_t* pvHotspot);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformProjection)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin eTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToOverlayTransform, struct VROverlayProjection_t* pProjection, EVREye eEye);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* HideOverlay)(VROverlayHandle_t ulOverlayHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsOverlayVisible)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetTransformForOverlayCoordinates)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin eTrackingOrigin, struct HmdVector2_t coordinatesInOverlay, struct HmdMatrix34_t* pmatTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* WaitFrameSync)(uint32_t nTimeoutMs);
+	bool(OPENVR_FNTABLE_CALLTYPE* PollNextOverlayEvent)(VROverlayHandle_t ulOverlayHandle, struct VREvent_t* pEvent, uint32_t uncbVREvent);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayInputMethod)(VROverlayHandle_t ulOverlayHandle, VROverlayInputMethod* peInputMethod);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayInputMethod)(VROverlayHandle_t ulOverlayHandle, VROverlayInputMethod eInputMethod);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayMouseScale)(VROverlayHandle_t ulOverlayHandle, struct HmdVector2_t* pvecMouseScale);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayMouseScale)(VROverlayHandle_t ulOverlayHandle, struct HmdVector2_t* pvecMouseScale);
+	bool(OPENVR_FNTABLE_CALLTYPE* ComputeOverlayIntersection)(VROverlayHandle_t ulOverlayHandle, struct VROverlayIntersectionParams_t* pParams, struct VROverlayIntersectionResults_t* pResults);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsHoverTargetOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayIntersectionMask)(VROverlayHandle_t ulOverlayHandle, struct VROverlayIntersectionMaskPrimitive_t* pMaskPrimitives, uint32_t unNumMaskPrimitives, uint32_t unPrimitiveSize);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* TriggerLaserMouseHapticVibration)(VROverlayHandle_t ulOverlayHandle, float fDurationSeconds, float fFrequency, float fAmplitude);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayCursor)(VROverlayHandle_t ulOverlayHandle, VROverlayHandle_t ulCursorHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayCursorPositionOverride)(VROverlayHandle_t ulOverlayHandle, struct HmdVector2_t* pvCursor);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ClearOverlayCursorPositionOverride)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTexture)(VROverlayHandle_t ulOverlayHandle, struct Texture_t* pTexture);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ClearOverlayTexture)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayRaw)(VROverlayHandle_t ulOverlayHandle, void* pvBuffer, uint32_t unWidth, uint32_t unHeight, uint32_t unBytesPerPixel);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayFromFile)(VROverlayHandle_t ulOverlayHandle, char* pchFilePath);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTexture)(VROverlayHandle_t ulOverlayHandle, void** pNativeTextureHandle, void* pNativeTextureRef, uint32_t* pWidth, uint32_t* pHeight, uint32_t* pNativeFormat, ETextureType* pAPIType, EColorSpace* pColorSpace, struct VRTextureBounds_t* pTextureBounds);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ReleaseNativeOverlayHandle)(VROverlayHandle_t ulOverlayHandle, void* pNativeTextureHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureSize)(VROverlayHandle_t ulOverlayHandle, uint32_t* pWidth, uint32_t* pHeight);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* CreateDashboardOverlay)(char* pchOverlayKey, char* pchOverlayFriendlyName, VROverlayHandle_t* pMainHandle, VROverlayHandle_t* pThumbnailHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsDashboardVisible)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsActiveDashboardOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetDashboardOverlaySceneProcess)(VROverlayHandle_t ulOverlayHandle, uint32_t unProcessId);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetDashboardOverlaySceneProcess)(VROverlayHandle_t ulOverlayHandle, uint32_t* punProcessId);
+	void(OPENVR_FNTABLE_CALLTYPE* ShowDashboard)(char* pchOverlayToShow);
+	TrackedDeviceIndex_t(OPENVR_FNTABLE_CALLTYPE* GetPrimaryDashboardDevice)();
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowKeyboard)(EGamepadTextInputMode eInputMode, EGamepadTextInputLineMode eLineInputMode, uint32_t unFlags, char* pchDescription, uint32_t unCharMax, char* pchExistingText, uint64_t uUserValue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowKeyboardForOverlay)(VROverlayHandle_t ulOverlayHandle, EGamepadTextInputMode eInputMode, EGamepadTextInputLineMode eLineInputMode, uint32_t unFlags, char* pchDescription, uint32_t unCharMax, char* pchExistingText, uint64_t uUserValue);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetKeyboardText)(char* pchText, uint32_t cchText);
+	void(OPENVR_FNTABLE_CALLTYPE* HideKeyboard)();
+	void(OPENVR_FNTABLE_CALLTYPE* SetKeyboardTransformAbsolute)(ETrackingUniverseOrigin eTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToKeyboardTransform);
+	void(OPENVR_FNTABLE_CALLTYPE* SetKeyboardPositionForOverlay)(VROverlayHandle_t ulOverlayHandle, struct HmdRect2_t avoidRect);
+	VRMessageOverlayResponse(OPENVR_FNTABLE_CALLTYPE* ShowMessageOverlay)(char* pchText, char* pchCaption, char* pchButton0Text, char* pchButton1Text, char* pchButton2Text, char* pchButton3Text);
+	void(OPENVR_FNTABLE_CALLTYPE* CloseMessageOverlay)();
+};
+
 
 static const char* const IVROverlay_027_Version = "IVROverlay_027";
 
@@ -3605,6 +6007,90 @@ public:
 	virtual void SetKeyboardPositionForOverlay(VROverlayHandle_t ulOverlayHandle, HmdRect2_t avoidRect) = 0;
 	virtual VRMessageOverlayResponse ShowMessageOverlay(const char* pchText, const char* pchCaption, const char* pchButton0Text, const char* pchButton1Text = nullptr, const char* pchButton2Text = nullptr, const char* pchButton3Text = nullptr) = 0;
 	virtual void CloseMessageOverlay() = 0;
+};
+
+struct VR_IVROverlay_027_FnTable
+{
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* FindOverlay)(char* pchOverlayKey, VROverlayHandle_t* pOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* CreateOverlay)(char* pchOverlayKey, char* pchOverlayName, VROverlayHandle_t* pOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* DestroyOverlay)(VROverlayHandle_t ulOverlayHandle);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayKey)(VROverlayHandle_t ulOverlayHandle, char* pchValue, uint32_t unBufferSize, EVROverlayError* pError);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayName)(VROverlayHandle_t ulOverlayHandle, char* pchValue, uint32_t unBufferSize, EVROverlayError* pError);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayName)(VROverlayHandle_t ulOverlayHandle, char* pchName);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayImageData)(VROverlayHandle_t ulOverlayHandle, void* pvBuffer, uint32_t unBufferSize, uint32_t* punWidth, uint32_t* punHeight);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetOverlayErrorNameFromEnum)(EVROverlayError error);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayRenderingPid)(VROverlayHandle_t ulOverlayHandle, uint32_t unPID);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayRenderingPid)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayFlag)(VROverlayHandle_t ulOverlayHandle, VROverlayFlags eOverlayFlag, bool bEnabled);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayFlag)(VROverlayHandle_t ulOverlayHandle, VROverlayFlags eOverlayFlag, bool* pbEnabled);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayFlags)(VROverlayHandle_t ulOverlayHandle, uint32_t* pFlags);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayColor)(VROverlayHandle_t ulOverlayHandle, float fRed, float fGreen, float fBlue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayColor)(VROverlayHandle_t ulOverlayHandle, float* pfRed, float* pfGreen, float* pfBlue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayAlpha)(VROverlayHandle_t ulOverlayHandle, float fAlpha);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayAlpha)(VROverlayHandle_t ulOverlayHandle, float* pfAlpha);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTexelAspect)(VROverlayHandle_t ulOverlayHandle, float fTexelAspect);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTexelAspect)(VROverlayHandle_t ulOverlayHandle, float* pfTexelAspect);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlaySortOrder)(VROverlayHandle_t ulOverlayHandle, uint32_t unSortOrder);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlaySortOrder)(VROverlayHandle_t ulOverlayHandle, uint32_t* punSortOrder);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayWidthInMeters)(VROverlayHandle_t ulOverlayHandle, float fWidthInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayWidthInMeters)(VROverlayHandle_t ulOverlayHandle, float* pfWidthInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayCurvature)(VROverlayHandle_t ulOverlayHandle, float fCurvature);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayCurvature)(VROverlayHandle_t ulOverlayHandle, float* pfCurvature);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayPreCurvePitch)(VROverlayHandle_t ulOverlayHandle, float fRadians);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayPreCurvePitch)(VROverlayHandle_t ulOverlayHandle, float* pfRadians);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTextureColorSpace)(VROverlayHandle_t ulOverlayHandle, EColorSpace eTextureColorSpace);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureColorSpace)(VROverlayHandle_t ulOverlayHandle, EColorSpace* peTextureColorSpace);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTextureBounds)(VROverlayHandle_t ulOverlayHandle, struct VRTextureBounds_t* pOverlayTextureBounds);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureBounds)(VROverlayHandle_t ulOverlayHandle, struct VRTextureBounds_t* pOverlayTextureBounds);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformType)(VROverlayHandle_t ulOverlayHandle, VROverlayTransformType* peTransformType);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformAbsolute)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin eTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformAbsolute)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin* peTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformTrackedDeviceRelative)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t unTrackedDevice, struct HmdMatrix34_t* pmatTrackedDeviceToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformTrackedDeviceRelative)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t* punTrackedDevice, struct HmdMatrix34_t* pmatTrackedDeviceToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformTrackedDeviceComponent)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t unDeviceIndex, char* pchComponentName);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformTrackedDeviceComponent)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t* punDeviceIndex, char* pchComponentName, uint32_t unComponentNameSize);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformCursor)(VROverlayHandle_t ulCursorOverlayHandle, struct HmdVector2_t* pvHotspot);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformCursor)(VROverlayHandle_t ulOverlayHandle, struct HmdVector2_t* pvHotspot);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformProjection)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin eTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToOverlayTransform, struct VROverlayProjection_t* pProjection, EVREye eEye);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* HideOverlay)(VROverlayHandle_t ulOverlayHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsOverlayVisible)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetTransformForOverlayCoordinates)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin eTrackingOrigin, struct HmdVector2_t coordinatesInOverlay, struct HmdMatrix34_t* pmatTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* WaitFrameSync)(uint32_t nTimeoutMs);
+	bool(OPENVR_FNTABLE_CALLTYPE* PollNextOverlayEvent)(VROverlayHandle_t ulOverlayHandle, struct VREvent_t* pEvent, uint32_t uncbVREvent);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayInputMethod)(VROverlayHandle_t ulOverlayHandle, VROverlayInputMethod* peInputMethod);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayInputMethod)(VROverlayHandle_t ulOverlayHandle, VROverlayInputMethod eInputMethod);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayMouseScale)(VROverlayHandle_t ulOverlayHandle, struct HmdVector2_t* pvecMouseScale);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayMouseScale)(VROverlayHandle_t ulOverlayHandle, struct HmdVector2_t* pvecMouseScale);
+	bool(OPENVR_FNTABLE_CALLTYPE* ComputeOverlayIntersection)(VROverlayHandle_t ulOverlayHandle, struct VROverlayIntersectionParams_t* pParams, struct VROverlayIntersectionResults_t* pResults);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsHoverTargetOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayIntersectionMask)(VROverlayHandle_t ulOverlayHandle, struct VROverlayIntersectionMaskPrimitive_t* pMaskPrimitives, uint32_t unNumMaskPrimitives, uint32_t unPrimitiveSize);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* TriggerLaserMouseHapticVibration)(VROverlayHandle_t ulOverlayHandle, float fDurationSeconds, float fFrequency, float fAmplitude);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayCursor)(VROverlayHandle_t ulOverlayHandle, VROverlayHandle_t ulCursorHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayCursorPositionOverride)(VROverlayHandle_t ulOverlayHandle, struct HmdVector2_t* pvCursor);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ClearOverlayCursorPositionOverride)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTexture)(VROverlayHandle_t ulOverlayHandle, struct Texture_t* pTexture);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ClearOverlayTexture)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayRaw)(VROverlayHandle_t ulOverlayHandle, void* pvBuffer, uint32_t unWidth, uint32_t unHeight, uint32_t unBytesPerPixel);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayFromFile)(VROverlayHandle_t ulOverlayHandle, char* pchFilePath);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTexture)(VROverlayHandle_t ulOverlayHandle, void** pNativeTextureHandle, void* pNativeTextureRef, uint32_t* pWidth, uint32_t* pHeight, uint32_t* pNativeFormat, ETextureType* pAPIType, EColorSpace* pColorSpace, struct VRTextureBounds_t* pTextureBounds);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ReleaseNativeOverlayHandle)(VROverlayHandle_t ulOverlayHandle, void* pNativeTextureHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureSize)(VROverlayHandle_t ulOverlayHandle, uint32_t* pWidth, uint32_t* pHeight);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* CreateDashboardOverlay)(char* pchOverlayKey, char* pchOverlayFriendlyName, VROverlayHandle_t* pMainHandle, VROverlayHandle_t* pThumbnailHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsDashboardVisible)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsActiveDashboardOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetDashboardOverlaySceneProcess)(VROverlayHandle_t ulOverlayHandle, uint32_t unProcessId);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetDashboardOverlaySceneProcess)(VROverlayHandle_t ulOverlayHandle, uint32_t* punProcessId);
+	void(OPENVR_FNTABLE_CALLTYPE* ShowDashboard)(char* pchOverlayToShow);
+	TrackedDeviceIndex_t(OPENVR_FNTABLE_CALLTYPE* GetPrimaryDashboardDevice)();
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowKeyboard)(EGamepadTextInputMode eInputMode, EGamepadTextInputLineMode eLineInputMode, uint32_t unFlags, char* pchDescription, uint32_t unCharMax, char* pchExistingText, uint64_t uUserValue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowKeyboardForOverlay)(VROverlayHandle_t ulOverlayHandle, EGamepadTextInputMode eInputMode, EGamepadTextInputLineMode eLineInputMode, uint32_t unFlags, char* pchDescription, uint32_t unCharMax, char* pchExistingText, uint64_t uUserValue);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetKeyboardText)(char* pchText, uint32_t cchText);
+	void(OPENVR_FNTABLE_CALLTYPE* HideKeyboard)();
+	void(OPENVR_FNTABLE_CALLTYPE* SetKeyboardTransformAbsolute)(ETrackingUniverseOrigin eTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToKeyboardTransform);
+	void(OPENVR_FNTABLE_CALLTYPE* SetKeyboardPositionForOverlay)(VROverlayHandle_t ulOverlayHandle, struct HmdRect2_t avoidRect);
+	VRMessageOverlayResponse(OPENVR_FNTABLE_CALLTYPE* ShowMessageOverlay)(char* pchText, char* pchCaption, char* pchButton0Text, char* pchButton1Text, char* pchButton2Text, char* pchButton3Text);
+	void(OPENVR_FNTABLE_CALLTYPE* CloseMessageOverlay)();
 };
 
 
@@ -3697,6 +6183,92 @@ public:
 	virtual void CloseMessageOverlay() = 0;
 };
 
+struct VR_IVROverlay_028_FnTable
+{
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* FindOverlay)(char* pchOverlayKey, VROverlayHandle_t* pOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* CreateOverlay)(char* pchOverlayKey, char* pchOverlayName, VROverlayHandle_t* pOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* CreateSubviewOverlay)(VROverlayHandle_t parentOverlayHandle, char* pchSubviewOverlayKey, char* pchSubviewOverlayName, VROverlayHandle_t* pSubviewOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* DestroyOverlay)(VROverlayHandle_t ulOverlayHandle);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayKey)(VROverlayHandle_t ulOverlayHandle, char* pchValue, uint32_t unBufferSize, EVROverlayError* pError);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayName)(VROverlayHandle_t ulOverlayHandle, char* pchValue, uint32_t unBufferSize, EVROverlayError* pError);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayName)(VROverlayHandle_t ulOverlayHandle, char* pchName);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayImageData)(VROverlayHandle_t ulOverlayHandle, void* pvBuffer, uint32_t unBufferSize, uint32_t* punWidth, uint32_t* punHeight);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetOverlayErrorNameFromEnum)(EVROverlayError error);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayRenderingPid)(VROverlayHandle_t ulOverlayHandle, uint32_t unPID);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetOverlayRenderingPid)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayFlag)(VROverlayHandle_t ulOverlayHandle, VROverlayFlags eOverlayFlag, bool bEnabled);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayFlag)(VROverlayHandle_t ulOverlayHandle, VROverlayFlags eOverlayFlag, bool* pbEnabled);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayFlags)(VROverlayHandle_t ulOverlayHandle, uint32_t* pFlags);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayColor)(VROverlayHandle_t ulOverlayHandle, float fRed, float fGreen, float fBlue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayColor)(VROverlayHandle_t ulOverlayHandle, float* pfRed, float* pfGreen, float* pfBlue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayAlpha)(VROverlayHandle_t ulOverlayHandle, float fAlpha);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayAlpha)(VROverlayHandle_t ulOverlayHandle, float* pfAlpha);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTexelAspect)(VROverlayHandle_t ulOverlayHandle, float fTexelAspect);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTexelAspect)(VROverlayHandle_t ulOverlayHandle, float* pfTexelAspect);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlaySortOrder)(VROverlayHandle_t ulOverlayHandle, uint32_t unSortOrder);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlaySortOrder)(VROverlayHandle_t ulOverlayHandle, uint32_t* punSortOrder);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayWidthInMeters)(VROverlayHandle_t ulOverlayHandle, float fWidthInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayWidthInMeters)(VROverlayHandle_t ulOverlayHandle, float* pfWidthInMeters);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayCurvature)(VROverlayHandle_t ulOverlayHandle, float fCurvature);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayCurvature)(VROverlayHandle_t ulOverlayHandle, float* pfCurvature);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayPreCurvePitch)(VROverlayHandle_t ulOverlayHandle, float fRadians);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayPreCurvePitch)(VROverlayHandle_t ulOverlayHandle, float* pfRadians);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTextureColorSpace)(VROverlayHandle_t ulOverlayHandle, EColorSpace eTextureColorSpace);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureColorSpace)(VROverlayHandle_t ulOverlayHandle, EColorSpace* peTextureColorSpace);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTextureBounds)(VROverlayHandle_t ulOverlayHandle, struct VRTextureBounds_t* pOverlayTextureBounds);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureBounds)(VROverlayHandle_t ulOverlayHandle, struct VRTextureBounds_t* pOverlayTextureBounds);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformType)(VROverlayHandle_t ulOverlayHandle, VROverlayTransformType* peTransformType);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformAbsolute)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin eTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformAbsolute)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin* peTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformTrackedDeviceRelative)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t unTrackedDevice, struct HmdMatrix34_t* pmatTrackedDeviceToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformTrackedDeviceRelative)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t* punTrackedDevice, struct HmdMatrix34_t* pmatTrackedDeviceToOverlayTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformTrackedDeviceComponent)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t unDeviceIndex, char* pchComponentName);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformTrackedDeviceComponent)(VROverlayHandle_t ulOverlayHandle, TrackedDeviceIndex_t* punDeviceIndex, char* pchComponentName, uint32_t unComponentNameSize);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformCursor)(VROverlayHandle_t ulCursorOverlayHandle, struct HmdVector2_t* pvHotspot);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTransformCursor)(VROverlayHandle_t ulOverlayHandle, struct HmdVector2_t* pvHotspot);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTransformProjection)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin eTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToOverlayTransform, struct VROverlayProjection_t* pProjection, EVREye eEye);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetSubviewPosition)(VROverlayHandle_t ulOverlayHandle, float fX, float fY);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* HideOverlay)(VROverlayHandle_t ulOverlayHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsOverlayVisible)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetTransformForOverlayCoordinates)(VROverlayHandle_t ulOverlayHandle, ETrackingUniverseOrigin eTrackingOrigin, struct HmdVector2_t coordinatesInOverlay, struct HmdMatrix34_t* pmatTransform);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* WaitFrameSync)(uint32_t nTimeoutMs);
+	bool(OPENVR_FNTABLE_CALLTYPE* PollNextOverlayEvent)(VROverlayHandle_t ulOverlayHandle, struct VREvent_t* pEvent, uint32_t uncbVREvent);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayInputMethod)(VROverlayHandle_t ulOverlayHandle, VROverlayInputMethod* peInputMethod);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayInputMethod)(VROverlayHandle_t ulOverlayHandle, VROverlayInputMethod eInputMethod);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayMouseScale)(VROverlayHandle_t ulOverlayHandle, struct HmdVector2_t* pvecMouseScale);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayMouseScale)(VROverlayHandle_t ulOverlayHandle, struct HmdVector2_t* pvecMouseScale);
+	bool(OPENVR_FNTABLE_CALLTYPE* ComputeOverlayIntersection)(VROverlayHandle_t ulOverlayHandle, struct VROverlayIntersectionParams_t* pParams, struct VROverlayIntersectionResults_t* pResults);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsHoverTargetOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayIntersectionMask)(VROverlayHandle_t ulOverlayHandle, struct VROverlayIntersectionMaskPrimitive_t* pMaskPrimitives, uint32_t unNumMaskPrimitives, uint32_t unPrimitiveSize);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* TriggerLaserMouseHapticVibration)(VROverlayHandle_t ulOverlayHandle, float fDurationSeconds, float fFrequency, float fAmplitude);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayCursor)(VROverlayHandle_t ulOverlayHandle, VROverlayHandle_t ulCursorHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayCursorPositionOverride)(VROverlayHandle_t ulOverlayHandle, struct HmdVector2_t* pvCursor);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ClearOverlayCursorPositionOverride)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayTexture)(VROverlayHandle_t ulOverlayHandle, struct Texture_t* pTexture);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ClearOverlayTexture)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayRaw)(VROverlayHandle_t ulOverlayHandle, void* pvBuffer, uint32_t unWidth, uint32_t unHeight, uint32_t unBytesPerPixel);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetOverlayFromFile)(VROverlayHandle_t ulOverlayHandle, char* pchFilePath);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTexture)(VROverlayHandle_t ulOverlayHandle, void** pNativeTextureHandle, void* pNativeTextureRef, uint32_t* pWidth, uint32_t* pHeight, uint32_t* pNativeFormat, ETextureType* pAPIType, EColorSpace* pColorSpace, struct VRTextureBounds_t* pTextureBounds);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ReleaseNativeOverlayHandle)(VROverlayHandle_t ulOverlayHandle, void* pNativeTextureHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetOverlayTextureSize)(VROverlayHandle_t ulOverlayHandle, uint32_t* pWidth, uint32_t* pHeight);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* CreateDashboardOverlay)(char* pchOverlayKey, char* pchOverlayFriendlyName, VROverlayHandle_t* pMainHandle, VROverlayHandle_t* pThumbnailHandle);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsDashboardVisible)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsActiveDashboardOverlay)(VROverlayHandle_t ulOverlayHandle);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* SetDashboardOverlaySceneProcess)(VROverlayHandle_t ulOverlayHandle, uint32_t unProcessId);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* GetDashboardOverlaySceneProcess)(VROverlayHandle_t ulOverlayHandle, uint32_t* punProcessId);
+	void(OPENVR_FNTABLE_CALLTYPE* ShowDashboard)(char* pchOverlayToShow);
+	TrackedDeviceIndex_t(OPENVR_FNTABLE_CALLTYPE* GetPrimaryDashboardDevice)();
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowKeyboard)(EGamepadTextInputMode eInputMode, EGamepadTextInputLineMode eLineInputMode, uint32_t unFlags, char* pchDescription, uint32_t unCharMax, char* pchExistingText, uint64_t uUserValue);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ShowKeyboardForOverlay)(VROverlayHandle_t ulOverlayHandle, EGamepadTextInputMode eInputMode, EGamepadTextInputLineMode eLineInputMode, uint32_t unFlags, char* pchDescription, uint32_t unCharMax, char* pchExistingText, uint64_t uUserValue);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetKeyboardText)(char* pchText, uint32_t cchText);
+	void(OPENVR_FNTABLE_CALLTYPE* HideKeyboard)();
+	void(OPENVR_FNTABLE_CALLTYPE* SetKeyboardTransformAbsolute)(ETrackingUniverseOrigin eTrackingOrigin, struct HmdMatrix34_t* pmatTrackingOriginToKeyboardTransform);
+	void(OPENVR_FNTABLE_CALLTYPE* SetKeyboardPositionForOverlay)(VROverlayHandle_t ulOverlayHandle, struct HmdRect2_t avoidRect);
+	VRMessageOverlayResponse(OPENVR_FNTABLE_CALLTYPE* ShowMessageOverlay)(char* pchText, char* pchCaption, char* pchButton0Text, char* pchButton1Text, char* pchButton2Text, char* pchButton3Text);
+	void(OPENVR_FNTABLE_CALLTYPE* CloseMessageOverlay)();
+};
+
 
 static const char* const IVROverlayView_003_Version = "IVROverlayView_003";
 
@@ -3707,6 +6279,14 @@ public:
 	virtual EVROverlayError ReleaseOverlayView(VROverlayView_t* pOverlayView) = 0;
 	virtual void PostOverlayEvent(VROverlayHandle_t ulOverlayHandle, const VREvent_t* pvrEvent) = 0;
 	virtual bool IsViewingPermitted(VROverlayHandle_t ulOverlayHandle) = 0;
+};
+
+struct VR_IVROverlayView_003_FnTable
+{
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* AcquireOverlayView)(VROverlayHandle_t ulOverlayHandle, struct VRNativeDevice_t* pNativeDevice, struct VROverlayView_t* pOverlayView, uint32_t unOverlayViewSize);
+	EVROverlayError(OPENVR_FNTABLE_CALLTYPE* ReleaseOverlayView)(struct VROverlayView_t* pOverlayView);
+	void(OPENVR_FNTABLE_CALLTYPE* PostOverlayEvent)(VROverlayHandle_t ulOverlayHandle, struct VREvent_t* pvrEvent);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsViewingPermitted)(VROverlayHandle_t ulOverlayHandle);
 };
 
 
@@ -3768,6 +6348,24 @@ public:
 	virtual bool RenderModelHasComponent(const char* pchRenderModelName, const char* pchComponentName) = 0;
 };
 
+struct VR_IVRRenderModels_004_FnTable
+{
+	EVRRenderModelError(OPENVR_FNTABLE_CALLTYPE* LoadRenderModel_Async)(char* pchRenderModelName, struct RenderModel_t** ppRenderModel);
+	void(OPENVR_FNTABLE_CALLTYPE* FreeRenderModel)(struct RenderModel_t* pRenderModel);
+	EVRRenderModelError(OPENVR_FNTABLE_CALLTYPE* LoadTexture_Async)(TextureID_t textureId, struct RenderModel_TextureMap_t** ppTexture);
+	void(OPENVR_FNTABLE_CALLTYPE* FreeTexture)(struct RenderModel_TextureMap_t* pTexture);
+	EVRRenderModelError(OPENVR_FNTABLE_CALLTYPE* LoadTextureD3D11_Async)(TextureID_t textureId, void* pD3D11Device, void** ppD3D11Texture2D);
+	void(OPENVR_FNTABLE_CALLTYPE* FreeTextureD3D11)(void* pD3D11Texture2D);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetRenderModelName)(uint32_t unRenderModelIndex, char* pchRenderModelName, uint32_t unRenderModelNameLen);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetRenderModelCount)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetComponentCount)(char* pchRenderModelName);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetComponentName)(char* pchRenderModelName, uint32_t unComponentIndex, char* pchComponentName, uint32_t unComponentNameLen);
+	uint64_t(OPENVR_FNTABLE_CALLTYPE* GetComponentButtonMask)(char* pchRenderModelName, char* pchComponentName);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetComponentRenderModelName)(char* pchRenderModelName, char* pchComponentName, char* pchComponentRenderModelName, uint32_t unComponentRenderModelNameLen);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetComponentState)(char* pchRenderModelName, char* pchComponentName, VRControllerState_t* pControllerState, struct RenderModel_ControllerMode_State_t* pState, struct RenderModel_ComponentState_t* pComponentState);
+	bool(OPENVR_FNTABLE_CALLTYPE* RenderModelHasComponent)(char* pchRenderModelName, char* pchComponentName);
+};
+
 
 static const char* const IVRRenderModels_005_Version = "IVRRenderModels_005";
 
@@ -3792,6 +6390,28 @@ public:
 	virtual uint32_t GetRenderModelThumbnailURL(const char* pchRenderModelName, VR_OUT_STRING() char* pchThumbnailURL, uint32_t unThumbnailURLLen, vr::EVRRenderModelError* peError) = 0;
 	virtual uint32_t GetRenderModelOriginalPath(const char* pchRenderModelName, VR_OUT_STRING() char* pchOriginalPath, uint32_t unOriginalPathLen, vr::EVRRenderModelError* peError) = 0;
 	virtual const char* GetRenderModelErrorNameFromEnum(vr::EVRRenderModelError error) = 0;
+};
+
+struct VR_IVRRenderModels_005_FnTable
+{
+	EVRRenderModelError(OPENVR_FNTABLE_CALLTYPE* LoadRenderModel_Async)(char* pchRenderModelName, struct RenderModel_t** ppRenderModel);
+	void(OPENVR_FNTABLE_CALLTYPE* FreeRenderModel)(struct RenderModel_t* pRenderModel);
+	EVRRenderModelError(OPENVR_FNTABLE_CALLTYPE* LoadTexture_Async)(TextureID_t textureId, struct RenderModel_TextureMap_t** ppTexture);
+	void(OPENVR_FNTABLE_CALLTYPE* FreeTexture)(struct RenderModel_TextureMap_t* pTexture);
+	EVRRenderModelError(OPENVR_FNTABLE_CALLTYPE* LoadTextureD3D11_Async)(TextureID_t textureId, void* pD3D11Device, void** ppD3D11Texture2D);
+	EVRRenderModelError(OPENVR_FNTABLE_CALLTYPE* LoadIntoTextureD3D11_Async)(TextureID_t textureId, void* pDstTexture);
+	void(OPENVR_FNTABLE_CALLTYPE* FreeTextureD3D11)(void* pD3D11Texture2D);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetRenderModelName)(uint32_t unRenderModelIndex, char* pchRenderModelName, uint32_t unRenderModelNameLen);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetRenderModelCount)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetComponentCount)(char* pchRenderModelName);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetComponentName)(char* pchRenderModelName, uint32_t unComponentIndex, char* pchComponentName, uint32_t unComponentNameLen);
+	uint64_t(OPENVR_FNTABLE_CALLTYPE* GetComponentButtonMask)(char* pchRenderModelName, char* pchComponentName);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetComponentRenderModelName)(char* pchRenderModelName, char* pchComponentName, char* pchComponentRenderModelName, uint32_t unComponentRenderModelNameLen);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetComponentState)(char* pchRenderModelName, char* pchComponentName, VRControllerState_t* pControllerState, struct RenderModel_ControllerMode_State_t* pState, struct RenderModel_ComponentState_t* pComponentState);
+	bool(OPENVR_FNTABLE_CALLTYPE* RenderModelHasComponent)(char* pchRenderModelName, char* pchComponentName);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetRenderModelThumbnailURL)(char* pchRenderModelName, char* pchThumbnailURL, uint32_t unThumbnailURLLen, EVRRenderModelError* peError);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetRenderModelOriginalPath)(char* pchRenderModelName, char* pchOriginalPath, uint32_t unOriginalPathLen, EVRRenderModelError* peError);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetRenderModelErrorNameFromEnum)(EVRRenderModelError error);
 };
 
 
@@ -3821,6 +6441,29 @@ public:
 	virtual const char* GetRenderModelErrorNameFromEnum(vr::EVRRenderModelError error) = 0;
 };
 
+struct VR_IVRRenderModels_006_FnTable
+{
+	EVRRenderModelError(OPENVR_FNTABLE_CALLTYPE* LoadRenderModel_Async)(char* pchRenderModelName, struct RenderModel_t** ppRenderModel);
+	void(OPENVR_FNTABLE_CALLTYPE* FreeRenderModel)(struct RenderModel_t* pRenderModel);
+	EVRRenderModelError(OPENVR_FNTABLE_CALLTYPE* LoadTexture_Async)(TextureID_t textureId, struct RenderModel_TextureMap_t** ppTexture);
+	void(OPENVR_FNTABLE_CALLTYPE* FreeTexture)(struct RenderModel_TextureMap_t* pTexture);
+	EVRRenderModelError(OPENVR_FNTABLE_CALLTYPE* LoadTextureD3D11_Async)(TextureID_t textureId, void* pD3D11Device, void** ppD3D11Texture2D);
+	EVRRenderModelError(OPENVR_FNTABLE_CALLTYPE* LoadIntoTextureD3D11_Async)(TextureID_t textureId, void* pDstTexture);
+	void(OPENVR_FNTABLE_CALLTYPE* FreeTextureD3D11)(void* pD3D11Texture2D);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetRenderModelName)(uint32_t unRenderModelIndex, char* pchRenderModelName, uint32_t unRenderModelNameLen);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetRenderModelCount)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetComponentCount)(char* pchRenderModelName);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetComponentName)(char* pchRenderModelName, uint32_t unComponentIndex, char* pchComponentName, uint32_t unComponentNameLen);
+	uint64_t(OPENVR_FNTABLE_CALLTYPE* GetComponentButtonMask)(char* pchRenderModelName, char* pchComponentName);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetComponentRenderModelName)(char* pchRenderModelName, char* pchComponentName, char* pchComponentRenderModelName, uint32_t unComponentRenderModelNameLen);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetComponentStateForDevicePath)(char* pchRenderModelName, char* pchComponentName, VRInputValueHandle_t devicePath, RenderModel_ControllerMode_State_t* pState, RenderModel_ComponentState_t* pComponentState);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetComponentState)(char* pchRenderModelName, char* pchComponentName, VRControllerState_t* pControllerState, struct RenderModel_ControllerMode_State_t* pState, struct RenderModel_ComponentState_t* pComponentState);
+	bool(OPENVR_FNTABLE_CALLTYPE* RenderModelHasComponent)(char* pchRenderModelName, char* pchComponentName);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetRenderModelThumbnailURL)(char* pchRenderModelName, char* pchThumbnailURL, uint32_t unThumbnailURLLen, EVRRenderModelError* peError);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetRenderModelOriginalPath)(char* pchRenderModelName, char* pchOriginalPath, uint32_t unOriginalPathLen, EVRRenderModelError* peError);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetRenderModelErrorNameFromEnum)(EVRRenderModelError error);
+};
+
 
 static const char* const IVRResources_001_Version = "IVRResources_001";
 
@@ -3829,6 +6472,12 @@ class IVRResources_001
 public:
 	virtual uint32_t LoadSharedResource(const char* pchResourceName, char* pchBuffer, uint32_t unBufferLen) = 0;
 	virtual uint32_t GetResourceFullPath(const char* pchResourceName, const char* pchResourceTypeDirectory, VR_OUT_STRING() char* pchPathBuffer, uint32_t unBufferLen) = 0;
+};
+
+struct VR_IVRResources_001_FnTable
+{
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* LoadSharedResource)(char* pchResourceName, char* pchBuffer, uint32_t unBufferLen);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetResourceFullPath)(char* pchResourceName, char* pchResourceTypeDirectory, char* pchPathBuffer, uint32_t unBufferLen);
 };
 
 
@@ -3844,6 +6493,17 @@ public:
 	virtual vr::EVRScreenshotError UpdateScreenshotProgress(vr::ScreenshotHandle_t screenshotHandle, float flProgress) = 0;
 	virtual vr::EVRScreenshotError TakeStereoScreenshot(vr::ScreenshotHandle_t* pOutScreenshotHandle, const char* pchPreviewFilename, const char* pchVRFilename) = 0;
 	virtual vr::EVRScreenshotError SubmitScreenshot(vr::ScreenshotHandle_t screenshotHandle, vr::EVRScreenshotType type, const char* pchSourcePreviewFilename, const char* pchSourceVRFilename) = 0;
+};
+
+struct VR_IVRScreenshots_001_FnTable
+{
+	EVRScreenshotError(OPENVR_FNTABLE_CALLTYPE* RequestScreenshot)(ScreenshotHandle_t* pOutScreenshotHandle, EVRScreenshotType type, char* pchPreviewFilename, char* pchVRFilename);
+	EVRScreenshotError(OPENVR_FNTABLE_CALLTYPE* HookScreenshot)(EVRScreenshotType* pSupportedTypes, int numTypes);
+	EVRScreenshotType(OPENVR_FNTABLE_CALLTYPE* GetScreenshotPropertyType)(ScreenshotHandle_t screenshotHandle, EVRScreenshotError* pError);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetScreenshotPropertyFilename)(ScreenshotHandle_t screenshotHandle, EVRScreenshotPropertyFilenames filenameType, char* pchFilename, uint32_t cchFilename, EVRScreenshotError* pError);
+	EVRScreenshotError(OPENVR_FNTABLE_CALLTYPE* UpdateScreenshotProgress)(ScreenshotHandle_t screenshotHandle, float flProgress);
+	EVRScreenshotError(OPENVR_FNTABLE_CALLTYPE* TakeStereoScreenshot)(ScreenshotHandle_t* pOutScreenshotHandle, char* pchPreviewFilename, char* pchVRFilename);
+	EVRScreenshotError(OPENVR_FNTABLE_CALLTYPE* SubmitScreenshot)(ScreenshotHandle_t screenshotHandle, EVRScreenshotType type, char* pchSourcePreviewFilename, char* pchSourceVRFilename);
 };
 
 
@@ -3866,6 +6526,22 @@ public:
 	virtual void RemoveKeyInSection(const char* pchSection, const char* pchSettingsKey, EVRSettingsError* peError = nullptr) = 0;
 };
 
+struct VR_IVRSettings_001_FnTable
+{
+	char*(OPENVR_FNTABLE_CALLTYPE* GetSettingsErrorNameFromEnum)(EVRSettingsError eError);
+	bool(OPENVR_FNTABLE_CALLTYPE* Sync)(bool bForce, EVRSettingsError* peError);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetBool)(char* pchSection, char* pchSettingsKey, bool bDefaultValue, EVRSettingsError* peError);
+	void(OPENVR_FNTABLE_CALLTYPE* SetBool)(char* pchSection, char* pchSettingsKey, bool bValue, EVRSettingsError* peError);
+	int32_t(OPENVR_FNTABLE_CALLTYPE* GetInt32)(char* pchSection, char* pchSettingsKey, int32_t nDefaultValue, EVRSettingsError* peError);
+	void(OPENVR_FNTABLE_CALLTYPE* SetInt32)(char* pchSection, char* pchSettingsKey, int32_t nValue, EVRSettingsError* peError);
+	float(OPENVR_FNTABLE_CALLTYPE* GetFloat)(char* pchSection, char* pchSettingsKey, float flDefaultValue, EVRSettingsError* peError);
+	void(OPENVR_FNTABLE_CALLTYPE* SetFloat)(char* pchSection, char* pchSettingsKey, float flValue, EVRSettingsError* peError);
+	void(OPENVR_FNTABLE_CALLTYPE* GetString)(char* pchSection, char* pchSettingsKey, char* pchValue, uint32_t unValueLen, char* pchDefaultValue, EVRSettingsError* peError);
+	void(OPENVR_FNTABLE_CALLTYPE* SetString)(char* pchSection, char* pchSettingsKey, char* pchValue, EVRSettingsError* peError);
+	void(OPENVR_FNTABLE_CALLTYPE* RemoveSection)(char* pchSection, EVRSettingsError* peError);
+	void(OPENVR_FNTABLE_CALLTYPE* RemoveKeyInSection)(char* pchSection, char* pchSettingsKey, EVRSettingsError* peError);
+};
+
 
 static const char* const IVRSettings_002_Version = "IVRSettings_002";
 
@@ -3884,6 +6560,22 @@ public:
 	virtual void GetString(const char* pchSection, const char* pchSettingsKey, VR_OUT_STRING() char* pchValue, uint32_t unValueLen, EVRSettingsError* peError = nullptr) = 0;
 	virtual void RemoveSection(const char* pchSection, EVRSettingsError* peError = nullptr) = 0;
 	virtual void RemoveKeyInSection(const char* pchSection, const char* pchSettingsKey, EVRSettingsError* peError = nullptr) = 0;
+};
+
+struct VR_IVRSettings_002_FnTable
+{
+	char*(OPENVR_FNTABLE_CALLTYPE* GetSettingsErrorNameFromEnum)(EVRSettingsError eError);
+	bool(OPENVR_FNTABLE_CALLTYPE* Sync)(bool bForce, EVRSettingsError* peError);
+	void(OPENVR_FNTABLE_CALLTYPE* SetBool)(char* pchSection, char* pchSettingsKey, bool bValue, EVRSettingsError* peError);
+	void(OPENVR_FNTABLE_CALLTYPE* SetInt32)(char* pchSection, char* pchSettingsKey, int32_t nValue, EVRSettingsError* peError);
+	void(OPENVR_FNTABLE_CALLTYPE* SetFloat)(char* pchSection, char* pchSettingsKey, float flValue, EVRSettingsError* peError);
+	void(OPENVR_FNTABLE_CALLTYPE* SetString)(char* pchSection, char* pchSettingsKey, char* pchValue, EVRSettingsError* peError);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetBool)(char* pchSection, char* pchSettingsKey, EVRSettingsError* peError);
+	int32_t(OPENVR_FNTABLE_CALLTYPE* GetInt32)(char* pchSection, char* pchSettingsKey, EVRSettingsError* peError);
+	float(OPENVR_FNTABLE_CALLTYPE* GetFloat)(char* pchSection, char* pchSettingsKey, EVRSettingsError* peError);
+	void(OPENVR_FNTABLE_CALLTYPE* GetString)(char* pchSection, char* pchSettingsKey, char* pchValue, uint32_t unValueLen, EVRSettingsError* peError);
+	void(OPENVR_FNTABLE_CALLTYPE* RemoveSection)(char* pchSection, EVRSettingsError* peError);
+	void(OPENVR_FNTABLE_CALLTYPE* RemoveKeyInSection)(char* pchSection, char* pchSettingsKey, EVRSettingsError* peError);
 };
 
 
@@ -3905,6 +6597,21 @@ public:
 	virtual void RemoveKeyInSection(const char* pchSection, const char* pchSettingsKey, EVRSettingsError* peError = nullptr) = 0;
 };
 
+struct VR_IVRSettings_003_FnTable
+{
+	char*(OPENVR_FNTABLE_CALLTYPE* GetSettingsErrorNameFromEnum)(EVRSettingsError eError);
+	void(OPENVR_FNTABLE_CALLTYPE* SetBool)(char* pchSection, char* pchSettingsKey, bool bValue, EVRSettingsError* peError);
+	void(OPENVR_FNTABLE_CALLTYPE* SetInt32)(char* pchSection, char* pchSettingsKey, int32_t nValue, EVRSettingsError* peError);
+	void(OPENVR_FNTABLE_CALLTYPE* SetFloat)(char* pchSection, char* pchSettingsKey, float flValue, EVRSettingsError* peError);
+	void(OPENVR_FNTABLE_CALLTYPE* SetString)(char* pchSection, char* pchSettingsKey, char* pchValue, EVRSettingsError* peError);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetBool)(char* pchSection, char* pchSettingsKey, EVRSettingsError* peError);
+	int32_t(OPENVR_FNTABLE_CALLTYPE* GetInt32)(char* pchSection, char* pchSettingsKey, EVRSettingsError* peError);
+	float(OPENVR_FNTABLE_CALLTYPE* GetFloat)(char* pchSection, char* pchSettingsKey, EVRSettingsError* peError);
+	void(OPENVR_FNTABLE_CALLTYPE* GetString)(char* pchSection, char* pchSettingsKey, char* pchValue, uint32_t unValueLen, EVRSettingsError* peError);
+	void(OPENVR_FNTABLE_CALLTYPE* RemoveSection)(char* pchSection, EVRSettingsError* peError);
+	void(OPENVR_FNTABLE_CALLTYPE* RemoveKeyInSection)(char* pchSection, char* pchSettingsKey, EVRSettingsError* peError);
+};
+
 
 static const char* const IVRSpatialAnchors_001_Version = "IVRSpatialAnchors_001";
 
@@ -3915,6 +6622,14 @@ public:
 	virtual EVRSpatialAnchorError CreateSpatialAnchorFromPose(TrackedDeviceIndex_t unDeviceIndex, ETrackingUniverseOrigin eOrigin, SpatialAnchorPose_t* pPose, SpatialAnchorHandle_t* pHandleOut) = 0;
 	virtual EVRSpatialAnchorError GetSpatialAnchorPose(SpatialAnchorHandle_t unHandle, ETrackingUniverseOrigin eOrigin, SpatialAnchorPose_t* pPoseOut) = 0;
 	virtual EVRSpatialAnchorError GetSpatialAnchorDescriptor(SpatialAnchorHandle_t unHandle, VR_OUT_STRING() char* pchDescriptorOut, uint32_t* punDescriptorBufferLenInOut) = 0;
+};
+
+struct VR_IVRSpatialAnchors_001_FnTable
+{
+	EVRSpatialAnchorError(OPENVR_FNTABLE_CALLTYPE* CreateSpatialAnchorFromDescriptor)(char* pchDescriptor, SpatialAnchorHandle_t* pHandleOut);
+	EVRSpatialAnchorError(OPENVR_FNTABLE_CALLTYPE* CreateSpatialAnchorFromPose)(TrackedDeviceIndex_t unDeviceIndex, ETrackingUniverseOrigin eOrigin, struct SpatialAnchorPose_t* pPose, SpatialAnchorHandle_t* pHandleOut);
+	EVRSpatialAnchorError(OPENVR_FNTABLE_CALLTYPE* GetSpatialAnchorPose)(SpatialAnchorHandle_t unHandle, ETrackingUniverseOrigin eOrigin, struct SpatialAnchorPose_t* pPoseOut);
+	EVRSpatialAnchorError(OPENVR_FNTABLE_CALLTYPE* GetSpatialAnchorDescriptor)(SpatialAnchorHandle_t unHandle, char* pchDescriptorOut, uint32_t* punDescriptorBufferLenInOut);
 };
 
 
@@ -4311,6 +7026,56 @@ public:
 	virtual void PerformanceTestReportFidelityLevelChange(int nFidelityLevel) = 0;
 };
 
+struct VR_IVRSystem_011_FnTable
+{
+	void(OPENVR_FNTABLE_CALLTYPE* GetRecommendedRenderTargetSize)(uint32_t* pnWidth, uint32_t* pnHeight);
+	struct HmdMatrix44_t(OPENVR_FNTABLE_CALLTYPE* GetProjectionMatrix)(EVREye eEye, float fNearZ, float fFarZ, EGraphicsAPIConvention eProjType);
+	void(OPENVR_FNTABLE_CALLTYPE* GetProjectionRaw)(EVREye eEye, float* pfLeft, float* pfRight, float* pfTop, float* pfBottom);
+	struct DistortionCoordinates_t(OPENVR_FNTABLE_CALLTYPE* ComputeDistortion)(EVREye eEye, float fU, float fV);
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetEyeToHeadTransform)(EVREye eEye);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetTimeSinceLastVsync)(float* pfSecondsSinceLastVsync, uint64_t* pulFrameCounter);
+	int32_t(OPENVR_FNTABLE_CALLTYPE* GetD3D9AdapterIndex)();
+	void(OPENVR_FNTABLE_CALLTYPE* GetDXGIOutputInfo)(int32_t* pnAdapterIndex);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsDisplayOnDesktop)();
+	bool(OPENVR_FNTABLE_CALLTYPE* SetDisplayVisibility)(bool bIsVisibleOnDesktop);
+	void(OPENVR_FNTABLE_CALLTYPE* GetDeviceToAbsoluteTrackingPose)(ETrackingUniverseOrigin eOrigin, float fPredictedSecondsToPhotonsFromNow, struct TrackedDevicePose_t* pTrackedDevicePoseArray, uint32_t unTrackedDevicePoseArrayCount);
+	void(OPENVR_FNTABLE_CALLTYPE* ResetSeatedZeroPose)();
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetSeatedZeroPoseToStandingAbsoluteTrackingPose)();
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetRawZeroPoseToStandingAbsoluteTrackingPose)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetSortedTrackedDeviceIndicesOfClass)(ETrackedDeviceClass eTrackedDeviceClass, TrackedDeviceIndex_t* punTrackedDeviceIndexArray, uint32_t unTrackedDeviceIndexArrayCount, TrackedDeviceIndex_t unRelativeToTrackedDeviceIndex);
+	EDeviceActivityLevel(OPENVR_FNTABLE_CALLTYPE* GetTrackedDeviceActivityLevel)(TrackedDeviceIndex_t unDeviceId);
+	void(OPENVR_FNTABLE_CALLTYPE* ApplyTransform)(struct TrackedDevicePose_t* pOutputPose, struct TrackedDevicePose_t* pTrackedDevicePose, struct HmdMatrix34_t* pTransform);
+	TrackedDeviceIndex_t(OPENVR_FNTABLE_CALLTYPE* GetTrackedDeviceIndexForControllerRole)(ETrackedControllerRole unDeviceType);
+	ETrackedControllerRole(OPENVR_FNTABLE_CALLTYPE* GetControllerRoleForTrackedDeviceIndex)(TrackedDeviceIndex_t unDeviceIndex);
+	ETrackedDeviceClass(OPENVR_FNTABLE_CALLTYPE* GetTrackedDeviceClass)(TrackedDeviceIndex_t unDeviceIndex);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsTrackedDeviceConnected)(TrackedDeviceIndex_t unDeviceIndex);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetBoolTrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	float(OPENVR_FNTABLE_CALLTYPE* GetFloatTrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	int32_t(OPENVR_FNTABLE_CALLTYPE* GetInt32TrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	uint64_t(OPENVR_FNTABLE_CALLTYPE* GetUint64TrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetMatrix34TrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetStringTrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, char* pchValue, uint32_t unBufferSize, ETrackedPropertyError* pError);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetPropErrorNameFromEnum)(ETrackedPropertyError error);
+	bool(OPENVR_FNTABLE_CALLTYPE* PollNextEvent)(struct VREvent_t* pEvent, uint32_t uncbVREvent);
+	bool(OPENVR_FNTABLE_CALLTYPE* PollNextEventWithPose)(ETrackingUniverseOrigin eOrigin, struct VREvent_t* pEvent, uint32_t uncbVREvent, TrackedDevicePose_t* pTrackedDevicePose);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetEventTypeNameFromEnum)(EVREventType eType);
+	struct HiddenAreaMesh_t(OPENVR_FNTABLE_CALLTYPE* GetHiddenAreaMesh)(EVREye eEye);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetControllerState)(TrackedDeviceIndex_t unControllerDeviceIndex, VRControllerState_t* pControllerState);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetControllerStateWithPose)(ETrackingUniverseOrigin eOrigin, TrackedDeviceIndex_t unControllerDeviceIndex, VRControllerState_t* pControllerState, struct TrackedDevicePose_t* pTrackedDevicePose);
+	void(OPENVR_FNTABLE_CALLTYPE* TriggerHapticPulse)(TrackedDeviceIndex_t unControllerDeviceIndex, uint32_t unAxisId, unsigned short usDurationMicroSec);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetButtonIdNameFromEnum)(EVRButtonId eButtonId);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetControllerAxisTypeNameFromEnum)(EVRControllerAxisType eAxisType);
+	bool(OPENVR_FNTABLE_CALLTYPE* CaptureInputFocus)();
+	void(OPENVR_FNTABLE_CALLTYPE* ReleaseInputFocus)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsInputFocusCapturedByAnotherProcess)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* DriverDebugRequest)(TrackedDeviceIndex_t unDeviceIndex, char* pchRequest, char* pchResponseBuffer, uint32_t unResponseBufferSize);
+	EVRFirmwareError(OPENVR_FNTABLE_CALLTYPE* PerformFirmwareUpdate)(TrackedDeviceIndex_t unDeviceIndex);
+	void(OPENVR_FNTABLE_CALLTYPE* AcknowledgeQuit_Exiting)();
+	void(OPENVR_FNTABLE_CALLTYPE* AcknowledgeQuit_UserPrompt)();
+	void(OPENVR_FNTABLE_CALLTYPE* PerformanceTestEnableCapture)(bool bEnable);
+	void(OPENVR_FNTABLE_CALLTYPE* PerformanceTestReportFidelityLevelChange)(int nFidelityLevel);
+};
+
 
 static const char* const IVRSystem_012_Version = "IVRSystem_012";
 
@@ -4361,6 +7126,54 @@ public:
 	virtual vr::EVRFirmwareError PerformFirmwareUpdate(vr::TrackedDeviceIndex_t unDeviceIndex) = 0;
 	virtual void AcknowledgeQuit_Exiting() = 0;
 	virtual void AcknowledgeQuit_UserPrompt() = 0;
+};
+
+struct VR_IVRSystem_012_FnTable
+{
+	void(OPENVR_FNTABLE_CALLTYPE* GetRecommendedRenderTargetSize)(uint32_t* pnWidth, uint32_t* pnHeight);
+	struct HmdMatrix44_t(OPENVR_FNTABLE_CALLTYPE* GetProjectionMatrix)(EVREye eEye, float fNearZ, float fFarZ, EGraphicsAPIConvention eProjType);
+	void(OPENVR_FNTABLE_CALLTYPE* GetProjectionRaw)(EVREye eEye, float* pfLeft, float* pfRight, float* pfTop, float* pfBottom);
+	struct DistortionCoordinates_t(OPENVR_FNTABLE_CALLTYPE* ComputeDistortion)(EVREye eEye, float fU, float fV);
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetEyeToHeadTransform)(EVREye eEye);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetTimeSinceLastVsync)(float* pfSecondsSinceLastVsync, uint64_t* pulFrameCounter);
+	int32_t(OPENVR_FNTABLE_CALLTYPE* GetD3D9AdapterIndex)();
+	void(OPENVR_FNTABLE_CALLTYPE* GetDXGIOutputInfo)(int32_t* pnAdapterIndex);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsDisplayOnDesktop)();
+	bool(OPENVR_FNTABLE_CALLTYPE* SetDisplayVisibility)(bool bIsVisibleOnDesktop);
+	void(OPENVR_FNTABLE_CALLTYPE* GetDeviceToAbsoluteTrackingPose)(ETrackingUniverseOrigin eOrigin, float fPredictedSecondsToPhotonsFromNow, struct TrackedDevicePose_t* pTrackedDevicePoseArray, uint32_t unTrackedDevicePoseArrayCount);
+	void(OPENVR_FNTABLE_CALLTYPE* ResetSeatedZeroPose)();
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetSeatedZeroPoseToStandingAbsoluteTrackingPose)();
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetRawZeroPoseToStandingAbsoluteTrackingPose)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetSortedTrackedDeviceIndicesOfClass)(ETrackedDeviceClass eTrackedDeviceClass, TrackedDeviceIndex_t* punTrackedDeviceIndexArray, uint32_t unTrackedDeviceIndexArrayCount, TrackedDeviceIndex_t unRelativeToTrackedDeviceIndex);
+	EDeviceActivityLevel(OPENVR_FNTABLE_CALLTYPE* GetTrackedDeviceActivityLevel)(TrackedDeviceIndex_t unDeviceId);
+	void(OPENVR_FNTABLE_CALLTYPE* ApplyTransform)(struct TrackedDevicePose_t* pOutputPose, struct TrackedDevicePose_t* pTrackedDevicePose, struct HmdMatrix34_t* pTransform);
+	TrackedDeviceIndex_t(OPENVR_FNTABLE_CALLTYPE* GetTrackedDeviceIndexForControllerRole)(ETrackedControllerRole unDeviceType);
+	ETrackedControllerRole(OPENVR_FNTABLE_CALLTYPE* GetControllerRoleForTrackedDeviceIndex)(TrackedDeviceIndex_t unDeviceIndex);
+	ETrackedDeviceClass(OPENVR_FNTABLE_CALLTYPE* GetTrackedDeviceClass)(TrackedDeviceIndex_t unDeviceIndex);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsTrackedDeviceConnected)(TrackedDeviceIndex_t unDeviceIndex);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetBoolTrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	float(OPENVR_FNTABLE_CALLTYPE* GetFloatTrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	int32_t(OPENVR_FNTABLE_CALLTYPE* GetInt32TrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	uint64_t(OPENVR_FNTABLE_CALLTYPE* GetUint64TrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetMatrix34TrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetStringTrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, char* pchValue, uint32_t unBufferSize, ETrackedPropertyError* pError);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetPropErrorNameFromEnum)(ETrackedPropertyError error);
+	bool(OPENVR_FNTABLE_CALLTYPE* PollNextEvent)(struct VREvent_t* pEvent, uint32_t uncbVREvent);
+	bool(OPENVR_FNTABLE_CALLTYPE* PollNextEventWithPose)(ETrackingUniverseOrigin eOrigin, struct VREvent_t* pEvent, uint32_t uncbVREvent, TrackedDevicePose_t* pTrackedDevicePose);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetEventTypeNameFromEnum)(EVREventType eType);
+	struct HiddenAreaMesh_t(OPENVR_FNTABLE_CALLTYPE* GetHiddenAreaMesh)(EVREye eEye);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetControllerState)(TrackedDeviceIndex_t unControllerDeviceIndex, VRControllerState_t* pControllerState);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetControllerStateWithPose)(ETrackingUniverseOrigin eOrigin, TrackedDeviceIndex_t unControllerDeviceIndex, VRControllerState_t* pControllerState, struct TrackedDevicePose_t* pTrackedDevicePose);
+	void(OPENVR_FNTABLE_CALLTYPE* TriggerHapticPulse)(TrackedDeviceIndex_t unControllerDeviceIndex, uint32_t unAxisId, unsigned short usDurationMicroSec);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetButtonIdNameFromEnum)(EVRButtonId eButtonId);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetControllerAxisTypeNameFromEnum)(EVRControllerAxisType eAxisType);
+	bool(OPENVR_FNTABLE_CALLTYPE* CaptureInputFocus)();
+	void(OPENVR_FNTABLE_CALLTYPE* ReleaseInputFocus)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsInputFocusCapturedByAnotherProcess)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* DriverDebugRequest)(TrackedDeviceIndex_t unDeviceIndex, char* pchRequest, char* pchResponseBuffer, uint32_t unResponseBufferSize);
+	EVRFirmwareError(OPENVR_FNTABLE_CALLTYPE* PerformFirmwareUpdate)(TrackedDeviceIndex_t unDeviceIndex);
+	void(OPENVR_FNTABLE_CALLTYPE* AcknowledgeQuit_Exiting)();
+	void(OPENVR_FNTABLE_CALLTYPE* AcknowledgeQuit_UserPrompt)();
 };
 
 
@@ -4415,6 +7228,54 @@ public:
 	virtual void AcknowledgeQuit_UserPrompt() = 0;
 };
 
+struct VR_IVRSystem_014_FnTable
+{
+	void(OPENVR_FNTABLE_CALLTYPE* GetRecommendedRenderTargetSize)(uint32_t* pnWidth, uint32_t* pnHeight);
+	struct HmdMatrix44_t(OPENVR_FNTABLE_CALLTYPE* GetProjectionMatrix)(EVREye eEye, float fNearZ, float fFarZ, EGraphicsAPIConvention eProjType);
+	void(OPENVR_FNTABLE_CALLTYPE* GetProjectionRaw)(EVREye eEye, float* pfLeft, float* pfRight, float* pfTop, float* pfBottom);
+	bool(OPENVR_FNTABLE_CALLTYPE* ComputeDistortion)(EVREye eEye, float fU, float fV, struct DistortionCoordinates_t* pDistortionCoordinates);
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetEyeToHeadTransform)(EVREye eEye);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetTimeSinceLastVsync)(float* pfSecondsSinceLastVsync, uint64_t* pulFrameCounter);
+	int32_t(OPENVR_FNTABLE_CALLTYPE* GetD3D9AdapterIndex)();
+	void(OPENVR_FNTABLE_CALLTYPE* GetDXGIOutputInfo)(int32_t* pnAdapterIndex);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsDisplayOnDesktop)();
+	bool(OPENVR_FNTABLE_CALLTYPE* SetDisplayVisibility)(bool bIsVisibleOnDesktop);
+	void(OPENVR_FNTABLE_CALLTYPE* GetDeviceToAbsoluteTrackingPose)(ETrackingUniverseOrigin eOrigin, float fPredictedSecondsToPhotonsFromNow, struct TrackedDevicePose_t* pTrackedDevicePoseArray, uint32_t unTrackedDevicePoseArrayCount);
+	void(OPENVR_FNTABLE_CALLTYPE* ResetSeatedZeroPose)();
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetSeatedZeroPoseToStandingAbsoluteTrackingPose)();
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetRawZeroPoseToStandingAbsoluteTrackingPose)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetSortedTrackedDeviceIndicesOfClass)(ETrackedDeviceClass eTrackedDeviceClass, TrackedDeviceIndex_t* punTrackedDeviceIndexArray, uint32_t unTrackedDeviceIndexArrayCount, TrackedDeviceIndex_t unRelativeToTrackedDeviceIndex);
+	EDeviceActivityLevel(OPENVR_FNTABLE_CALLTYPE* GetTrackedDeviceActivityLevel)(TrackedDeviceIndex_t unDeviceId);
+	void(OPENVR_FNTABLE_CALLTYPE* ApplyTransform)(struct TrackedDevicePose_t* pOutputPose, struct TrackedDevicePose_t* pTrackedDevicePose, struct HmdMatrix34_t* pTransform);
+	TrackedDeviceIndex_t(OPENVR_FNTABLE_CALLTYPE* GetTrackedDeviceIndexForControllerRole)(ETrackedControllerRole unDeviceType);
+	ETrackedControllerRole(OPENVR_FNTABLE_CALLTYPE* GetControllerRoleForTrackedDeviceIndex)(TrackedDeviceIndex_t unDeviceIndex);
+	ETrackedDeviceClass(OPENVR_FNTABLE_CALLTYPE* GetTrackedDeviceClass)(TrackedDeviceIndex_t unDeviceIndex);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsTrackedDeviceConnected)(TrackedDeviceIndex_t unDeviceIndex);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetBoolTrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	float(OPENVR_FNTABLE_CALLTYPE* GetFloatTrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	int32_t(OPENVR_FNTABLE_CALLTYPE* GetInt32TrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	uint64_t(OPENVR_FNTABLE_CALLTYPE* GetUint64TrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetMatrix34TrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetStringTrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, char* pchValue, uint32_t unBufferSize, ETrackedPropertyError* pError);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetPropErrorNameFromEnum)(ETrackedPropertyError error);
+	bool(OPENVR_FNTABLE_CALLTYPE* PollNextEvent)(struct VREvent_t* pEvent, uint32_t uncbVREvent);
+	bool(OPENVR_FNTABLE_CALLTYPE* PollNextEventWithPose)(ETrackingUniverseOrigin eOrigin, struct VREvent_t* pEvent, uint32_t uncbVREvent, TrackedDevicePose_t* pTrackedDevicePose);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetEventTypeNameFromEnum)(EVREventType eType);
+	struct HiddenAreaMesh_t(OPENVR_FNTABLE_CALLTYPE* GetHiddenAreaMesh)(EVREye eEye, EHiddenAreaMeshType type);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetControllerState)(TrackedDeviceIndex_t unControllerDeviceIndex, VRControllerState_t* pControllerState, uint32_t unControllerStateSize);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetControllerStateWithPose)(ETrackingUniverseOrigin eOrigin, TrackedDeviceIndex_t unControllerDeviceIndex, VRControllerState_t* pControllerState, uint32_t unControllerStateSize, struct TrackedDevicePose_t* pTrackedDevicePose);
+	void(OPENVR_FNTABLE_CALLTYPE* TriggerHapticPulse)(TrackedDeviceIndex_t unControllerDeviceIndex, uint32_t unAxisId, unsigned short usDurationMicroSec);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetButtonIdNameFromEnum)(EVRButtonId eButtonId);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetControllerAxisTypeNameFromEnum)(EVRControllerAxisType eAxisType);
+	bool(OPENVR_FNTABLE_CALLTYPE* CaptureInputFocus)();
+	void(OPENVR_FNTABLE_CALLTYPE* ReleaseInputFocus)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsInputFocusCapturedByAnotherProcess)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* DriverDebugRequest)(TrackedDeviceIndex_t unDeviceIndex, char* pchRequest, char* pchResponseBuffer, uint32_t unResponseBufferSize);
+	EVRFirmwareError(OPENVR_FNTABLE_CALLTYPE* PerformFirmwareUpdate)(TrackedDeviceIndex_t unDeviceIndex);
+	void(OPENVR_FNTABLE_CALLTYPE* AcknowledgeQuit_Exiting)();
+	void(OPENVR_FNTABLE_CALLTYPE* AcknowledgeQuit_UserPrompt)();
+};
+
 
 static const char* const IVRSystem_015_Version = "IVRSystem_015";
 
@@ -4465,6 +7326,54 @@ public:
 	virtual vr::EVRFirmwareError PerformFirmwareUpdate(vr::TrackedDeviceIndex_t unDeviceIndex) = 0;
 	virtual void AcknowledgeQuit_Exiting() = 0;
 	virtual void AcknowledgeQuit_UserPrompt() = 0;
+};
+
+struct VR_IVRSystem_015_FnTable
+{
+	void(OPENVR_FNTABLE_CALLTYPE* GetRecommendedRenderTargetSize)(uint32_t* pnWidth, uint32_t* pnHeight);
+	struct HmdMatrix44_t(OPENVR_FNTABLE_CALLTYPE* GetProjectionMatrix)(EVREye eEye, float fNearZ, float fFarZ);
+	void(OPENVR_FNTABLE_CALLTYPE* GetProjectionRaw)(EVREye eEye, float* pfLeft, float* pfRight, float* pfTop, float* pfBottom);
+	bool(OPENVR_FNTABLE_CALLTYPE* ComputeDistortion)(EVREye eEye, float fU, float fV, struct DistortionCoordinates_t* pDistortionCoordinates);
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetEyeToHeadTransform)(EVREye eEye);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetTimeSinceLastVsync)(float* pfSecondsSinceLastVsync, uint64_t* pulFrameCounter);
+	int32_t(OPENVR_FNTABLE_CALLTYPE* GetD3D9AdapterIndex)();
+	void(OPENVR_FNTABLE_CALLTYPE* GetDXGIOutputInfo)(int32_t* pnAdapterIndex);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsDisplayOnDesktop)();
+	bool(OPENVR_FNTABLE_CALLTYPE* SetDisplayVisibility)(bool bIsVisibleOnDesktop);
+	void(OPENVR_FNTABLE_CALLTYPE* GetDeviceToAbsoluteTrackingPose)(ETrackingUniverseOrigin eOrigin, float fPredictedSecondsToPhotonsFromNow, struct TrackedDevicePose_t* pTrackedDevicePoseArray, uint32_t unTrackedDevicePoseArrayCount);
+	void(OPENVR_FNTABLE_CALLTYPE* ResetSeatedZeroPose)();
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetSeatedZeroPoseToStandingAbsoluteTrackingPose)();
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetRawZeroPoseToStandingAbsoluteTrackingPose)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetSortedTrackedDeviceIndicesOfClass)(ETrackedDeviceClass eTrackedDeviceClass, TrackedDeviceIndex_t* punTrackedDeviceIndexArray, uint32_t unTrackedDeviceIndexArrayCount, TrackedDeviceIndex_t unRelativeToTrackedDeviceIndex);
+	EDeviceActivityLevel(OPENVR_FNTABLE_CALLTYPE* GetTrackedDeviceActivityLevel)(TrackedDeviceIndex_t unDeviceId);
+	void(OPENVR_FNTABLE_CALLTYPE* ApplyTransform)(struct TrackedDevicePose_t* pOutputPose, struct TrackedDevicePose_t* pTrackedDevicePose, struct HmdMatrix34_t* pTransform);
+	TrackedDeviceIndex_t(OPENVR_FNTABLE_CALLTYPE* GetTrackedDeviceIndexForControllerRole)(ETrackedControllerRole unDeviceType);
+	ETrackedControllerRole(OPENVR_FNTABLE_CALLTYPE* GetControllerRoleForTrackedDeviceIndex)(TrackedDeviceIndex_t unDeviceIndex);
+	ETrackedDeviceClass(OPENVR_FNTABLE_CALLTYPE* GetTrackedDeviceClass)(TrackedDeviceIndex_t unDeviceIndex);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsTrackedDeviceConnected)(TrackedDeviceIndex_t unDeviceIndex);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetBoolTrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	float(OPENVR_FNTABLE_CALLTYPE* GetFloatTrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	int32_t(OPENVR_FNTABLE_CALLTYPE* GetInt32TrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	uint64_t(OPENVR_FNTABLE_CALLTYPE* GetUint64TrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetMatrix34TrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetStringTrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, char* pchValue, uint32_t unBufferSize, ETrackedPropertyError* pError);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetPropErrorNameFromEnum)(ETrackedPropertyError error);
+	bool(OPENVR_FNTABLE_CALLTYPE* PollNextEvent)(struct VREvent_t* pEvent, uint32_t uncbVREvent);
+	bool(OPENVR_FNTABLE_CALLTYPE* PollNextEventWithPose)(ETrackingUniverseOrigin eOrigin, struct VREvent_t* pEvent, uint32_t uncbVREvent, TrackedDevicePose_t* pTrackedDevicePose);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetEventTypeNameFromEnum)(EVREventType eType);
+	struct HiddenAreaMesh_t(OPENVR_FNTABLE_CALLTYPE* GetHiddenAreaMesh)(EVREye eEye, EHiddenAreaMeshType type);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetControllerState)(TrackedDeviceIndex_t unControllerDeviceIndex, VRControllerState_t* pControllerState, uint32_t unControllerStateSize);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetControllerStateWithPose)(ETrackingUniverseOrigin eOrigin, TrackedDeviceIndex_t unControllerDeviceIndex, VRControllerState_t* pControllerState, uint32_t unControllerStateSize, struct TrackedDevicePose_t* pTrackedDevicePose);
+	void(OPENVR_FNTABLE_CALLTYPE* TriggerHapticPulse)(TrackedDeviceIndex_t unControllerDeviceIndex, uint32_t unAxisId, unsigned short usDurationMicroSec);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetButtonIdNameFromEnum)(EVRButtonId eButtonId);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetControllerAxisTypeNameFromEnum)(EVRControllerAxisType eAxisType);
+	bool(OPENVR_FNTABLE_CALLTYPE* CaptureInputFocus)();
+	void(OPENVR_FNTABLE_CALLTYPE* ReleaseInputFocus)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsInputFocusCapturedByAnotherProcess)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* DriverDebugRequest)(TrackedDeviceIndex_t unDeviceIndex, char* pchRequest, char* pchResponseBuffer, uint32_t unResponseBufferSize);
+	EVRFirmwareError(OPENVR_FNTABLE_CALLTYPE* PerformFirmwareUpdate)(TrackedDeviceIndex_t unDeviceIndex);
+	void(OPENVR_FNTABLE_CALLTYPE* AcknowledgeQuit_Exiting)();
+	void(OPENVR_FNTABLE_CALLTYPE* AcknowledgeQuit_UserPrompt)();
 };
 
 
@@ -4520,6 +7429,55 @@ public:
 	virtual void AcknowledgeQuit_UserPrompt() = 0;
 };
 
+struct VR_IVRSystem_016_FnTable
+{
+	void(OPENVR_FNTABLE_CALLTYPE* GetRecommendedRenderTargetSize)(uint32_t* pnWidth, uint32_t* pnHeight);
+	struct HmdMatrix44_t(OPENVR_FNTABLE_CALLTYPE* GetProjectionMatrix)(EVREye eEye, float fNearZ, float fFarZ);
+	void(OPENVR_FNTABLE_CALLTYPE* GetProjectionRaw)(EVREye eEye, float* pfLeft, float* pfRight, float* pfTop, float* pfBottom);
+	bool(OPENVR_FNTABLE_CALLTYPE* ComputeDistortion)(EVREye eEye, float fU, float fV, struct DistortionCoordinates_t* pDistortionCoordinates);
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetEyeToHeadTransform)(EVREye eEye);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetTimeSinceLastVsync)(float* pfSecondsSinceLastVsync, uint64_t* pulFrameCounter);
+	int32_t(OPENVR_FNTABLE_CALLTYPE* GetD3D9AdapterIndex)();
+	void(OPENVR_FNTABLE_CALLTYPE* GetDXGIOutputInfo)(int32_t* pnAdapterIndex);
+	void(OPENVR_FNTABLE_CALLTYPE* GetOutputDevice)(uint64_t* pnDevice, ETextureType textureType);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsDisplayOnDesktop)();
+	bool(OPENVR_FNTABLE_CALLTYPE* SetDisplayVisibility)(bool bIsVisibleOnDesktop);
+	void(OPENVR_FNTABLE_CALLTYPE* GetDeviceToAbsoluteTrackingPose)(ETrackingUniverseOrigin eOrigin, float fPredictedSecondsToPhotonsFromNow, struct TrackedDevicePose_t* pTrackedDevicePoseArray, uint32_t unTrackedDevicePoseArrayCount);
+	void(OPENVR_FNTABLE_CALLTYPE* ResetSeatedZeroPose)();
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetSeatedZeroPoseToStandingAbsoluteTrackingPose)();
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetRawZeroPoseToStandingAbsoluteTrackingPose)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetSortedTrackedDeviceIndicesOfClass)(ETrackedDeviceClass eTrackedDeviceClass, TrackedDeviceIndex_t* punTrackedDeviceIndexArray, uint32_t unTrackedDeviceIndexArrayCount, TrackedDeviceIndex_t unRelativeToTrackedDeviceIndex);
+	EDeviceActivityLevel(OPENVR_FNTABLE_CALLTYPE* GetTrackedDeviceActivityLevel)(TrackedDeviceIndex_t unDeviceId);
+	void(OPENVR_FNTABLE_CALLTYPE* ApplyTransform)(struct TrackedDevicePose_t* pOutputPose, struct TrackedDevicePose_t* pTrackedDevicePose, struct HmdMatrix34_t* pTransform);
+	TrackedDeviceIndex_t(OPENVR_FNTABLE_CALLTYPE* GetTrackedDeviceIndexForControllerRole)(ETrackedControllerRole unDeviceType);
+	ETrackedControllerRole(OPENVR_FNTABLE_CALLTYPE* GetControllerRoleForTrackedDeviceIndex)(TrackedDeviceIndex_t unDeviceIndex);
+	ETrackedDeviceClass(OPENVR_FNTABLE_CALLTYPE* GetTrackedDeviceClass)(TrackedDeviceIndex_t unDeviceIndex);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsTrackedDeviceConnected)(TrackedDeviceIndex_t unDeviceIndex);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetBoolTrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	float(OPENVR_FNTABLE_CALLTYPE* GetFloatTrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	int32_t(OPENVR_FNTABLE_CALLTYPE* GetInt32TrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	uint64_t(OPENVR_FNTABLE_CALLTYPE* GetUint64TrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetMatrix34TrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetStringTrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, char* pchValue, uint32_t unBufferSize, ETrackedPropertyError* pError);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetPropErrorNameFromEnum)(ETrackedPropertyError error);
+	bool(OPENVR_FNTABLE_CALLTYPE* PollNextEvent)(struct VREvent_t* pEvent, uint32_t uncbVREvent);
+	bool(OPENVR_FNTABLE_CALLTYPE* PollNextEventWithPose)(ETrackingUniverseOrigin eOrigin, struct VREvent_t* pEvent, uint32_t uncbVREvent, TrackedDevicePose_t* pTrackedDevicePose);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetEventTypeNameFromEnum)(EVREventType eType);
+	struct HiddenAreaMesh_t(OPENVR_FNTABLE_CALLTYPE* GetHiddenAreaMesh)(EVREye eEye, EHiddenAreaMeshType type);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetControllerState)(TrackedDeviceIndex_t unControllerDeviceIndex, VRControllerState_t* pControllerState, uint32_t unControllerStateSize);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetControllerStateWithPose)(ETrackingUniverseOrigin eOrigin, TrackedDeviceIndex_t unControllerDeviceIndex, VRControllerState_t* pControllerState, uint32_t unControllerStateSize, struct TrackedDevicePose_t* pTrackedDevicePose);
+	void(OPENVR_FNTABLE_CALLTYPE* TriggerHapticPulse)(TrackedDeviceIndex_t unControllerDeviceIndex, uint32_t unAxisId, unsigned short usDurationMicroSec);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetButtonIdNameFromEnum)(EVRButtonId eButtonId);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetControllerAxisTypeNameFromEnum)(EVRControllerAxisType eAxisType);
+	bool(OPENVR_FNTABLE_CALLTYPE* CaptureInputFocus)();
+	void(OPENVR_FNTABLE_CALLTYPE* ReleaseInputFocus)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsInputFocusCapturedByAnotherProcess)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* DriverDebugRequest)(TrackedDeviceIndex_t unDeviceIndex, char* pchRequest, char* pchResponseBuffer, uint32_t unResponseBufferSize);
+	EVRFirmwareError(OPENVR_FNTABLE_CALLTYPE* PerformFirmwareUpdate)(TrackedDeviceIndex_t unDeviceIndex);
+	void(OPENVR_FNTABLE_CALLTYPE* AcknowledgeQuit_Exiting)();
+	void(OPENVR_FNTABLE_CALLTYPE* AcknowledgeQuit_UserPrompt)();
+};
+
 
 static const char* const IVRSystem_017_Version = "IVRSystem_017";
 
@@ -4571,6 +7529,55 @@ public:
 	virtual vr::EVRFirmwareError PerformFirmwareUpdate(vr::TrackedDeviceIndex_t unDeviceIndex) = 0;
 	virtual void AcknowledgeQuit_Exiting() = 0;
 	virtual void AcknowledgeQuit_UserPrompt() = 0;
+};
+
+struct VR_IVRSystem_017_FnTable
+{
+	void(OPENVR_FNTABLE_CALLTYPE* GetRecommendedRenderTargetSize)(uint32_t* pnWidth, uint32_t* pnHeight);
+	struct HmdMatrix44_t(OPENVR_FNTABLE_CALLTYPE* GetProjectionMatrix)(EVREye eEye, float fNearZ, float fFarZ);
+	void(OPENVR_FNTABLE_CALLTYPE* GetProjectionRaw)(EVREye eEye, float* pfLeft, float* pfRight, float* pfTop, float* pfBottom);
+	bool(OPENVR_FNTABLE_CALLTYPE* ComputeDistortion)(EVREye eEye, float fU, float fV, struct DistortionCoordinates_t* pDistortionCoordinates);
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetEyeToHeadTransform)(EVREye eEye);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetTimeSinceLastVsync)(float* pfSecondsSinceLastVsync, uint64_t* pulFrameCounter);
+	int32_t(OPENVR_FNTABLE_CALLTYPE* GetD3D9AdapterIndex)();
+	void(OPENVR_FNTABLE_CALLTYPE* GetDXGIOutputInfo)(int32_t* pnAdapterIndex);
+	void(OPENVR_FNTABLE_CALLTYPE* GetOutputDevice)(uint64_t* pnDevice, ETextureType textureType, struct VkInstance_T* pInstance);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsDisplayOnDesktop)();
+	bool(OPENVR_FNTABLE_CALLTYPE* SetDisplayVisibility)(bool bIsVisibleOnDesktop);
+	void(OPENVR_FNTABLE_CALLTYPE* GetDeviceToAbsoluteTrackingPose)(ETrackingUniverseOrigin eOrigin, float fPredictedSecondsToPhotonsFromNow, struct TrackedDevicePose_t* pTrackedDevicePoseArray, uint32_t unTrackedDevicePoseArrayCount);
+	void(OPENVR_FNTABLE_CALLTYPE* ResetSeatedZeroPose)();
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetSeatedZeroPoseToStandingAbsoluteTrackingPose)();
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetRawZeroPoseToStandingAbsoluteTrackingPose)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetSortedTrackedDeviceIndicesOfClass)(ETrackedDeviceClass eTrackedDeviceClass, TrackedDeviceIndex_t* punTrackedDeviceIndexArray, uint32_t unTrackedDeviceIndexArrayCount, TrackedDeviceIndex_t unRelativeToTrackedDeviceIndex);
+	EDeviceActivityLevel(OPENVR_FNTABLE_CALLTYPE* GetTrackedDeviceActivityLevel)(TrackedDeviceIndex_t unDeviceId);
+	void(OPENVR_FNTABLE_CALLTYPE* ApplyTransform)(struct TrackedDevicePose_t* pOutputPose, struct TrackedDevicePose_t* pTrackedDevicePose, struct HmdMatrix34_t* pTransform);
+	TrackedDeviceIndex_t(OPENVR_FNTABLE_CALLTYPE* GetTrackedDeviceIndexForControllerRole)(ETrackedControllerRole unDeviceType);
+	ETrackedControllerRole(OPENVR_FNTABLE_CALLTYPE* GetControllerRoleForTrackedDeviceIndex)(TrackedDeviceIndex_t unDeviceIndex);
+	ETrackedDeviceClass(OPENVR_FNTABLE_CALLTYPE* GetTrackedDeviceClass)(TrackedDeviceIndex_t unDeviceIndex);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsTrackedDeviceConnected)(TrackedDeviceIndex_t unDeviceIndex);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetBoolTrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	float(OPENVR_FNTABLE_CALLTYPE* GetFloatTrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	int32_t(OPENVR_FNTABLE_CALLTYPE* GetInt32TrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	uint64_t(OPENVR_FNTABLE_CALLTYPE* GetUint64TrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetMatrix34TrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetStringTrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, char* pchValue, uint32_t unBufferSize, ETrackedPropertyError* pError);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetPropErrorNameFromEnum)(ETrackedPropertyError error);
+	bool(OPENVR_FNTABLE_CALLTYPE* PollNextEvent)(struct VREvent_t* pEvent, uint32_t uncbVREvent);
+	bool(OPENVR_FNTABLE_CALLTYPE* PollNextEventWithPose)(ETrackingUniverseOrigin eOrigin, struct VREvent_t* pEvent, uint32_t uncbVREvent, TrackedDevicePose_t* pTrackedDevicePose);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetEventTypeNameFromEnum)(EVREventType eType);
+	struct HiddenAreaMesh_t(OPENVR_FNTABLE_CALLTYPE* GetHiddenAreaMesh)(EVREye eEye, EHiddenAreaMeshType type);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetControllerState)(TrackedDeviceIndex_t unControllerDeviceIndex, VRControllerState_t* pControllerState, uint32_t unControllerStateSize);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetControllerStateWithPose)(ETrackingUniverseOrigin eOrigin, TrackedDeviceIndex_t unControllerDeviceIndex, VRControllerState_t* pControllerState, uint32_t unControllerStateSize, struct TrackedDevicePose_t* pTrackedDevicePose);
+	void(OPENVR_FNTABLE_CALLTYPE* TriggerHapticPulse)(TrackedDeviceIndex_t unControllerDeviceIndex, uint32_t unAxisId, unsigned short usDurationMicroSec);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetButtonIdNameFromEnum)(EVRButtonId eButtonId);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetControllerAxisTypeNameFromEnum)(EVRControllerAxisType eAxisType);
+	bool(OPENVR_FNTABLE_CALLTYPE* CaptureInputFocus)();
+	void(OPENVR_FNTABLE_CALLTYPE* ReleaseInputFocus)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsInputFocusCapturedByAnotherProcess)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* DriverDebugRequest)(TrackedDeviceIndex_t unDeviceIndex, char* pchRequest, char* pchResponseBuffer, uint32_t unResponseBufferSize);
+	EVRFirmwareError(OPENVR_FNTABLE_CALLTYPE* PerformFirmwareUpdate)(TrackedDeviceIndex_t unDeviceIndex);
+	void(OPENVR_FNTABLE_CALLTYPE* AcknowledgeQuit_Exiting)();
+	void(OPENVR_FNTABLE_CALLTYPE* AcknowledgeQuit_UserPrompt)();
 };
 
 
@@ -4626,6 +7633,57 @@ public:
 	virtual vr::EVRFirmwareError PerformFirmwareUpdate(vr::TrackedDeviceIndex_t unDeviceIndex) = 0;
 	virtual void AcknowledgeQuit_Exiting() = 0;
 	virtual void AcknowledgeQuit_UserPrompt() = 0;
+};
+
+struct VR_IVRSystem_019_FnTable
+{
+	void(OPENVR_FNTABLE_CALLTYPE* GetRecommendedRenderTargetSize)(uint32_t* pnWidth, uint32_t* pnHeight);
+	struct HmdMatrix44_t(OPENVR_FNTABLE_CALLTYPE* GetProjectionMatrix)(EVREye eEye, float fNearZ, float fFarZ);
+	void(OPENVR_FNTABLE_CALLTYPE* GetProjectionRaw)(EVREye eEye, float* pfLeft, float* pfRight, float* pfTop, float* pfBottom);
+	bool(OPENVR_FNTABLE_CALLTYPE* ComputeDistortion)(EVREye eEye, float fU, float fV, struct DistortionCoordinates_t* pDistortionCoordinates);
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetEyeToHeadTransform)(EVREye eEye);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetTimeSinceLastVsync)(float* pfSecondsSinceLastVsync, uint64_t* pulFrameCounter);
+	int32_t(OPENVR_FNTABLE_CALLTYPE* GetD3D9AdapterIndex)();
+	void(OPENVR_FNTABLE_CALLTYPE* GetDXGIOutputInfo)(int32_t* pnAdapterIndex);
+	void(OPENVR_FNTABLE_CALLTYPE* GetOutputDevice)(uint64_t* pnDevice, ETextureType textureType, struct VkInstance_T* pInstance);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsDisplayOnDesktop)();
+	bool(OPENVR_FNTABLE_CALLTYPE* SetDisplayVisibility)(bool bIsVisibleOnDesktop);
+	void(OPENVR_FNTABLE_CALLTYPE* GetDeviceToAbsoluteTrackingPose)(ETrackingUniverseOrigin eOrigin, float fPredictedSecondsToPhotonsFromNow, struct TrackedDevicePose_t* pTrackedDevicePoseArray, uint32_t unTrackedDevicePoseArrayCount);
+	void(OPENVR_FNTABLE_CALLTYPE* ResetSeatedZeroPose)();
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetSeatedZeroPoseToStandingAbsoluteTrackingPose)();
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetRawZeroPoseToStandingAbsoluteTrackingPose)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetSortedTrackedDeviceIndicesOfClass)(ETrackedDeviceClass eTrackedDeviceClass, TrackedDeviceIndex_t* punTrackedDeviceIndexArray, uint32_t unTrackedDeviceIndexArrayCount, TrackedDeviceIndex_t unRelativeToTrackedDeviceIndex);
+	EDeviceActivityLevel(OPENVR_FNTABLE_CALLTYPE* GetTrackedDeviceActivityLevel)(TrackedDeviceIndex_t unDeviceId);
+	void(OPENVR_FNTABLE_CALLTYPE* ApplyTransform)(struct TrackedDevicePose_t* pOutputPose, struct TrackedDevicePose_t* pTrackedDevicePose, struct HmdMatrix34_t* pTransform);
+	TrackedDeviceIndex_t(OPENVR_FNTABLE_CALLTYPE* GetTrackedDeviceIndexForControllerRole)(ETrackedControllerRole unDeviceType);
+	ETrackedControllerRole(OPENVR_FNTABLE_CALLTYPE* GetControllerRoleForTrackedDeviceIndex)(TrackedDeviceIndex_t unDeviceIndex);
+	ETrackedDeviceClass(OPENVR_FNTABLE_CALLTYPE* GetTrackedDeviceClass)(TrackedDeviceIndex_t unDeviceIndex);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsTrackedDeviceConnected)(TrackedDeviceIndex_t unDeviceIndex);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetBoolTrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	float(OPENVR_FNTABLE_CALLTYPE* GetFloatTrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	int32_t(OPENVR_FNTABLE_CALLTYPE* GetInt32TrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	uint64_t(OPENVR_FNTABLE_CALLTYPE* GetUint64TrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetMatrix34TrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetArrayTrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, PropertyTypeTag_t propType, void* pBuffer, uint32_t unBufferSize, ETrackedPropertyError* pError);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetStringTrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, char* pchValue, uint32_t unBufferSize, ETrackedPropertyError* pError);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetPropErrorNameFromEnum)(ETrackedPropertyError error);
+	bool(OPENVR_FNTABLE_CALLTYPE* PollNextEvent)(struct VREvent_t* pEvent, uint32_t uncbVREvent);
+	bool(OPENVR_FNTABLE_CALLTYPE* PollNextEventWithPose)(ETrackingUniverseOrigin eOrigin, struct VREvent_t* pEvent, uint32_t uncbVREvent, TrackedDevicePose_t* pTrackedDevicePose);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetEventTypeNameFromEnum)(EVREventType eType);
+	struct HiddenAreaMesh_t(OPENVR_FNTABLE_CALLTYPE* GetHiddenAreaMesh)(EVREye eEye, EHiddenAreaMeshType type);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetControllerState)(TrackedDeviceIndex_t unControllerDeviceIndex, VRControllerState_t* pControllerState, uint32_t unControllerStateSize);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetControllerStateWithPose)(ETrackingUniverseOrigin eOrigin, TrackedDeviceIndex_t unControllerDeviceIndex, VRControllerState_t* pControllerState, uint32_t unControllerStateSize, struct TrackedDevicePose_t* pTrackedDevicePose);
+	void(OPENVR_FNTABLE_CALLTYPE* TriggerHapticPulse)(TrackedDeviceIndex_t unControllerDeviceIndex, uint32_t unAxisId, unsigned short usDurationMicroSec);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetButtonIdNameFromEnum)(EVRButtonId eButtonId);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetControllerAxisTypeNameFromEnum)(EVRControllerAxisType eAxisType);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsInputAvailable)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsSteamVRDrawingControllers)();
+	bool(OPENVR_FNTABLE_CALLTYPE* ShouldApplicationPause)();
+	bool(OPENVR_FNTABLE_CALLTYPE* ShouldApplicationReduceRenderingWork)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* DriverDebugRequest)(TrackedDeviceIndex_t unDeviceIndex, char* pchRequest, char* pchResponseBuffer, uint32_t unResponseBufferSize);
+	EVRFirmwareError(OPENVR_FNTABLE_CALLTYPE* PerformFirmwareUpdate)(TrackedDeviceIndex_t unDeviceIndex);
+	void(OPENVR_FNTABLE_CALLTYPE* AcknowledgeQuit_Exiting)();
+	void(OPENVR_FNTABLE_CALLTYPE* AcknowledgeQuit_UserPrompt)();
 };
 
 
@@ -4684,6 +7742,58 @@ public:
 	virtual const char* GetRuntimeVersion() = 0;
 };
 
+struct VR_IVRSystem_020_FnTable
+{
+	void(OPENVR_FNTABLE_CALLTYPE* GetRecommendedRenderTargetSize)(uint32_t* pnWidth, uint32_t* pnHeight);
+	struct HmdMatrix44_t(OPENVR_FNTABLE_CALLTYPE* GetProjectionMatrix)(EVREye eEye, float fNearZ, float fFarZ);
+	void(OPENVR_FNTABLE_CALLTYPE* GetProjectionRaw)(EVREye eEye, float* pfLeft, float* pfRight, float* pfTop, float* pfBottom);
+	bool(OPENVR_FNTABLE_CALLTYPE* ComputeDistortion)(EVREye eEye, float fU, float fV, struct DistortionCoordinates_t* pDistortionCoordinates);
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetEyeToHeadTransform)(EVREye eEye);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetTimeSinceLastVsync)(float* pfSecondsSinceLastVsync, uint64_t* pulFrameCounter);
+	int32_t(OPENVR_FNTABLE_CALLTYPE* GetD3D9AdapterIndex)();
+	void(OPENVR_FNTABLE_CALLTYPE* GetDXGIOutputInfo)(int32_t* pnAdapterIndex);
+	void(OPENVR_FNTABLE_CALLTYPE* GetOutputDevice)(uint64_t* pnDevice, ETextureType textureType, struct VkInstance_T* pInstance);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsDisplayOnDesktop)();
+	bool(OPENVR_FNTABLE_CALLTYPE* SetDisplayVisibility)(bool bIsVisibleOnDesktop);
+	void(OPENVR_FNTABLE_CALLTYPE* GetDeviceToAbsoluteTrackingPose)(ETrackingUniverseOrigin eOrigin, float fPredictedSecondsToPhotonsFromNow, struct TrackedDevicePose_t* pTrackedDevicePoseArray, uint32_t unTrackedDevicePoseArrayCount);
+	void(OPENVR_FNTABLE_CALLTYPE* ResetSeatedZeroPose)();
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetSeatedZeroPoseToStandingAbsoluteTrackingPose)();
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetRawZeroPoseToStandingAbsoluteTrackingPose)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetSortedTrackedDeviceIndicesOfClass)(ETrackedDeviceClass eTrackedDeviceClass, TrackedDeviceIndex_t* punTrackedDeviceIndexArray, uint32_t unTrackedDeviceIndexArrayCount, TrackedDeviceIndex_t unRelativeToTrackedDeviceIndex);
+	EDeviceActivityLevel(OPENVR_FNTABLE_CALLTYPE* GetTrackedDeviceActivityLevel)(TrackedDeviceIndex_t unDeviceId);
+	void(OPENVR_FNTABLE_CALLTYPE* ApplyTransform)(struct TrackedDevicePose_t* pOutputPose, struct TrackedDevicePose_t* pTrackedDevicePose, struct HmdMatrix34_t* pTransform);
+	TrackedDeviceIndex_t(OPENVR_FNTABLE_CALLTYPE* GetTrackedDeviceIndexForControllerRole)(ETrackedControllerRole unDeviceType);
+	ETrackedControllerRole(OPENVR_FNTABLE_CALLTYPE* GetControllerRoleForTrackedDeviceIndex)(TrackedDeviceIndex_t unDeviceIndex);
+	ETrackedDeviceClass(OPENVR_FNTABLE_CALLTYPE* GetTrackedDeviceClass)(TrackedDeviceIndex_t unDeviceIndex);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsTrackedDeviceConnected)(TrackedDeviceIndex_t unDeviceIndex);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetBoolTrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	float(OPENVR_FNTABLE_CALLTYPE* GetFloatTrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	int32_t(OPENVR_FNTABLE_CALLTYPE* GetInt32TrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	uint64_t(OPENVR_FNTABLE_CALLTYPE* GetUint64TrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetMatrix34TrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetArrayTrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, PropertyTypeTag_t propType, void* pBuffer, uint32_t unBufferSize, ETrackedPropertyError* pError);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetStringTrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, char* pchValue, uint32_t unBufferSize, ETrackedPropertyError* pError);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetPropErrorNameFromEnum)(ETrackedPropertyError error);
+	bool(OPENVR_FNTABLE_CALLTYPE* PollNextEvent)(struct VREvent_t* pEvent, uint32_t uncbVREvent);
+	bool(OPENVR_FNTABLE_CALLTYPE* PollNextEventWithPose)(ETrackingUniverseOrigin eOrigin, struct VREvent_t* pEvent, uint32_t uncbVREvent, TrackedDevicePose_t* pTrackedDevicePose);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetEventTypeNameFromEnum)(EVREventType eType);
+	struct HiddenAreaMesh_t(OPENVR_FNTABLE_CALLTYPE* GetHiddenAreaMesh)(EVREye eEye, EHiddenAreaMeshType type);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetControllerState)(TrackedDeviceIndex_t unControllerDeviceIndex, VRControllerState_t* pControllerState, uint32_t unControllerStateSize);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetControllerStateWithPose)(ETrackingUniverseOrigin eOrigin, TrackedDeviceIndex_t unControllerDeviceIndex, VRControllerState_t* pControllerState, uint32_t unControllerStateSize, struct TrackedDevicePose_t* pTrackedDevicePose);
+	void(OPENVR_FNTABLE_CALLTYPE* TriggerHapticPulse)(TrackedDeviceIndex_t unControllerDeviceIndex, uint32_t unAxisId, unsigned short usDurationMicroSec);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetButtonIdNameFromEnum)(EVRButtonId eButtonId);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetControllerAxisTypeNameFromEnum)(EVRControllerAxisType eAxisType);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsInputAvailable)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsSteamVRDrawingControllers)();
+	bool(OPENVR_FNTABLE_CALLTYPE* ShouldApplicationPause)();
+	bool(OPENVR_FNTABLE_CALLTYPE* ShouldApplicationReduceRenderingWork)();
+	EVRFirmwareError(OPENVR_FNTABLE_CALLTYPE* PerformFirmwareUpdate)(TrackedDeviceIndex_t unDeviceIndex);
+	void(OPENVR_FNTABLE_CALLTYPE* AcknowledgeQuit_Exiting)();
+	void(OPENVR_FNTABLE_CALLTYPE* AcknowledgeQuit_UserPrompt)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetAppContainerFilePaths)(char* pchBuffer, uint32_t unBufferSize);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetRuntimeVersion)();
+};
+
 
 static const char* const IVRSystem_021_Version = "IVRSystem_021";
 
@@ -4737,6 +7847,57 @@ public:
 	virtual void AcknowledgeQuit_Exiting() = 0;
 	virtual uint32_t GetAppContainerFilePaths(VR_OUT_STRING() char* pchBuffer, uint32_t unBufferSize) = 0;
 	virtual const char* GetRuntimeVersion() = 0;
+};
+
+struct VR_IVRSystem_021_FnTable
+{
+	void(OPENVR_FNTABLE_CALLTYPE* GetRecommendedRenderTargetSize)(uint32_t* pnWidth, uint32_t* pnHeight);
+	struct HmdMatrix44_t(OPENVR_FNTABLE_CALLTYPE* GetProjectionMatrix)(EVREye eEye, float fNearZ, float fFarZ);
+	void(OPENVR_FNTABLE_CALLTYPE* GetProjectionRaw)(EVREye eEye, float* pfLeft, float* pfRight, float* pfTop, float* pfBottom);
+	bool(OPENVR_FNTABLE_CALLTYPE* ComputeDistortion)(EVREye eEye, float fU, float fV, struct DistortionCoordinates_t* pDistortionCoordinates);
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetEyeToHeadTransform)(EVREye eEye);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetTimeSinceLastVsync)(float* pfSecondsSinceLastVsync, uint64_t* pulFrameCounter);
+	int32_t(OPENVR_FNTABLE_CALLTYPE* GetD3D9AdapterIndex)();
+	void(OPENVR_FNTABLE_CALLTYPE* GetDXGIOutputInfo)(int32_t* pnAdapterIndex);
+	void(OPENVR_FNTABLE_CALLTYPE* GetOutputDevice)(uint64_t* pnDevice, ETextureType textureType, struct VkInstance_T* pInstance);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsDisplayOnDesktop)();
+	bool(OPENVR_FNTABLE_CALLTYPE* SetDisplayVisibility)(bool bIsVisibleOnDesktop);
+	void(OPENVR_FNTABLE_CALLTYPE* GetDeviceToAbsoluteTrackingPose)(ETrackingUniverseOrigin eOrigin, float fPredictedSecondsToPhotonsFromNow, struct TrackedDevicePose_t* pTrackedDevicePoseArray, uint32_t unTrackedDevicePoseArrayCount);
+	void(OPENVR_FNTABLE_CALLTYPE* ResetSeatedZeroPose)();
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetSeatedZeroPoseToStandingAbsoluteTrackingPose)();
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetRawZeroPoseToStandingAbsoluteTrackingPose)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetSortedTrackedDeviceIndicesOfClass)(ETrackedDeviceClass eTrackedDeviceClass, TrackedDeviceIndex_t* punTrackedDeviceIndexArray, uint32_t unTrackedDeviceIndexArrayCount, TrackedDeviceIndex_t unRelativeToTrackedDeviceIndex);
+	EDeviceActivityLevel(OPENVR_FNTABLE_CALLTYPE* GetTrackedDeviceActivityLevel)(TrackedDeviceIndex_t unDeviceId);
+	void(OPENVR_FNTABLE_CALLTYPE* ApplyTransform)(struct TrackedDevicePose_t* pOutputPose, struct TrackedDevicePose_t* pTrackedDevicePose, struct HmdMatrix34_t* pTransform);
+	TrackedDeviceIndex_t(OPENVR_FNTABLE_CALLTYPE* GetTrackedDeviceIndexForControllerRole)(ETrackedControllerRole unDeviceType);
+	ETrackedControllerRole(OPENVR_FNTABLE_CALLTYPE* GetControllerRoleForTrackedDeviceIndex)(TrackedDeviceIndex_t unDeviceIndex);
+	ETrackedDeviceClass(OPENVR_FNTABLE_CALLTYPE* GetTrackedDeviceClass)(TrackedDeviceIndex_t unDeviceIndex);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsTrackedDeviceConnected)(TrackedDeviceIndex_t unDeviceIndex);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetBoolTrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	float(OPENVR_FNTABLE_CALLTYPE* GetFloatTrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	int32_t(OPENVR_FNTABLE_CALLTYPE* GetInt32TrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	uint64_t(OPENVR_FNTABLE_CALLTYPE* GetUint64TrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetMatrix34TrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetArrayTrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, PropertyTypeTag_t propType, void* pBuffer, uint32_t unBufferSize, ETrackedPropertyError* pError);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetStringTrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, char* pchValue, uint32_t unBufferSize, ETrackedPropertyError* pError);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetPropErrorNameFromEnum)(ETrackedPropertyError error);
+	bool(OPENVR_FNTABLE_CALLTYPE* PollNextEvent)(struct VREvent_t* pEvent, uint32_t uncbVREvent);
+	bool(OPENVR_FNTABLE_CALLTYPE* PollNextEventWithPose)(ETrackingUniverseOrigin eOrigin, struct VREvent_t* pEvent, uint32_t uncbVREvent, TrackedDevicePose_t* pTrackedDevicePose);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetEventTypeNameFromEnum)(EVREventType eType);
+	struct HiddenAreaMesh_t(OPENVR_FNTABLE_CALLTYPE* GetHiddenAreaMesh)(EVREye eEye, EHiddenAreaMeshType type);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetControllerState)(TrackedDeviceIndex_t unControllerDeviceIndex, VRControllerState_t* pControllerState, uint32_t unControllerStateSize);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetControllerStateWithPose)(ETrackingUniverseOrigin eOrigin, TrackedDeviceIndex_t unControllerDeviceIndex, VRControllerState_t* pControllerState, uint32_t unControllerStateSize, struct TrackedDevicePose_t* pTrackedDevicePose);
+	void(OPENVR_FNTABLE_CALLTYPE* TriggerHapticPulse)(TrackedDeviceIndex_t unControllerDeviceIndex, uint32_t unAxisId, unsigned short usDurationMicroSec);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetButtonIdNameFromEnum)(EVRButtonId eButtonId);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetControllerAxisTypeNameFromEnum)(EVRControllerAxisType eAxisType);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsInputAvailable)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsSteamVRDrawingControllers)();
+	bool(OPENVR_FNTABLE_CALLTYPE* ShouldApplicationPause)();
+	bool(OPENVR_FNTABLE_CALLTYPE* ShouldApplicationReduceRenderingWork)();
+	EVRFirmwareError(OPENVR_FNTABLE_CALLTYPE* PerformFirmwareUpdate)(TrackedDeviceIndex_t unDeviceIndex);
+	void(OPENVR_FNTABLE_CALLTYPE* AcknowledgeQuit_Exiting)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetAppContainerFilePaths)(char* pchBuffer, uint32_t unBufferSize);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetRuntimeVersion)();
 };
 
 
@@ -4793,6 +7954,56 @@ public:
 	virtual const char* GetRuntimeVersion() = 0;
 };
 
+struct VR_IVRSystem_022_FnTable
+{
+	void(OPENVR_FNTABLE_CALLTYPE* GetRecommendedRenderTargetSize)(uint32_t* pnWidth, uint32_t* pnHeight);
+	struct HmdMatrix44_t(OPENVR_FNTABLE_CALLTYPE* GetProjectionMatrix)(EVREye eEye, float fNearZ, float fFarZ);
+	void(OPENVR_FNTABLE_CALLTYPE* GetProjectionRaw)(EVREye eEye, float* pfLeft, float* pfRight, float* pfTop, float* pfBottom);
+	bool(OPENVR_FNTABLE_CALLTYPE* ComputeDistortion)(EVREye eEye, float fU, float fV, struct DistortionCoordinates_t* pDistortionCoordinates);
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetEyeToHeadTransform)(EVREye eEye);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetTimeSinceLastVsync)(float* pfSecondsSinceLastVsync, uint64_t* pulFrameCounter);
+	int32_t(OPENVR_FNTABLE_CALLTYPE* GetD3D9AdapterIndex)();
+	void(OPENVR_FNTABLE_CALLTYPE* GetDXGIOutputInfo)(int32_t* pnAdapterIndex);
+	void(OPENVR_FNTABLE_CALLTYPE* GetOutputDevice)(uint64_t* pnDevice, ETextureType textureType, struct VkInstance_T* pInstance);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsDisplayOnDesktop)();
+	bool(OPENVR_FNTABLE_CALLTYPE* SetDisplayVisibility)(bool bIsVisibleOnDesktop);
+	void(OPENVR_FNTABLE_CALLTYPE* GetDeviceToAbsoluteTrackingPose)(ETrackingUniverseOrigin eOrigin, float fPredictedSecondsToPhotonsFromNow, struct TrackedDevicePose_t* pTrackedDevicePoseArray, uint32_t unTrackedDevicePoseArrayCount);
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetSeatedZeroPoseToStandingAbsoluteTrackingPose)();
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetRawZeroPoseToStandingAbsoluteTrackingPose)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetSortedTrackedDeviceIndicesOfClass)(ETrackedDeviceClass eTrackedDeviceClass, TrackedDeviceIndex_t* punTrackedDeviceIndexArray, uint32_t unTrackedDeviceIndexArrayCount, TrackedDeviceIndex_t unRelativeToTrackedDeviceIndex);
+	EDeviceActivityLevel(OPENVR_FNTABLE_CALLTYPE* GetTrackedDeviceActivityLevel)(TrackedDeviceIndex_t unDeviceId);
+	void(OPENVR_FNTABLE_CALLTYPE* ApplyTransform)(struct TrackedDevicePose_t* pOutputPose, struct TrackedDevicePose_t* pTrackedDevicePose, struct HmdMatrix34_t* pTransform);
+	TrackedDeviceIndex_t(OPENVR_FNTABLE_CALLTYPE* GetTrackedDeviceIndexForControllerRole)(ETrackedControllerRole unDeviceType);
+	ETrackedControllerRole(OPENVR_FNTABLE_CALLTYPE* GetControllerRoleForTrackedDeviceIndex)(TrackedDeviceIndex_t unDeviceIndex);
+	ETrackedDeviceClass(OPENVR_FNTABLE_CALLTYPE* GetTrackedDeviceClass)(TrackedDeviceIndex_t unDeviceIndex);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsTrackedDeviceConnected)(TrackedDeviceIndex_t unDeviceIndex);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetBoolTrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	float(OPENVR_FNTABLE_CALLTYPE* GetFloatTrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	int32_t(OPENVR_FNTABLE_CALLTYPE* GetInt32TrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	uint64_t(OPENVR_FNTABLE_CALLTYPE* GetUint64TrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetMatrix34TrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetArrayTrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, PropertyTypeTag_t propType, void* pBuffer, uint32_t unBufferSize, ETrackedPropertyError* pError);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetStringTrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, char* pchValue, uint32_t unBufferSize, ETrackedPropertyError* pError);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetPropErrorNameFromEnum)(ETrackedPropertyError error);
+	bool(OPENVR_FNTABLE_CALLTYPE* PollNextEvent)(struct VREvent_t* pEvent, uint32_t uncbVREvent);
+	bool(OPENVR_FNTABLE_CALLTYPE* PollNextEventWithPose)(ETrackingUniverseOrigin eOrigin, struct VREvent_t* pEvent, uint32_t uncbVREvent, TrackedDevicePose_t* pTrackedDevicePose);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetEventTypeNameFromEnum)(EVREventType eType);
+	struct HiddenAreaMesh_t(OPENVR_FNTABLE_CALLTYPE* GetHiddenAreaMesh)(EVREye eEye, EHiddenAreaMeshType type);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetControllerState)(TrackedDeviceIndex_t unControllerDeviceIndex, VRControllerState_t* pControllerState, uint32_t unControllerStateSize);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetControllerStateWithPose)(ETrackingUniverseOrigin eOrigin, TrackedDeviceIndex_t unControllerDeviceIndex, VRControllerState_t* pControllerState, uint32_t unControllerStateSize, struct TrackedDevicePose_t* pTrackedDevicePose);
+	void(OPENVR_FNTABLE_CALLTYPE* TriggerHapticPulse)(TrackedDeviceIndex_t unControllerDeviceIndex, uint32_t unAxisId, unsigned short usDurationMicroSec);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetButtonIdNameFromEnum)(EVRButtonId eButtonId);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetControllerAxisTypeNameFromEnum)(EVRControllerAxisType eAxisType);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsInputAvailable)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsSteamVRDrawingControllers)();
+	bool(OPENVR_FNTABLE_CALLTYPE* ShouldApplicationPause)();
+	bool(OPENVR_FNTABLE_CALLTYPE* ShouldApplicationReduceRenderingWork)();
+	EVRFirmwareError(OPENVR_FNTABLE_CALLTYPE* PerformFirmwareUpdate)(TrackedDeviceIndex_t unDeviceIndex);
+	void(OPENVR_FNTABLE_CALLTYPE* AcknowledgeQuit_Exiting)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetAppContainerFilePaths)(char* pchBuffer, uint32_t unBufferSize);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetRuntimeVersion)();
+};
+
 
 static const char* const IVRSystem_023_Version = "IVRSystem_023";
 
@@ -4846,6 +8057,57 @@ public:
 	virtual void AcknowledgeQuit_Exiting() = 0;
 	virtual uint32_t GetAppContainerFilePaths(VR_OUT_STRING() char* pchBuffer, uint32_t unBufferSize) = 0;
 	virtual const char* GetRuntimeVersion() = 0;
+};
+
+struct VR_IVRSystem_023_FnTable
+{
+	void(OPENVR_FNTABLE_CALLTYPE* GetRecommendedRenderTargetSize)(uint32_t* pnWidth, uint32_t* pnHeight);
+	struct HmdMatrix44_t(OPENVR_FNTABLE_CALLTYPE* GetProjectionMatrix)(EVREye eEye, float fNearZ, float fFarZ);
+	void(OPENVR_FNTABLE_CALLTYPE* GetProjectionRaw)(EVREye eEye, float* pfLeft, float* pfRight, float* pfTop, float* pfBottom);
+	bool(OPENVR_FNTABLE_CALLTYPE* ComputeDistortion)(EVREye eEye, float fU, float fV, struct DistortionCoordinates_t* pDistortionCoordinates);
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetEyeToHeadTransform)(EVREye eEye);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetTimeSinceLastVsync)(float* pfSecondsSinceLastVsync, uint64_t* pulFrameCounter);
+	int32_t(OPENVR_FNTABLE_CALLTYPE* GetD3D9AdapterIndex)();
+	void(OPENVR_FNTABLE_CALLTYPE* GetDXGIOutputInfo)(int32_t* pnAdapterIndex);
+	void(OPENVR_FNTABLE_CALLTYPE* GetOutputDevice)(uint64_t* pnDevice, ETextureType textureType, struct VkInstance_T* pInstance);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsDisplayOnDesktop)();
+	bool(OPENVR_FNTABLE_CALLTYPE* SetDisplayVisibility)(bool bIsVisibleOnDesktop);
+	void(OPENVR_FNTABLE_CALLTYPE* GetDeviceToAbsoluteTrackingPose)(ETrackingUniverseOrigin eOrigin, float fPredictedSecondsToPhotonsFromNow, struct TrackedDevicePose_t* pTrackedDevicePoseArray, uint32_t unTrackedDevicePoseArrayCount);
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetSeatedZeroPoseToStandingAbsoluteTrackingPose)();
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetRawZeroPoseToStandingAbsoluteTrackingPose)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetSortedTrackedDeviceIndicesOfClass)(ETrackedDeviceClass eTrackedDeviceClass, TrackedDeviceIndex_t* punTrackedDeviceIndexArray, uint32_t unTrackedDeviceIndexArrayCount, TrackedDeviceIndex_t unRelativeToTrackedDeviceIndex);
+	EDeviceActivityLevel(OPENVR_FNTABLE_CALLTYPE* GetTrackedDeviceActivityLevel)(TrackedDeviceIndex_t unDeviceId);
+	void(OPENVR_FNTABLE_CALLTYPE* ApplyTransform)(struct TrackedDevicePose_t* pOutputPose, struct TrackedDevicePose_t* pTrackedDevicePose, struct HmdMatrix34_t* pTransform);
+	TrackedDeviceIndex_t(OPENVR_FNTABLE_CALLTYPE* GetTrackedDeviceIndexForControllerRole)(ETrackedControllerRole unDeviceType);
+	ETrackedControllerRole(OPENVR_FNTABLE_CALLTYPE* GetControllerRoleForTrackedDeviceIndex)(TrackedDeviceIndex_t unDeviceIndex);
+	ETrackedDeviceClass(OPENVR_FNTABLE_CALLTYPE* GetTrackedDeviceClass)(TrackedDeviceIndex_t unDeviceIndex);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsTrackedDeviceConnected)(TrackedDeviceIndex_t unDeviceIndex);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetBoolTrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	float(OPENVR_FNTABLE_CALLTYPE* GetFloatTrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	int32_t(OPENVR_FNTABLE_CALLTYPE* GetInt32TrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	uint64_t(OPENVR_FNTABLE_CALLTYPE* GetUint64TrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetMatrix34TrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetArrayTrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, PropertyTypeTag_t propType, void* pBuffer, uint32_t unBufferSize, ETrackedPropertyError* pError);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetStringTrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, char* pchValue, uint32_t unBufferSize, ETrackedPropertyError* pError);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetPropErrorNameFromEnum)(ETrackedPropertyError error);
+	bool(OPENVR_FNTABLE_CALLTYPE* PollNextEvent)(struct VREvent_t* pEvent, uint32_t uncbVREvent);
+	bool(OPENVR_FNTABLE_CALLTYPE* PollNextEventWithPose)(ETrackingUniverseOrigin eOrigin, struct VREvent_t* pEvent, uint32_t uncbVREvent, TrackedDevicePose_t* pTrackedDevicePose);
+	bool(OPENVR_FNTABLE_CALLTYPE* PollNextEventWithPoseAndOverlays)(ETrackingUniverseOrigin eOrigin, struct VREvent_t* pEvent, uint32_t uncbVREvent, struct TrackedDevicePose_t* pTrackedDevicePose, VROverlayHandle_t* pulOverlayHandle);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetEventTypeNameFromEnum)(EVREventType eType);
+	struct HiddenAreaMesh_t(OPENVR_FNTABLE_CALLTYPE* GetHiddenAreaMesh)(EVREye eEye, EHiddenAreaMeshType type);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetControllerState)(TrackedDeviceIndex_t unControllerDeviceIndex, VRControllerState_t* pControllerState, uint32_t unControllerStateSize);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetControllerStateWithPose)(ETrackingUniverseOrigin eOrigin, TrackedDeviceIndex_t unControllerDeviceIndex, VRControllerState_t* pControllerState, uint32_t unControllerStateSize, struct TrackedDevicePose_t* pTrackedDevicePose);
+	void(OPENVR_FNTABLE_CALLTYPE* TriggerHapticPulse)(TrackedDeviceIndex_t unControllerDeviceIndex, uint32_t unAxisId, unsigned short usDurationMicroSec);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetButtonIdNameFromEnum)(EVRButtonId eButtonId);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetControllerAxisTypeNameFromEnum)(EVRControllerAxisType eAxisType);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsInputAvailable)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsSteamVRDrawingControllers)();
+	bool(OPENVR_FNTABLE_CALLTYPE* ShouldApplicationPause)();
+	bool(OPENVR_FNTABLE_CALLTYPE* ShouldApplicationReduceRenderingWork)();
+	EVRFirmwareError(OPENVR_FNTABLE_CALLTYPE* PerformFirmwareUpdate)(TrackedDeviceIndex_t unDeviceIndex);
+	void(OPENVR_FNTABLE_CALLTYPE* AcknowledgeQuit_Exiting)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetAppContainerFilePaths)(char* pchBuffer, uint32_t unBufferSize);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetRuntimeVersion)();
 };
 
 
@@ -4907,6 +8169,61 @@ public:
 	virtual vr::EVRInitError SetSDKVersion(uint32_t nVersionMajor, uint32_t nVersionMinor, uint32_t nVersionBuild) = 0;
 };
 
+struct VR_IVRSystem_026_FnTable
+{
+	void(OPENVR_FNTABLE_CALLTYPE* GetRecommendedRenderTargetSize)(uint32_t* pnWidth, uint32_t* pnHeight);
+	struct HmdMatrix44_t(OPENVR_FNTABLE_CALLTYPE* GetProjectionMatrix)(EVREye eEye, float fNearZ, float fFarZ);
+	void(OPENVR_FNTABLE_CALLTYPE* GetProjectionRaw)(EVREye eEye, float* pfLeft, float* pfRight, float* pfTop, float* pfBottom);
+	bool(OPENVR_FNTABLE_CALLTYPE* ComputeDistortion)(EVREye eEye, float fU, float fV, struct DistortionCoordinates_t* pDistortionCoordinates);
+	bool(OPENVR_FNTABLE_CALLTYPE* ComputeDistortionSet)(EVREye eEye, EVRDistortionChannel eChannel, bool bAsNormalizedDeviceCoordinates, uint32_t nNumCoordinates, struct DistortionCoordinate_t* pInput, struct DistortionCoordinate_t* pOutput);
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetEyeToHeadTransform)(EVREye eEye);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetTimeSinceLastVsync)(float* pfSecondsSinceLastVsync, uint64_t* pulFrameCounter);
+	int32_t(OPENVR_FNTABLE_CALLTYPE* GetD3D9AdapterIndex)();
+	void(OPENVR_FNTABLE_CALLTYPE* GetDXGIOutputInfo)(int32_t* pnAdapterIndex);
+	void(OPENVR_FNTABLE_CALLTYPE* GetOutputDevice)(uint64_t* pnDevice, ETextureType textureType, struct VkInstance_T* pInstance);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsDisplayOnDesktop)();
+	bool(OPENVR_FNTABLE_CALLTYPE* SetDisplayVisibility)(bool bIsVisibleOnDesktop);
+	void(OPENVR_FNTABLE_CALLTYPE* GetDeviceToAbsoluteTrackingPose)(ETrackingUniverseOrigin eOrigin, float fPredictedSecondsToPhotonsFromNow, struct TrackedDevicePose_t* pTrackedDevicePoseArray, uint32_t unTrackedDevicePoseArrayCount);
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetSeatedZeroPoseToStandingAbsoluteTrackingPose)();
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetRawZeroPoseToStandingAbsoluteTrackingPose)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetSortedTrackedDeviceIndicesOfClass)(ETrackedDeviceClass eTrackedDeviceClass, TrackedDeviceIndex_t* punTrackedDeviceIndexArray, uint32_t unTrackedDeviceIndexArrayCount, TrackedDeviceIndex_t unRelativeToTrackedDeviceIndex);
+	EDeviceActivityLevel(OPENVR_FNTABLE_CALLTYPE* GetTrackedDeviceActivityLevel)(TrackedDeviceIndex_t unDeviceId);
+	void(OPENVR_FNTABLE_CALLTYPE* ApplyTransform)(struct TrackedDevicePose_t* pOutputPose, struct TrackedDevicePose_t* pTrackedDevicePose, struct HmdMatrix34_t* pTransform);
+	TrackedDeviceIndex_t(OPENVR_FNTABLE_CALLTYPE* GetTrackedDeviceIndexForControllerRole)(ETrackedControllerRole unDeviceType);
+	ETrackedControllerRole(OPENVR_FNTABLE_CALLTYPE* GetControllerRoleForTrackedDeviceIndex)(TrackedDeviceIndex_t unDeviceIndex);
+	ETrackedDeviceClass(OPENVR_FNTABLE_CALLTYPE* GetTrackedDeviceClass)(TrackedDeviceIndex_t unDeviceIndex);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsTrackedDeviceConnected)(TrackedDeviceIndex_t unDeviceIndex);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetBoolTrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	float(OPENVR_FNTABLE_CALLTYPE* GetFloatTrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	int32_t(OPENVR_FNTABLE_CALLTYPE* GetInt32TrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	uint64_t(OPENVR_FNTABLE_CALLTYPE* GetUint64TrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	struct HmdMatrix34_t(OPENVR_FNTABLE_CALLTYPE* GetMatrix34TrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, ETrackedPropertyError* pError);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetArrayTrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, PropertyTypeTag_t propType, void* pBuffer, uint32_t unBufferSize, ETrackedPropertyError* pError);
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetStringTrackedDeviceProperty)(TrackedDeviceIndex_t unDeviceIndex, ETrackedDeviceProperty prop, char* pchValue, uint32_t unBufferSize, ETrackedPropertyError* pError);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetPropErrorNameFromEnum)(ETrackedPropertyError error);
+	bool(OPENVR_FNTABLE_CALLTYPE* PollNextEvent)(struct VREvent_t* pEvent, uint32_t uncbVREvent);
+	bool(OPENVR_FNTABLE_CALLTYPE* PollNextEventWithPose)(ETrackingUniverseOrigin eOrigin, struct VREvent_t* pEvent, uint32_t uncbVREvent, TrackedDevicePose_t* pTrackedDevicePose);
+	bool(OPENVR_FNTABLE_CALLTYPE* PollNextEventWithPoseAndOverlays)(ETrackingUniverseOrigin eOrigin, struct VREvent_t* pEvent, uint32_t uncbVREvent, struct TrackedDevicePose_t* pTrackedDevicePose, VROverlayHandle_t* pulOverlayHandle);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetEventTypeNameFromEnum)(EVREventType eType);
+	struct HiddenAreaMesh_t(OPENVR_FNTABLE_CALLTYPE* GetHiddenAreaMesh)(EVREye eEye, EHiddenAreaMeshType type);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetEyeTrackedFoveationCenter)(struct HmdVector2_t* pNdcLeft, struct HmdVector2_t* pNdcRight);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetEyeTrackedFoveationCenterForProjection)(struct HmdMatrix44_t* pProjMat, struct HmdVector2_t* pNdc);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetControllerState)(TrackedDeviceIndex_t unControllerDeviceIndex, VRControllerState_t* pControllerState, uint32_t unControllerStateSize);
+	bool(OPENVR_FNTABLE_CALLTYPE* GetControllerStateWithPose)(ETrackingUniverseOrigin eOrigin, TrackedDeviceIndex_t unControllerDeviceIndex, VRControllerState_t* pControllerState, uint32_t unControllerStateSize, struct TrackedDevicePose_t* pTrackedDevicePose);
+	void(OPENVR_FNTABLE_CALLTYPE* TriggerHapticPulse)(TrackedDeviceIndex_t unControllerDeviceIndex, uint32_t unAxisId, unsigned short usDurationMicroSec);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetButtonIdNameFromEnum)(EVRButtonId eButtonId);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetControllerAxisTypeNameFromEnum)(EVRControllerAxisType eAxisType);
+	bool(OPENVR_FNTABLE_CALLTYPE* IsInputAvailable)();
+	bool(OPENVR_FNTABLE_CALLTYPE* IsSteamVRDrawingControllers)();
+	bool(OPENVR_FNTABLE_CALLTYPE* ShouldApplicationPause)();
+	bool(OPENVR_FNTABLE_CALLTYPE* ShouldApplicationReduceRenderingWork)();
+	EVRFirmwareError(OPENVR_FNTABLE_CALLTYPE* PerformFirmwareUpdate)(TrackedDeviceIndex_t unDeviceIndex);
+	void(OPENVR_FNTABLE_CALLTYPE* AcknowledgeQuit_Exiting)();
+	uint32_t(OPENVR_FNTABLE_CALLTYPE* GetAppContainerFilePaths)(char* pchBuffer, uint32_t unBufferSize);
+	char*(OPENVR_FNTABLE_CALLTYPE* GetRuntimeVersion)();
+	EVRInitError(OPENVR_FNTABLE_CALLTYPE* SetSDKVersion)(uint32_t nVersionMajor, uint32_t nVersionMinor, uint32_t nVersionBuild);
+};
+
 
 static const char* const IVRTrackedCamera_001_Version = "IVRTrackedCamera_001";
 
@@ -4949,6 +8266,18 @@ public:
 	virtual vr::EVRTrackedCameraError GetVideoStreamFrameBuffer(vr::TrackedCameraHandle_t hTrackedCamera, vr::EVRTrackedCameraFrameType eFrameType, void* pFrameBuffer, uint32_t nFrameBufferSize, vr::CameraVideoStreamFrameHeader_t* pFrameHeader, uint32_t nFrameHeaderSize) = 0;
 };
 
+struct VR_IVRTrackedCamera_002_FnTable
+{
+	char*(OPENVR_FNTABLE_CALLTYPE* GetCameraErrorNameFromEnum)(EVRTrackedCameraError eCameraError);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* HasCamera)(TrackedDeviceIndex_t nDeviceIndex, bool* pHasCamera);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* GetCameraFrameSize)(TrackedDeviceIndex_t nDeviceIndex, EVRTrackedCameraFrameType eFrameType, uint32_t* pnWidth, uint32_t* pnHeight, uint32_t* pnFrameBufferSize);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* GetCameraIntrinisics)(TrackedDeviceIndex_t nDeviceIndex, EVRTrackedCameraFrameType eFrameType, HmdVector2_t* pFocalLength, HmdVector2_t* pCenter);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* GetCameraProjection)(TrackedDeviceIndex_t nDeviceIndex, EVRTrackedCameraFrameType eFrameType, float flZNear, float flZFar, HmdMatrix44_t* pProjection);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* AcquireVideoStreamingService)(TrackedDeviceIndex_t nDeviceIndex, TrackedCameraHandle_t* pHandle);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* ReleaseVideoStreamingService)(TrackedCameraHandle_t hTrackedCamera);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* GetVideoStreamFrameBuffer)(TrackedCameraHandle_t hTrackedCamera, EVRTrackedCameraFrameType eFrameType, void* pFrameBuffer, uint32_t nFrameBufferSize, CameraVideoStreamFrameHeader_t* pFrameHeader, uint32_t nFrameHeaderSize);
+};
+
 
 static const char* const IVRTrackedCamera_003_Version = "IVRTrackedCamera_003";
 
@@ -4967,6 +8296,22 @@ public:
 	virtual vr::EVRTrackedCameraError GetVideoStreamTextureD3D11(vr::TrackedCameraHandle_t hTrackedCamera, vr::EVRTrackedCameraFrameType eFrameType, void* pD3D11DeviceOrResource, void** ppD3D11ShaderResourceView, vr::CameraVideoStreamFrameHeader_t* pFrameHeader, uint32_t nFrameHeaderSize) = 0;
 	virtual vr::EVRTrackedCameraError GetVideoStreamTextureGL(vr::TrackedCameraHandle_t hTrackedCamera, vr::EVRTrackedCameraFrameType eFrameType, vr::glUInt_t* pglTextureId, vr::CameraVideoStreamFrameHeader_t* pFrameHeader, uint32_t nFrameHeaderSize) = 0;
 	virtual vr::EVRTrackedCameraError ReleaseVideoStreamTextureGL(vr::TrackedCameraHandle_t hTrackedCamera, vr::glUInt_t glTextureId) = 0;
+};
+
+struct VR_IVRTrackedCamera_003_FnTable
+{
+	char*(OPENVR_FNTABLE_CALLTYPE* GetCameraErrorNameFromEnum)(EVRTrackedCameraError eCameraError);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* HasCamera)(TrackedDeviceIndex_t nDeviceIndex, bool* pHasCamera);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* GetCameraFrameSize)(TrackedDeviceIndex_t nDeviceIndex, EVRTrackedCameraFrameType eFrameType, uint32_t* pnWidth, uint32_t* pnHeight, uint32_t* pnFrameBufferSize);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* GetCameraIntrinsics)(TrackedDeviceIndex_t nDeviceIndex, EVRTrackedCameraFrameType eFrameType, HmdVector2_t* pFocalLength, HmdVector2_t* pCenter);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* GetCameraProjection)(TrackedDeviceIndex_t nDeviceIndex, EVRTrackedCameraFrameType eFrameType, float flZNear, float flZFar, HmdMatrix44_t* pProjection);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* AcquireVideoStreamingService)(TrackedDeviceIndex_t nDeviceIndex, TrackedCameraHandle_t* pHandle);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* ReleaseVideoStreamingService)(TrackedCameraHandle_t hTrackedCamera);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* GetVideoStreamFrameBuffer)(TrackedCameraHandle_t hTrackedCamera, EVRTrackedCameraFrameType eFrameType, void* pFrameBuffer, uint32_t nFrameBufferSize, CameraVideoStreamFrameHeader_t* pFrameHeader, uint32_t nFrameHeaderSize);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* GetVideoStreamTextureSize)(TrackedDeviceIndex_t nDeviceIndex, EVRTrackedCameraFrameType eFrameType, VRTextureBounds_t* pTextureBounds, uint32_t* pnWidth, uint32_t* pnHeight);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* GetVideoStreamTextureD3D11)(TrackedCameraHandle_t hTrackedCamera, EVRTrackedCameraFrameType eFrameType, void* pD3D11DeviceOrResource, void** ppD3D11ShaderResourceView, CameraVideoStreamFrameHeader_t* pFrameHeader, uint32_t nFrameHeaderSize);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* GetVideoStreamTextureGL)(TrackedCameraHandle_t hTrackedCamera, EVRTrackedCameraFrameType eFrameType, glUInt_t* pglTextureId, CameraVideoStreamFrameHeader_t* pFrameHeader, uint32_t nFrameHeaderSize);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* ReleaseVideoStreamTextureGL)(TrackedCameraHandle_t hTrackedCamera, glUInt_t glTextureId);
 };
 
 
@@ -4989,6 +8334,22 @@ public:
 	virtual vr::EVRTrackedCameraError ReleaseVideoStreamTextureGL(vr::TrackedCameraHandle_t hTrackedCamera, vr::glUInt_t glTextureId) = 0;
 };
 
+struct VR_IVRTrackedCamera_004_FnTable
+{
+	char*(OPENVR_FNTABLE_CALLTYPE* GetCameraErrorNameFromEnum)(EVRTrackedCameraError eCameraError);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* HasCamera)(TrackedDeviceIndex_t nDeviceIndex, bool* pHasCamera);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* GetCameraFrameSize)(TrackedDeviceIndex_t nDeviceIndex, EVRTrackedCameraFrameType eFrameType, uint32_t* pnWidth, uint32_t* pnHeight, uint32_t* pnFrameBufferSize);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* GetCameraIntrinsics)(TrackedDeviceIndex_t nDeviceIndex, EVRTrackedCameraFrameType eFrameType, HmdVector2_t* pFocalLength, HmdVector2_t* pCenter);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* GetCameraProjection)(TrackedDeviceIndex_t nDeviceIndex, EVRTrackedCameraFrameType eFrameType, float flZNear, float flZFar, HmdMatrix44_t* pProjection);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* AcquireVideoStreamingService)(TrackedDeviceIndex_t nDeviceIndex, TrackedCameraHandle_t* pHandle);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* ReleaseVideoStreamingService)(TrackedCameraHandle_t hTrackedCamera);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* GetVideoStreamFrameBuffer)(TrackedCameraHandle_t hTrackedCamera, EVRTrackedCameraFrameType eFrameType, void* pFrameBuffer, uint32_t nFrameBufferSize, CameraVideoStreamFrameHeader_t* pFrameHeader, uint32_t nFrameHeaderSize);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* GetVideoStreamTextureSize)(TrackedDeviceIndex_t nDeviceIndex, EVRTrackedCameraFrameType eFrameType, VRTextureBounds_t* pTextureBounds, uint32_t* pnWidth, uint32_t* pnHeight);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* GetVideoStreamTextureD3D11)(TrackedCameraHandle_t hTrackedCamera, EVRTrackedCameraFrameType eFrameType, void* pD3D11DeviceOrResource, void** ppD3D11ShaderResourceView, CameraVideoStreamFrameHeader_t* pFrameHeader, uint32_t nFrameHeaderSize);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* GetVideoStreamTextureGL)(TrackedCameraHandle_t hTrackedCamera, EVRTrackedCameraFrameType eFrameType, glUInt_t* pglTextureId, CameraVideoStreamFrameHeader_t* pFrameHeader, uint32_t nFrameHeaderSize);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* ReleaseVideoStreamTextureGL)(TrackedCameraHandle_t hTrackedCamera, glUInt_t glTextureId);
+};
+
 
 static const char* const IVRTrackedCamera_005_Version = "IVRTrackedCamera_005";
 
@@ -5007,6 +8368,22 @@ public:
 	virtual vr::EVRTrackedCameraError GetVideoStreamTextureD3D11(vr::TrackedCameraHandle_t hTrackedCamera, vr::EVRTrackedCameraFrameType eFrameType, void* pD3D11DeviceOrResource, void** ppD3D11ShaderResourceView, vr::CameraVideoStreamFrameHeader_t* pFrameHeader, uint32_t nFrameHeaderSize) = 0;
 	virtual vr::EVRTrackedCameraError GetVideoStreamTextureGL(vr::TrackedCameraHandle_t hTrackedCamera, vr::EVRTrackedCameraFrameType eFrameType, vr::glUInt_t* pglTextureId, vr::CameraVideoStreamFrameHeader_t* pFrameHeader, uint32_t nFrameHeaderSize) = 0;
 	virtual vr::EVRTrackedCameraError ReleaseVideoStreamTextureGL(vr::TrackedCameraHandle_t hTrackedCamera, vr::glUInt_t glTextureId) = 0;
+};
+
+struct VR_IVRTrackedCamera_005_FnTable
+{
+	char*(OPENVR_FNTABLE_CALLTYPE* GetCameraErrorNameFromEnum)(EVRTrackedCameraError eCameraError);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* HasCamera)(TrackedDeviceIndex_t nDeviceIndex, bool* pHasCamera);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* GetCameraFrameSize)(TrackedDeviceIndex_t nDeviceIndex, EVRTrackedCameraFrameType eFrameType, uint32_t* pnWidth, uint32_t* pnHeight, uint32_t* pnFrameBufferSize);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* GetCameraIntrinsics)(TrackedDeviceIndex_t nDeviceIndex, uint32_t nCameraIndex, EVRTrackedCameraFrameType eFrameType, HmdVector2_t* pFocalLength, HmdVector2_t* pCenter);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* GetCameraProjection)(TrackedDeviceIndex_t nDeviceIndex, uint32_t nCameraIndex, EVRTrackedCameraFrameType eFrameType, float flZNear, float flZFar, HmdMatrix44_t* pProjection);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* AcquireVideoStreamingService)(TrackedDeviceIndex_t nDeviceIndex, TrackedCameraHandle_t* pHandle);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* ReleaseVideoStreamingService)(TrackedCameraHandle_t hTrackedCamera);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* GetVideoStreamFrameBuffer)(TrackedCameraHandle_t hTrackedCamera, EVRTrackedCameraFrameType eFrameType, void* pFrameBuffer, uint32_t nFrameBufferSize, CameraVideoStreamFrameHeader_t* pFrameHeader, uint32_t nFrameHeaderSize);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* GetVideoStreamTextureSize)(TrackedDeviceIndex_t nDeviceIndex, EVRTrackedCameraFrameType eFrameType, VRTextureBounds_t* pTextureBounds, uint32_t* pnWidth, uint32_t* pnHeight);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* GetVideoStreamTextureD3D11)(TrackedCameraHandle_t hTrackedCamera, EVRTrackedCameraFrameType eFrameType, void* pD3D11DeviceOrResource, void** ppD3D11ShaderResourceView, CameraVideoStreamFrameHeader_t* pFrameHeader, uint32_t nFrameHeaderSize);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* GetVideoStreamTextureGL)(TrackedCameraHandle_t hTrackedCamera, EVRTrackedCameraFrameType eFrameType, glUInt_t* pglTextureId, CameraVideoStreamFrameHeader_t* pFrameHeader, uint32_t nFrameHeaderSize);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* ReleaseVideoStreamTextureGL)(TrackedCameraHandle_t hTrackedCamera, glUInt_t glTextureId);
 };
 
 
@@ -5029,6 +8406,24 @@ public:
 	virtual vr::EVRTrackedCameraError ReleaseVideoStreamTextureGL(vr::TrackedCameraHandle_t hTrackedCamera, vr::glUInt_t glTextureId) = 0;
 	virtual void SetCameraTrackingSpace(vr::ETrackingUniverseOrigin eUniverse) = 0;
 	virtual vr::ETrackingUniverseOrigin GetCameraTrackingSpace() = 0;
+};
+
+struct VR_IVRTrackedCamera_006_FnTable
+{
+	char*(OPENVR_FNTABLE_CALLTYPE* GetCameraErrorNameFromEnum)(EVRTrackedCameraError eCameraError);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* HasCamera)(TrackedDeviceIndex_t nDeviceIndex, bool* pHasCamera);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* GetCameraFrameSize)(TrackedDeviceIndex_t nDeviceIndex, EVRTrackedCameraFrameType eFrameType, uint32_t* pnWidth, uint32_t* pnHeight, uint32_t* pnFrameBufferSize);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* GetCameraIntrinsics)(TrackedDeviceIndex_t nDeviceIndex, uint32_t nCameraIndex, EVRTrackedCameraFrameType eFrameType, HmdVector2_t* pFocalLength, HmdVector2_t* pCenter);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* GetCameraProjection)(TrackedDeviceIndex_t nDeviceIndex, uint32_t nCameraIndex, EVRTrackedCameraFrameType eFrameType, float flZNear, float flZFar, HmdMatrix44_t* pProjection);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* AcquireVideoStreamingService)(TrackedDeviceIndex_t nDeviceIndex, TrackedCameraHandle_t* pHandle);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* ReleaseVideoStreamingService)(TrackedCameraHandle_t hTrackedCamera);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* GetVideoStreamFrameBuffer)(TrackedCameraHandle_t hTrackedCamera, EVRTrackedCameraFrameType eFrameType, void* pFrameBuffer, uint32_t nFrameBufferSize, CameraVideoStreamFrameHeader_t* pFrameHeader, uint32_t nFrameHeaderSize);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* GetVideoStreamTextureSize)(TrackedDeviceIndex_t nDeviceIndex, EVRTrackedCameraFrameType eFrameType, VRTextureBounds_t* pTextureBounds, uint32_t* pnWidth, uint32_t* pnHeight);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* GetVideoStreamTextureD3D11)(TrackedCameraHandle_t hTrackedCamera, EVRTrackedCameraFrameType eFrameType, void* pD3D11DeviceOrResource, void** ppD3D11ShaderResourceView, CameraVideoStreamFrameHeader_t* pFrameHeader, uint32_t nFrameHeaderSize);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* GetVideoStreamTextureGL)(TrackedCameraHandle_t hTrackedCamera, EVRTrackedCameraFrameType eFrameType, glUInt_t* pglTextureId, CameraVideoStreamFrameHeader_t* pFrameHeader, uint32_t nFrameHeaderSize);
+	EVRTrackedCameraError(OPENVR_FNTABLE_CALLTYPE* ReleaseVideoStreamTextureGL)(TrackedCameraHandle_t hTrackedCamera, glUInt_t glTextureId);
+	void(OPENVR_FNTABLE_CALLTYPE* SetCameraTrackingSpace)(ETrackingUniverseOrigin eUniverse);
+	ETrackingUniverseOrigin(OPENVR_FNTABLE_CALLTYPE* GetCameraTrackingSpace)();
 };
 
 } // namespace vr

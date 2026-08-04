@@ -21,6 +21,10 @@ add_library(
 	u_autoexpgain.h
 	u_bitwise.c
 	u_bitwise.h
+	u_body_tracker.c
+	u_body_tracker.h
+	u_body_tracker_ni.c
+	u_body_tracker_ni.h
 	u_builder_helpers.c
 	u_builder_helpers.h
 	u_builder_search.c

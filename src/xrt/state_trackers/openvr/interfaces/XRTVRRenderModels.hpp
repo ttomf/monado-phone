@@ -11,11 +11,14 @@
 #pragma once
 
 #include "openvr_interfaces_unified.h"
+#include "openvr_forward_macros.h"
 
 #include "XRTVRClientCore.hpp"
 
 
 namespace xrt::state_trackers::openvr {
+
+using namespace vr;
 
 class XRTVRRenderModels_006 : public vr::IVRRenderModels_006
 {
@@ -26,6 +29,8 @@ public:
 	XRTVRRenderModels_006(XRTVRClientCore_003 *clientCore);
 
 	virtual ~XRTVRRenderModels_006() = default;
+
+	FnTable_IVRRenderModels_006();
 
 	vr::EVRRenderModelError
 	LoadRenderModel_Async(const char *pchRenderModelName, vr::RenderModel_t **ppRenderModel) override;

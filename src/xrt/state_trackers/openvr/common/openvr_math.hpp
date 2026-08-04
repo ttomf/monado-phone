@@ -26,7 +26,7 @@ namespace xrt::state_trackers::openvr {
  * @param openvr_mat The output OpenVR HmdMatrix34_t to write the result into.
  */
 void
-xrt_pose_to_openvr_hmd_matrix34(const xrt_pose &pose, vr::HmdMatrix34_t &openvr_mat);
+xrtPoseToHmdMatrix34(const xrt_pose &pose, vr::HmdMatrix34_t &openvr_mat);
 
 /*!
  * Converts a 4x4 matrix in column-major format (as used by xrt_matrix_4x4) to an OpenVR HmdMatrix34, which is a
@@ -37,7 +37,7 @@ xrt_pose_to_openvr_hmd_matrix34(const xrt_pose &pose, vr::HmdMatrix34_t &openvr_
  * @param openvr_mat The output OpenVR HmdMatrix34_t to write the result into.
  */
 void
-xrt_matrix_4x4_to_openvr_hmd_matrix34(const xrt_matrix_4x4 &mat, vr::HmdMatrix34_t &openvr_mat);
+xrtMatrix4x4ToHmdMatrix34(const xrt_matrix_4x4 &mat, vr::HmdMatrix34_t &openvr_mat);
 
 /*!
  * Sets an OpenVR HmdMatrix34_t to the identity matrix. This is a 3x4 matrix where the upper-left 3x3 portion is the
@@ -46,6 +46,6 @@ xrt_matrix_4x4_to_openvr_hmd_matrix34(const xrt_matrix_4x4 &mat, vr::HmdMatrix34
  * @param mat The OpenVR HmdMatrix34_t to set to the identity matrix.
  */
 void
-openvr_hmd_matrix34_identity(vr::HmdMatrix34_t &mat);
+hmdMatrix34Identity(vr::HmdMatrix34_t &mat);
 
 }; // namespace xrt::state_trackers::openvr

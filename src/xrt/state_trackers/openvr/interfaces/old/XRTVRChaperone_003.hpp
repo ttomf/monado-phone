@@ -28,6 +28,8 @@ public:
 	XRTVRChaperone_003(XRTVRClientCore_003 *core) : XRTVRChaperone_004(core) {};
 	// clang-format on
 
+	FnTable_IVRChaperone_003();
+
 	ForwardDeclareBase_IVRChaperone(XRTVRChaperone_004);
 
 	Forward_IVRChaperone_GetCalibrationState();

@@ -72,9 +72,6 @@ struct DeviceFunctions
 	 */
 	bool plane_detection{false};
 
-	//! @ref xrt_device::get_presence
-	bool presence{false};
-
 	//! @ref xrt_device::ref_space_usage
 	bool reference_space{false};
 
@@ -178,10 +175,6 @@ public: // Members
 			xdev.destroy_plane_detection_ext = destroyPlaneDetectionExtWrap;
 			xdev.get_plane_detection_state_ext = getPlaneDetectionStateExtWrap;
 			xdev.get_plane_detections_ext = getPlaneDetectionsExtWrap;
-		}
-
-		if constexpr (functions.presence) {
-			xdev.get_presence = getPresenceWrap;
 		}
 
 		if constexpr (functions.reference_space) {
@@ -355,13 +348,6 @@ private: // Functions
 	getOutputLimitsWrap(struct xrt_device *xdev, struct xrt_output_limits *limits) noexcept
 	try {
 		return GET(xdev).getOutputLimits(limits);
-	}
-	G_CATCH_GUARDS
-
-	static xrt_result_t
-	getPresenceWrap(struct xrt_device *xdev, bool *presence) noexcept
-	try {
-		return GET(xdev).getPresence(presence);
 	}
 	G_CATCH_GUARDS
 

@@ -56,7 +56,6 @@ constexpr xrt::util::DeviceFunctions kAllFunctions = {
     .face_calibration_android = true,
     .body_tracking = true,
     .plane_detection = true,
-    .presence = true,
     .reference_space = true,
     .battery = true,
     .brightness = true,
@@ -347,7 +346,6 @@ TEST_CASE("DeviceBase_MinimalDevice")
 		REQUIRE(xdev->reset_body_tracking_calibration_meta == u_device_ni_reset_body_tracking_calibration_meta);
 		REQUIRE(xdev->set_body_tracking_calibration_override_meta ==
 		        u_device_ni_set_body_tracking_calibration_override_meta);
-		REQUIRE(xdev->get_presence == u_device_ni_get_presence);
 		REQUIRE(xdev->begin_plane_detection_ext == u_device_ni_begin_plane_detection_ext);
 		REQUIRE(xdev->destroy_plane_detection_ext == u_device_ni_destroy_plane_detection_ext);
 		REQUIRE(xdev->get_plane_detection_state_ext == u_device_ni_get_plane_detection_state_ext);
@@ -443,7 +441,6 @@ TEST_CASE("DeviceBase_HmdDevice")
 		REQUIRE(xdev->get_face_tracking == u_device_ni_get_face_tracking);
 		REQUIRE(xdev->get_body_skeleton == u_device_ni_get_body_skeleton);
 		REQUIRE(xdev->get_body_joints == u_device_ni_get_body_joints);
-		REQUIRE(xdev->get_presence == u_device_ni_get_presence);
 		REQUIRE(xdev->get_battery_status == u_device_ni_get_battery_status);
 		REQUIRE(xdev->get_output_limits == u_device_ni_get_output_limits);
 	}
@@ -530,7 +527,6 @@ TEST_CASE("DeviceBase_BodyTrackingDevice")
 		REQUIRE(xdev->get_view_poses == u_device_ni_get_view_poses);
 		REQUIRE(xdev->get_hand_tracking == u_device_ni_get_hand_tracking);
 		REQUIRE(xdev->get_face_tracking == u_device_ni_get_face_tracking);
-		REQUIRE(xdev->get_presence == u_device_ni_get_presence);
 		REQUIRE(xdev->get_battery_status == u_device_ni_get_battery_status);
 	}
 
@@ -601,7 +597,6 @@ TEST_CASE("DeviceBase_BatteryDevice")
 		REQUIRE(xdev->get_hand_tracking == u_device_ni_get_hand_tracking);
 		REQUIRE(xdev->get_face_tracking == u_device_ni_get_face_tracking);
 		REQUIRE(xdev->get_body_skeleton == u_device_ni_get_body_skeleton);
-		REQUIRE(xdev->get_presence == u_device_ni_get_presence);
 		REQUIRE(xdev->get_brightness == u_device_ni_get_brightness);
 		REQUIRE(xdev->set_brightness == u_device_ni_set_brightness);
 	}
@@ -647,7 +642,6 @@ TEST_CASE("DeviceBase_BrightnessDevice")
 		REQUIRE(xdev->get_hand_tracking == u_device_ni_get_hand_tracking);
 		REQUIRE(xdev->get_face_tracking == u_device_ni_get_face_tracking);
 		REQUIRE(xdev->get_body_skeleton == u_device_ni_get_body_skeleton);
-		REQUIRE(xdev->get_presence == u_device_ni_get_presence);
 		REQUIRE(xdev->get_battery_status == u_device_ni_get_battery_status);
 	}
 
@@ -699,7 +693,6 @@ public:
 	int set_body_calibration_count = 0;
 	int set_output_count = 0;
 	int get_output_limits_count = 0;
-	int presence_count = 0;
 	int begin_plane_detection_count = 0;
 	int destroy_plane_detection_count = 0;
 	int get_plane_detection_state_count = 0;
@@ -801,14 +794,6 @@ public:
 	getOutputLimits(struct xrt_output_limits *limits)
 	{
 		get_output_limits_count++;
-		return XRT_SUCCESS;
-	}
-
-	xrt_result_t
-	getPresence(bool *out_presence)
-	{
-		presence_count++;
-		*out_presence = true;
 		return XRT_SUCCESS;
 	}
 
@@ -960,7 +945,6 @@ TEST_CASE("DeviceBase_AllFeaturesDevice")
 		REQUIRE(xdev->set_body_tracking_calibration_override_meta != nullptr);
 		REQUIRE(xdev->set_output != nullptr);
 		REQUIRE(xdev->get_output_limits != nullptr);
-		REQUIRE(xdev->get_presence != nullptr);
 		REQUIRE(xdev->begin_plane_detection_ext != nullptr);
 		REQUIRE(xdev->destroy_plane_detection_ext != nullptr);
 		REQUIRE(xdev->get_plane_detection_state_ext != nullptr);
@@ -1045,13 +1029,6 @@ TEST_CASE("DeviceBase_AllFeaturesDevice")
 		xrt_output_limits limits;
 		xdev->get_output_limits(xdev, &limits);
 		REQUIRE(dev.get_output_limits_count == 1);
-
-		// Test get_presence
-		REQUIRE(dev.presence_count == 0);
-		bool presence;
-		xdev->get_presence(xdev, &presence);
-		REQUIRE(dev.presence_count == 1);
-		REQUIRE(presence == true);
 
 		// Test begin_plane_detection_ext
 		REQUIRE(dev.begin_plane_detection_count == 0);

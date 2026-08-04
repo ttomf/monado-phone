@@ -114,12 +114,18 @@ blubur_s1_hmd_update_inputs(struct xrt_device *xdev)
 {
 	struct blubur_s1_hmd *hmd = blubur_s1_hmd(xdev);
 
+	int64_t now = os_monotonic_get_ns();
+
 	os_mutex_lock(&hmd->input_mutex);
+	bool presence = hmd->input.status & BLUBUR_S1_STATUS_PRESENCE;
 	bool menu = hmd->input.status & BLUBUR_S1_STATUS_BUTTON;
 	os_mutex_unlock(&hmd->input_mutex);
 
-	xdev->inputs[1].value = (union xrt_input_value){.boolean = menu};
-	xdev->inputs[1].timestamp = os_monotonic_get_ns();
+	xdev->inputs[1].value = (union xrt_input_value){.boolean = presence};
+	xdev->inputs[1].timestamp = now;
+
+	xdev->inputs[2].value = (union xrt_input_value){.boolean = menu};
+	xdev->inputs[2].timestamp = now;
 
 	return XRT_SUCCESS;
 }
@@ -137,18 +143,6 @@ blubur_s1_hmd_get_tracked_pose(struct xrt_device *xdev,
 	}
 
 	m_relation_history_get(hmd->relation_history, at_timestamp_ns, out_relation);
-
-	return XRT_SUCCESS;
-}
-
-static xrt_result_t
-blubur_s1_hmd_get_presence(struct xrt_device *xdev, bool *presence)
-{
-	struct blubur_s1_hmd *hmd = blubur_s1_hmd(xdev);
-
-	os_mutex_lock(&hmd->input_mutex);
-	*presence = hmd->input.status & BLUBUR_S1_STATUS_PRESENCE;
-	os_mutex_unlock(&hmd->input_mutex);
 
 	return XRT_SUCCESS;
 }
@@ -529,7 +523,7 @@ blubur_s1_hmd_create(struct os_hid_device *dev, const char *serial)
 	int ret;
 
 	struct blubur_s1_hmd *hmd =
-	    U_DEVICE_ALLOCATE(struct blubur_s1_hmd, U_DEVICE_ALLOC_HMD | U_DEVICE_ALLOC_TRACKING_NONE, 2, 0);
+	    U_DEVICE_ALLOCATE(struct blubur_s1_hmd, U_DEVICE_ALLOC_HMD | U_DEVICE_ALLOC_TRACKING_NONE, 3, 0);
 	if (hmd == NULL) {
 		return NULL;
 	}
@@ -603,14 +597,14 @@ blubur_s1_hmd_create(struct os_hid_device *dev, const char *serial)
 	hmd->base.supported.presence = true;
 
 	hmd->base.inputs[0].name = XRT_INPUT_GENERIC_HEAD_POSE;
-	hmd->base.inputs[1].name = XRT_INPUT_BLUBUR_S1_MENU_CLICK;
+	hmd->base.inputs[1].name = XRT_INPUT_GENERIC_HEAD_DETECT;
+	hmd->base.inputs[2].name = XRT_INPUT_BLUBUR_S1_MENU_CLICK;
 
 	hmd->base.binding_profiles = blubur_s1_hmd_binding_profiles;
 	hmd->base.binding_profile_count = ARRAY_SIZE(blubur_s1_hmd_binding_profiles);
 
 	hmd->base.update_inputs = blubur_s1_hmd_update_inputs;
 	hmd->base.get_tracked_pose = blubur_s1_hmd_get_tracked_pose;
-	hmd->base.get_presence = blubur_s1_hmd_get_presence;
 	hmd->base.get_view_poses = blubur_s1_hmd_get_view_poses;
 
 	// Initialize IMU fusion for 3DOF tracking

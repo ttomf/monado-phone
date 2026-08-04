@@ -17,6 +17,7 @@ import sys
 TARGETS = (
     ("headers/openvr.h", "openvr_{version}.h"),
     ("headers/openvr_api.json", "openvr_api_{version}.json"),
+    ("headers/openvr_capi.h", "openvr_capi_{version}.h"),
 )
 JSON_OUTPUT_PATTERN = "openvr_api_{version}.json"
 HEADER_OUTPUT_PATTERN = "openvr_{version}.h"

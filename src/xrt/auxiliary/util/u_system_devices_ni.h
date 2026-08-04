@@ -1,4 +1,5 @@
 // Copyright 2026, Beyley Cardellio
+// Copyright 2026, NVIDIA CORPORATION.
 // SPDX-License-Identifier: BSL-1.0
 /*!
  * @file
@@ -23,6 +24,16 @@ extern "C" {
  * Not implemented function helpers.
  *
  */
+
+/*!
+ * Not implemented function for @ref xrt_system_devices::create_body_tracker.
+ *
+ * @ingroup aux_util
+ */
+xrt_result_t
+u_system_devices_ni_create_body_tracker(struct xrt_system_devices *xsysd,
+                                        const struct xrt_body_tracker_create_info *info,
+                                        struct xrt_body_tracker **out_xbt);
 
 /*!
  * Not implemented function for @ref xrt_system_devices::create_hand_tracker.

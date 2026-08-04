@@ -30,6 +30,8 @@ public:
 	XRTVRChaperoneSetup_005(XRTVRClientCore_003 *core) : XRTVRChaperoneSetup_006(core) {};
 	// clang-format on
 
+	FnTable_IVRChaperoneSetup_005();
+
 	ForwardDeclareBase_IVRChaperoneSetup(XRTVRChaperoneSetup_006);
 
 	Forward_IVRChaperoneSetup_CommitWorkingCopy();

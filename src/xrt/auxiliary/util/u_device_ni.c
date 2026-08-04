@@ -98,13 +98,6 @@ u_device_ni_get_output_limits(struct xrt_device *xdev, struct xrt_output_limits 
 }
 
 xrt_result_t
-u_device_ni_get_presence(struct xrt_device *xdev, bool *presence)
-{
-	E(get_presence);
-	return XRT_ERROR_NOT_IMPLEMENTED;
-}
-
-xrt_result_t
 u_device_ni_begin_plane_detection_ext(struct xrt_device *xdev,
                                       const struct xrt_plane_detector_begin_info_ext *begin_info,
                                       uint64_t plane_detection_id,

@@ -7,6 +7,9 @@
  * @ingroup oxr_main
  */
 
+#include "xrt/xrt_body_tracker.h"
+#include "xrt/xrt_space.h"
+
 #include "math/m_api.h"
 #include "math/m_mathinclude.h"
 #include "math/m_space.h"
@@ -17,6 +20,7 @@
 #include "oxr_conversions.h"
 #include "oxr_chain.h"
 #include "oxr_roles.h"
+#include "oxr_xret.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -37,10 +41,22 @@ oxr_to_xrt_body_joint_set_type_bd(XrBodyJointSetBD joint_set_type)
 	return XRT_BODY_JOINT_SET_UNKNOWN_BD;
 }
 
+static enum xrt_input_name
+xrt_body_joint_set_type_bd_to_input_name(enum xrt_body_joint_set_type_bd joint_set_type)
+{
+	switch (joint_set_type) {
+	case XRT_BODY_JOINT_SET_FULL_BODY_BD: return XRT_INPUT_BD_BODY_TRACKING;
+	case XRT_BODY_JOINT_SET_BODY_WITHOUT_ARM_BD: return XRT_INPUT_BD_BODY_TRACKING_WITHOUT_ARM;
+	default: break;
+	}
+	return (enum xrt_input_name) - 1;
+}
+
 static XrResult
 oxr_body_tracker_bd_destroy_cb(struct oxr_logger *log, struct oxr_handle_base *hb)
 {
 	struct oxr_body_tracker_bd *body_tracker_bd = (struct oxr_body_tracker_bd *)hb;
+	xrt_body_tracker_destroy(&body_tracker_bd->xbt);
 	free(body_tracker_bd);
 	return XR_SUCCESS;
 }
@@ -62,9 +78,10 @@ oxr_create_body_tracker_bd(struct oxr_logger *log,
 		                 "\"jointSet\" set to an unknown body joint set type");
 	}
 
-	struct xrt_device *xdev = GET_STATIC_XDEV_BY_ROLE(sess->sys, body);
-	if (xdev == NULL || !xdev->supported.body_tracking) {
-		return oxr_error(log, XR_ERROR_FEATURE_UNSUPPORTED, "No device found for body tracking role");
+	const enum xrt_input_name input_name = xrt_body_joint_set_type_bd_to_input_name(joint_set_type);
+	if (input_name == (enum xrt_input_name) - 1) {
+		return oxr_error(log, XR_ERROR_FEATURE_UNSUPPORTED,
+		                 "\"jointSet\" set to an unknown body joint set type");
 	}
 
 	struct oxr_body_tracker_bd *body_tracker_bd = NULL;
@@ -72,8 +89,23 @@ oxr_create_body_tracker_bd(struct oxr_logger *log,
 	                              &sess->handle);
 
 	body_tracker_bd->sess = sess;
-	body_tracker_bd->xdev = xdev;
 	body_tracker_bd->joint_set_type = joint_set_type;
+
+	struct xrt_body_tracker_create_info info = {
+	    .body_tracking_type = input_name,
+	    .locked_xdev = NULL,
+	};
+	xrt_result_t xret = xrt_system_devices_create_body_tracker(sess->sys->xsysd, &info, &body_tracker_bd->xbt);
+	if (xret != XRT_SUCCESS) {
+		oxr_handle_destroy(log, &body_tracker_bd->handle);
+		// To get good logging and correct error code.
+		if (xret == XRT_ERROR_FEATURE_NOT_SUPPORTED) {
+			return oxr_error(log, XR_ERROR_FEATURE_UNSUPPORTED,
+			                 "System reported body tracking is unsupported");
+		}
+		// To get good logging and set the instance lost state if needed.
+		OXR_CHECK_XRET(log, sess, xret, xrt_system_devices_create_body_tracker);
+	}
 
 	*out_body_tracker_bd = body_tracker_bd;
 	return XR_SUCCESS;
@@ -101,14 +133,21 @@ oxr_locate_body_joints_bd(struct oxr_logger *log,
 	const struct oxr_instance *inst = body_tracker_bd->sess->sys->inst;
 	const uint64_t at_timestamp_ns = time_state_ts_to_monotonic_ns(inst->timekeeping, locateInfo->time);
 
-	// Get body joints from device
-	struct xrt_body_joint_set body_joint_set_result = {0};
-	const enum xrt_input_name input_name =
-	    is_full_body ? XRT_INPUT_BD_BODY_TRACKING : XRT_INPUT_BD_BODY_TRACKING_WITHOUT_ARM;
+	struct xrt_space *xbase = NULL;
+	XrResult ret = oxr_space_get_xrt_space(log, base_spc, &xbase);
+	if (ret != XR_SUCCESS || xbase == NULL) {
+		locations->allJointPosesTracked = XR_FALSE;
+		for (size_t joint_index = 0; joint_index < body_joint_count; ++joint_index) {
+			locations->jointLocations[joint_index].locationFlags = 0;
+		}
+		return ret;
+	}
 
-	if (xrt_device_get_body_joints(body_tracker_bd->xdev, input_name, at_timestamp_ns, &body_joint_set_result) !=
-	    XRT_SUCCESS) {
-		// If we can't get body joints, return with allJointPosesTracked = false
+	struct xrt_body_tracker_location loc = XRT_STRUCT_INIT;
+	xrt_result_t xret = xrt_body_tracker_locate(body_tracker_bd->xbt, body_tracker_bd->sess->sys->xso, xbase,
+	                                            &base_spc->pose, at_timestamp_ns, &loc);
+	xrt_space_reference(&xbase, NULL);
+	if (xret != XRT_SUCCESS) {
 		locations->allJointPosesTracked = XR_FALSE;
 		for (size_t joint_index = 0; joint_index < body_joint_count; ++joint_index) {
 			locations->jointLocations[joint_index].locationFlags = 0;
@@ -116,21 +155,15 @@ oxr_locate_body_joints_bd(struct oxr_logger *log,
 		return XR_SUCCESS;
 	}
 
-	// Get the body pose in the base space
-	struct xrt_space_relation T_base_body;
-	const XrResult ret = oxr_get_base_body_pose(log, &body_joint_set_result, base_spc, body_tracker_bd->xdev,
-	                                            locateInfo->time, &T_base_body);
-	if (ret != XR_SUCCESS) {
-		locations->allJointPosesTracked = XR_FALSE;
-		return ret;
-	}
+	struct xrt_body_joint_set body_joint_set_result = loc.joint_set;
+	const struct xrt_space_relation T_base_body = loc.base_body;
 
 	// Access BD-specific joint data
 	const struct xrt_body_joint_set_bd *bd_joint_set = &body_joint_set_result.body_joint_set_bd;
 
 	locations->allJointPosesTracked = bd_joint_set->all_joint_poses_tracked ? XR_TRUE : XR_FALSE;
 
-	if (!bd_joint_set->is_active || T_base_body.relation_flags == 0) {
+	if (!loc.is_active || T_base_body.relation_flags == 0) {
 		locations->allJointPosesTracked = XR_FALSE;
 		for (size_t joint_index = 0; joint_index < body_joint_count; ++joint_index) {
 			locations->jointLocations[joint_index].locationFlags = 0;

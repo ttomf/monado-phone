@@ -34,18 +34,18 @@ struct openvr_logger
 };
 
 void
-openvr_log_init(openvr_logger &logger, const char *class_name, const char *api_func_name);
+openvrLogInit(openvr_logger &logger, const char *class_name, const char *api_func_name);
 
-#define OPENVR_LOGGER_INIT(logger) openvr_log_init(logger, CURRENT_CLASSNAME, __FUNCTION__)
+#define OPENVR_LOGGER_INIT(logger) openvrLogInit(logger, CURRENT_CLASSNAME, __FUNCTION__)
 
 void
-openvr_log(openvr_logger &logger, u_logging_level log_level, const char *fmt, ...) XRT_PRINTF_FORMAT(3, 4);
+openvrLog(openvr_logger &logger, u_logging_level log_level, const char *fmt, ...) XRT_PRINTF_FORMAT(3, 4);
 
-#define OPENVR_LOG_TRACE(logger, fmt, ...) openvr_log(logger, U_LOGGING_TRACE, fmt __VA_OPT__(, ) __VA_ARGS__)
-#define OPENVR_LOG_DEBUG(logger, fmt, ...) openvr_log(logger, U_LOGGING_DEBUG, fmt __VA_OPT__(, ) __VA_ARGS__)
-#define OPENVR_LOG_INFO(logger, fmt, ...) openvr_log(logger, U_LOGGING_INFO, fmt __VA_OPT__(, ) __VA_ARGS__)
-#define OPENVR_LOG_WARN(logger, fmt, ...) openvr_log(logger, U_LOGGING_WARN, fmt __VA_OPT__(, ) __VA_ARGS__)
-#define OPENVR_LOG_ERROR(logger, fmt, ...) openvr_log(logger, U_LOGGING_ERROR, fmt __VA_OPT__(, ) __VA_ARGS__)
+#define OPENVR_LOG_TRACE(logger, fmt, ...) openvrLog(logger, U_LOGGING_TRACE, fmt __VA_OPT__(, ) __VA_ARGS__)
+#define OPENVR_LOG_DEBUG(logger, fmt, ...) openvrLog(logger, U_LOGGING_DEBUG, fmt __VA_OPT__(, ) __VA_ARGS__)
+#define OPENVR_LOG_INFO(logger, fmt, ...) openvrLog(logger, U_LOGGING_INFO, fmt __VA_OPT__(, ) __VA_ARGS__)
+#define OPENVR_LOG_WARN(logger, fmt, ...) openvrLog(logger, U_LOGGING_WARN, fmt __VA_OPT__(, ) __VA_ARGS__)
+#define OPENVR_LOG_ERROR(logger, fmt, ...) openvrLog(logger, U_LOGGING_ERROR, fmt __VA_OPT__(, ) __VA_ARGS__)
 
 //! Specialized macro for logging an unimplemented function.
 #define OPENVR_LOG_UNIMPLEMENTED(logger, fmt, ...)                                                                     \

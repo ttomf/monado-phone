@@ -67,11 +67,8 @@ enum xrt_session_event_type
 	// ! The visibility mask of given view has changed
 	XRT_SESSION_EVENT_VISIBILITY_MASK_CHANGE = 9,
 
-	//! User presence has changed (hmd may have been put on or removed)
-	XRT_SESSION_EVENT_USER_PRESENCE_CHANGE = 10,
-
 	//! Request the session to quit.
-	XRT_SESSION_EVENT_REQUEST_EXIT = 11,
+	XRT_SESSION_EVENT_REQUEST_EXIT = 10,
 };
 
 /*!
@@ -186,15 +183,6 @@ struct xrt_session_event_visibility_mask_change
 };
 
 /*!
- * User presence changed event
- */
-struct xrt_session_event_user_presence_change
-{
-	enum xrt_session_event_type type;
-	bool is_user_present;
-};
-
-/*!
  * Session stop event, type @ref XRT_SESSION_EVENT_REQUEST_EXIT.
  *
  * @see xrt_session_event
@@ -223,7 +211,6 @@ union xrt_session_event {
 	struct xrt_session_event_perf_change performance;
 	struct xrt_session_event_passthrough_state_change passthru;
 	struct xrt_session_event_visibility_mask_change mask_change;
-	struct xrt_session_event_user_presence_change presence_change;
 	struct xrt_session_event_request_exit request_exit;
 };
 

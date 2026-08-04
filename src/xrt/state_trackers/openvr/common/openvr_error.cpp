@@ -16,7 +16,7 @@
 namespace xrt::state_trackers::openvr {
 
 vr::EVRInitError
-xret_to_init_error(xrt_result_t xret)
+xretToInitError(xrt_result_t xret)
 {
 	vr::EVRInitError init_error = vr::EVRInitError::VRInitError_Unknown;
 	switch (xret) {
@@ -28,7 +28,7 @@ xret_to_init_error(xrt_result_t xret)
 }
 
 vr::EVRCompositorError
-xret_to_compositor_error(xrt_result_t xret)
+xretToCompositorError(xrt_result_t xret)
 {
 	vr::EVRCompositorError compositor_error = vr::EVRCompositorError::VRCompositorError_RequestFailed;
 	switch (xret) {

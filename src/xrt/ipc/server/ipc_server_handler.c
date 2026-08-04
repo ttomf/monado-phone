@@ -2431,14 +2431,6 @@ out:
 }
 
 xrt_result_t
-ipc_handle_device_get_presence(volatile struct ipc_client_state *ics, uint32_t id, bool *presence)
-{
-	struct xrt_device *xdev = NULL;
-	GET_XDEV_OR_RETURN(ics, id, xdev);
-	return xrt_device_get_presence(xdev, presence);
-}
-
-xrt_result_t
 ipc_handle_device_set_output(volatile struct ipc_client_state *ics,
                              uint32_t id,
                              enum xrt_output_name name,

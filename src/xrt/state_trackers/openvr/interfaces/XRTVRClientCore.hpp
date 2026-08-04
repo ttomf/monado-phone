@@ -68,7 +68,7 @@ public: // Fields
 
 private: // Methods
 	bool
-	IsHeadless()
+	isHeadless()
 	{
 		return this->application_type == vr::EVRApplicationType::VRApplication_Background;
 	}

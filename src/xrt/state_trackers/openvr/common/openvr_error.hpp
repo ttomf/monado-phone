@@ -34,7 +34,7 @@ namespace xrt::state_trackers::openvr {
  * @return The corresponding vr::EVRInitError.
  */
 vr::EVRInitError
-xret_to_init_error(xrt_result_t xret);
+xretToInitError(xrt_result_t xret);
 
 /*!
  * Converts an xrt_result_t to a vr::EVRCompositorError.
@@ -43,6 +43,6 @@ xret_to_init_error(xrt_result_t xret);
  * @return The corresponding vr::EVRCompositorError.
  */
 vr::EVRCompositorError
-xret_to_compositor_error(xrt_result_t xret);
+xretToCompositorError(xrt_result_t xret);
 
 }; // namespace xrt::state_trackers::openvr

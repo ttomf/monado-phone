@@ -24,7 +24,7 @@ namespace xrt::state_trackers::openvr {
  */
 
 static uint32_t
-GetEventSize(vr::EVREventType event_type)
+getEventSize(vr::EVREventType event_type)
 {
 	uint32_t event_size_header = sizeof(vr::VREvent_t) - sizeof(vr::VREvent_Data_t);
 
@@ -122,7 +122,7 @@ GetEventSize(vr::EVREventType event_type)
 Events::Events(xrt_session *xs) : xs(xs) {}
 
 void
-Events::TrackedDeviceActivated(vr::TrackedDeviceIndex_t index)
+Events::trackedDeviceActivated(vr::TrackedDeviceIndex_t index)
 {
 	vr::VREvent_t event = {
 	    .eventType = vr::VREvent_TrackedDeviceActivated,
@@ -135,7 +135,7 @@ Events::TrackedDeviceActivated(vr::TrackedDeviceIndex_t index)
 }
 
 void
-Events::TrackedDeviceUserInteractionStarted(vr::TrackedDeviceIndex_t index)
+Events::trackedDeviceUserInteractionStarted(vr::TrackedDeviceIndex_t index)
 {
 	vr::VREvent_t event = {
 	    .eventType = vr::VREvent_TrackedDeviceUserInteractionStarted,
@@ -148,7 +148,7 @@ Events::TrackedDeviceUserInteractionStarted(vr::TrackedDeviceIndex_t index)
 }
 
 xrt_result_t
-Events::HandleSessionEvents(openvr_logger &logger)
+Events::handleSessionEvents(openvr_logger &logger)
 {
 	xrt_session_event xse = {};
 	while (true) {
@@ -217,7 +217,7 @@ Events::HandleSessionEvents(openvr_logger &logger)
 }
 
 bool
-Events::PollEvent(openvr_logger &logger, vr::VREvent_t &out_event, uint32_t event_size)
+Events::pollEvent(openvr_logger &logger, vr::VREvent_t &out_event, uint32_t event_size)
 {
 	if (this->event_queue.empty()) {
 		return false;
@@ -228,7 +228,7 @@ Events::PollEvent(openvr_logger &logger, vr::VREvent_t &out_event, uint32_t even
 
 	auto &vr_event = event.event;
 
-	uint32_t required_size = GetEventSize(static_cast<vr::EVREventType>(vr_event.eventType));
+	uint32_t required_size = getEventSize(static_cast<vr::EVREventType>(vr_event.eventType));
 
 	// Event unsupported by client?
 	if (event_size < required_size) {

@@ -1350,6 +1350,9 @@ struct oxr_session
 	 */
 	XrViewConfigurationType current_view_config_type;
 
+	//! State of the head's XRT_INPUT_GENERIC_HEAD_DETECT input, for oxr_poll_event.
+	bool presence;
+
 	/*!
 	 * There is a extra state between xrBeginSession has been called and
 	 * the first xrEndFrame has been called. These are to track this.
@@ -2144,8 +2147,8 @@ struct oxr_body_tracker_fb
 	//! Owner of this face tracker.
 	struct oxr_session *sess;
 
-	//! xrt_device backing this face tracker
-	struct xrt_device *xdev;
+	//! xrt_body_tracker backing this body tracker
+	struct xrt_body_tracker *xbt;
 
 	//! Type of the body joint set e.g. XR_FB_body_tracking or XR_META_body_tracking_full_body
 	enum xrt_body_joint_set_type_fb joint_set_type;
@@ -2187,8 +2190,8 @@ struct oxr_body_tracker_bd
 	//! Owner of this body tracker.
 	struct oxr_session *sess;
 
-	//! xrt_device backing this body tracker
-	struct xrt_device *xdev;
+	//! xrt_body_tracker backing this body tracker
+	struct xrt_body_tracker *xbt;
 
 	//! Type of the body joint set (with or without arms)
 	enum xrt_body_joint_set_type_bd joint_set_type;

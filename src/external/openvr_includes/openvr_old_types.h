@@ -11,6 +11,12 @@
 #define VR_CAMERA_DECL_ALIGN(x) //
 #endif
 
+#if defined(_WIN32)
+#define OPENVR_FNTABLE_CALLTYPE __stdcall
+#else
+#define OPENVR_FNTABLE_CALLTYPE
+#endif
+
 namespace vr {
 
 /** These are states the scene application startup process will go through. */

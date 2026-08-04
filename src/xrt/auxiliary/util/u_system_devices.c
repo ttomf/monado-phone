@@ -1,4 +1,5 @@
 // Copyright 2026, Beyley Cardellio
+// Copyright 2026, NVIDIA CORPORATION.
 // SPDX-License-Identifier: BSL-1.0
 /*!
  * @file
@@ -22,6 +23,7 @@ u_system_devices_populate_function_pointers(struct xrt_system_devices *xsysd,
 	assert(destroy_fn != NULL);
 
 	xsysd->get_roles = get_roles_fn;
+	xsysd->create_body_tracker = u_system_devices_ni_create_body_tracker;
 	xsysd->create_hand_tracker = u_system_devices_ni_create_hand_tracker;
 	xsysd->feature_inc = u_system_devices_ni_feature_inc;
 	xsysd->feature_dec = u_system_devices_ni_feature_dec;

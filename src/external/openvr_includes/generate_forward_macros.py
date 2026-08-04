@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import argparse
+from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
 import re
@@ -15,6 +16,7 @@ import sys
 
 CLASS_PATTERN = re.compile(r"^\s*class\s+(?P<class_name>[A-Za-z_]\w*)\b")
 VERSIONED_CLASS_PATTERN = re.compile(r"^(?P<family>[A-Za-z_]\w*)_(?P<version>[0-9][0-9A-Za-z]*)$")
+FNTABLE_STRUCT_PATTERN = re.compile(r"^\s*struct\s+VR_(?P<class_name>[A-Za-z_]\w*)_FnTable\b")
 METHOD_PATTERN = re.compile(
     r"^virtual\s+(?P<return_type>.*?)\s*(?P<method_name>~?[A-Za-z_]\w*)\s*\((?P<params>.*)\)\s*(?P<qualifiers>[^;=]*)=\s*0\s*;$"
 )
@@ -38,16 +40,13 @@ def label_sort_key(label: str) -> tuple[tuple[int | str, ...], str]:
     return key, label.lower()
 
 
-def versioned_classes(header_text: str) -> list[tuple[str, str, list[str]]]:
-    lines = header_text.splitlines()
-    classes: list[tuple[str, str, list[str]]] = []
-
+def versioned_classes(header_text: str) -> Iterator[tuple[str, str, list[str]]]:
     current_class_name: str | None = None
     current_family: str | None = None
     current_lines: list[str] = []
     in_class = False
 
-    for line in lines:
+    for line in header_text.splitlines():
         if not in_class:
             match = CLASS_PATTERN.match(line)
             if match is None:
@@ -68,17 +67,14 @@ def versioned_classes(header_text: str) -> list[tuple[str, str, list[str]]]:
         if line.strip() == "};":
             assert current_class_name is not None
             assert current_family is not None
-            classes.append((current_family, current_class_name, current_lines))
+            yield current_family, current_class_name, current_lines
             current_class_name = None
             current_family = None
             current_lines = []
             in_class = False
 
-    return classes
 
-
-def split_top_level(text: str, delimiter: str) -> list[str]:
-    items: list[str] = []
+def split_top_level(text: str, delimiter: str) -> Iterator[str]:
     current: list[str] = []
     angle_depth = 0
     paren_depth = 0
@@ -110,21 +106,18 @@ def split_top_level(text: str, delimiter: str) -> list[str]:
             and bracket_depth == 0
             and brace_depth == 0
         ):
-            items.append("".join(current).strip())
+            yield "".join(current).strip()
             current = []
             continue
 
         current.append(char)
 
     if current:
-        items.append("".join(current).strip())
-
-    return items
+        yield "".join(current).strip()
 
 
 def strip_default_value(param_text: str) -> str:
-    pieces = split_top_level(param_text, "=")
-    return pieces[0].strip() if pieces else param_text.strip()
+    return next(split_top_level(param_text, "="), param_text.strip())
 
 
 def extract_param_name(param_text: str) -> str | None:
@@ -192,8 +185,7 @@ def parse_method(method_text: str, family: str, version: str, class_name: str) -
     )
 
 
-def class_methods(family: str, version: str, class_name: str, class_lines: list[str]) -> list[MethodDefinition]:
-    methods: list[MethodDefinition] = []
+def class_methods(family: str, version: str, class_name: str, class_lines: list[str]) -> Iterator[MethodDefinition]:
     current: list[str] = []
     collecting = False
 
@@ -208,11 +200,96 @@ def class_methods(family: str, version: str, class_name: str, class_lines: list[
         if collecting and "= 0;" in stripped:
             method = parse_method(" ".join(current), family, version, class_name)
             if method is not None:
-                methods.append(method)
+                yield method
             collecting = False
             current = []
 
-    return methods
+
+def collect_fntable_classes(header_text: str) -> set[str]:
+    return {m.group("class_name") for m in FNTABLE_STRUCT_PATTERN.finditer(header_text)}
+
+
+def collect_methods_per_version(header_text: str) -> dict[str, list[MethodDefinition]]:
+    result: dict[str, list[MethodDefinition]] = {}
+    for family, class_name, class_lines in versioned_classes(header_text):
+        family_match = VERSIONED_CLASS_PATTERN.match(class_name)
+        assert family_match is not None
+        version = family_match.group("version")
+        result[class_name] = list(class_methods(family, version, class_name, class_lines))
+    return result
+
+
+def parse_fntable_member(member_text: str, class_name: str) -> MethodDefinition | None:
+    stripped = member_text.strip()
+    if not stripped or stripped == "{" or stripped == "};":
+        return None
+
+    family_match = VERSIONED_CLASS_PATTERN.match(class_name)
+    if family_match is None:
+        return None
+
+    if not stripped.endswith(";") or "OPENVR_FNTABLE_CALLTYPE*" not in stripped:
+        return None
+
+    signature, params_part = stripped[:-1].split("(OPENVR_FNTABLE_CALLTYPE*", 1)
+    method_name, params_text = params_part.split(")(", 1)
+    params_text = params_text.rstrip(")")
+    return_type = signature.strip()
+    if not return_type:
+        return None
+
+    params = [] if not params_text else split_top_level(params_text, ",")
+    call_args = tuple(
+        name
+        for name in (extract_param_name(param) for param in params)
+        if name is not None
+    )
+
+    return MethodDefinition(
+        family=family_match.group("family"),
+        version=family_match.group("version"),
+        class_name=class_name,
+        return_type=return_type,
+        method_name=method_name.strip(),
+        params_text=params_text,
+        qualifiers="",
+        call_args=call_args,
+    )
+
+
+def collect_fntable_methods_per_version(header_text: str) -> dict[str, list[MethodDefinition]]:
+    lines = header_text.splitlines()
+    methods_by_class: dict[str, list[MethodDefinition]] = {}
+
+    current_class_name: str | None = None
+    current_lines: list[str] = []
+    in_struct = False
+
+    for line in lines:
+        if not in_struct:
+            match = FNTABLE_STRUCT_PATTERN.match(line)
+            if match is None:
+                continue
+
+            current_class_name = match.group("class_name")
+            current_lines = []
+            in_struct = True
+            continue
+
+        current_lines.append(line.strip())
+        if line.strip() == "};":
+            assert current_class_name is not None
+            methods: list[MethodDefinition] = []
+            for member_line in current_lines:
+                method = parse_fntable_member(member_line, current_class_name)
+                if method is not None:
+                    methods.append(method)
+            methods_by_class[current_class_name] = methods
+            current_class_name = None
+            current_lines = []
+            in_struct = False
+
+    return methods_by_class
 
 
 def collect_methods(header_text: str) -> tuple[dict[str, str], dict[str, list[MethodDefinition]]]:
@@ -257,6 +334,56 @@ def collect_methods(header_text: str) -> tuple[dict[str, str], dict[str, list[Me
     return latest_class_by_family, normalized_methods
 
 
+def params_without_defaults(params_text: str) -> str:
+    if not params_text:
+        return params_text
+    return ", ".join(strip_default_value(p) for p in split_top_level(params_text, ","))
+
+
+def normalize_type_text(type_text: str) -> str:
+    return re.sub(r"\s+", " ", type_text).strip()
+
+
+def fntable_lambda(method: MethodDefinition, class_method: MethodDefinition | None) -> str:
+    params = params_without_defaults(method.params_text)
+    call_args = ", ".join(method.call_args)
+    call_expression = f"s_instance->{method.method_name}( {call_args} )"
+
+    if method.return_type == "void":
+        return f"[]( {params} ) {{ {call_expression}; }}"
+
+    class_return_type = method.return_type if class_method is None else class_method.return_type
+    if (
+        "const" in normalize_type_text(class_return_type)
+        and "const" not in normalize_type_text(method.return_type)
+        and normalize_type_text(class_return_type).replace("const ", "")
+        == normalize_type_text(method.return_type).replace("const ", "")
+    ):
+        call_expression = f"const_cast<{method.return_type}>({call_expression})"
+
+    return f"[]( {params} ) -> {method.return_type} {{ return {call_expression}; }}"
+
+
+def generate_fntable_macro(
+    class_name: str, methods: list[MethodDefinition], class_methods: list[MethodDefinition]
+) -> Iterator[str]:
+    class_methods_by_name = {method.method_name: method for method in class_methods}
+    struct_type = f"vr::VR_{class_name}_FnTable"
+    instance_type = f"vr::{class_name}"
+    yield f"// Usage: place FnTable_{class_name}() inside the body of a class inheriting {class_name}"
+    yield f"#define FnTable_{class_name}() \\"
+    yield f"    void *getFnTable() \\"
+    yield f"    {{ \\"
+    yield f"        static {instance_type} *s_instance = nullptr; \\"
+    yield f"        static {struct_type} s_table{{ \\"
+    for method in methods:
+        yield f"            {fntable_lambda(method, class_methods_by_name.get(method.method_name))}, \\"
+    yield f"        }}; \\"
+    yield f"        s_instance = static_cast<{instance_type} *>(this); \\"
+    yield f"        return &s_table; \\"
+    yield f"    }}"
+
+
 def macro_name(method: MethodDefinition, overload_suffix: str | None) -> str:
     if overload_suffix is None:
         return f"Forward_{method.family}_{method.method_name}"
@@ -289,29 +416,29 @@ def forward_body(method: MethodDefinition) -> str:
     )
 
 
-def generate_header(header_name: str, latest_class_by_family: dict[str, str], methods_by_family: dict[str, list[MethodDefinition]]) -> str:
-    lines = [
-        "//========= Copyright Valve Corporation ============//",
-        "",
-        "#pragma once",
-        "",
-        f'#include "{header_name}"',
-        "",
-        "// Generated forwarding macros for implementing older OpenVR interfaces on top of a newer concrete class.",
-        "// Usage pattern:",
-        "//   ForwardDeclareBase_IVRSystem(XRTVRSystem_026)",
-        "//   Forward_IVRSystem_GetRecommendedRenderTargetSize()",
-        "",
-    ]
+def generate_header(
+    header_name: str,
+    latest_class_by_family: dict[str, str],
+    methods_by_family: dict[str, list[MethodDefinition]],
+    class_methods_per_version: dict[str, list[MethodDefinition]],
+    fntable_methods_per_version: dict[str, list[MethodDefinition]],
+) -> Iterator[str]:
+    yield "//========= Copyright Valve Corporation ============//"
+    yield ""
+    yield "#pragma once"
+    yield ""
+    yield f'#include "{header_name}"'
+    yield ""
+    yield "// Generated forwarding macros for implementing older OpenVR interfaces on top of a newer concrete class."
+    yield "// Usage pattern:"
+    yield "//   ForwardDeclareBase_IVRSystem(XRTVRSystem_026)"
+    yield "//   Forward_IVRSystem_GetRecommendedRenderTargetSize()"
+    yield ""
 
     for family in sorted(methods_by_family):
-        lines.extend(
-            (
-                f"// {family} forwards to a caller-provided base, typically {latest_class_by_family[family]}.",
-                f"#define ForwardDeclareBase_{family}(BaseType) using ForwardBase_{family} = BaseType",
-                "",
-            )
-        )
+        yield f"// {family} forwards to a caller-provided base, typically {latest_class_by_family[family]}."
+        yield f"#define ForwardDeclareBase_{family}(BaseType) using ForwardBase_{family} = BaseType"
+        yield ""
 
         methods = methods_by_family[family]
         overload_counts: dict[str, int] = {}
@@ -332,14 +459,25 @@ def generate_header(header_name: str, latest_class_by_family: dict[str, str], me
                     suffix = f"{method.version}_{version_positions[method.version]}"
 
             macro = macro_name(method, suffix)
-            lines.append(
-                f"// {method.class_name}::{method.method_name}"
-            )
-            lines.append(f"#define {macro}() \\")
-            lines.append(f"    {forward_body(method)}")
-            lines.append("")
+            yield f"// {method.class_name}::{method.method_name}"
+            yield f"#define {macro}() \\"
+            yield f"    {forward_body(method)}"
+            yield ""
 
-    return "\n".join(lines).rstrip() + "\n"
+    fntable_class_names = sorted(
+        class_name for class_name, methods in fntable_methods_per_version.items() if methods
+    )
+    if fntable_class_names:
+        yield "// FnTable macros: implement getFnTable() for each versioned interface."
+        yield "// Usage: place FnTable_IVRSystem_026() inside the body of a class inheriting IVRSystem_026."
+        yield ""
+        for class_name in fntable_class_names:
+            yield from generate_fntable_macro(
+                class_name,
+                fntable_methods_per_version[class_name],
+                class_methods_per_version.get(class_name, []),
+            )
+            yield ""
 
 
 def main() -> int:
@@ -380,13 +518,26 @@ def main() -> int:
         print(f"No versioned interface methods found in {input_file}", file=sys.stderr)
         return 1
 
+    class_methods_per_version = collect_methods_per_version(header_text)
+    fntable_methods_per_version = collect_fntable_methods_per_version(header_text)
+
     include_name = args.include
     output_file.write_text(
-        generate_header(include_name, latest_class_by_family, methods_by_family),
+        "\n".join(
+            generate_header(
+                include_name,
+                latest_class_by_family,
+                methods_by_family,
+                class_methods_per_version,
+                fntable_methods_per_version,
+            )
+        ).rstrip()
+        + "\n",
         encoding="utf-8",
     )
-    macro_count = sum(len(methods) for methods in methods_by_family.values())
-    print(f"Wrote {macro_count} forwarding macro(s) to {output_file}")
+    forward_count = sum(len(methods) for methods in methods_by_family.values())
+    fntable_count = sum(1 for methods in fntable_methods_per_version.values() if methods)
+    print(f"Wrote {forward_count} forwarding macro(s) and {fntable_count} FnTable macro(s) to {output_file}")
     return 0
 
 

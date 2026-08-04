@@ -135,6 +135,24 @@ is_session_link_to_event(struct oxr_event *event, XrSession session)
 		XrEventDataReferenceSpaceChangePending *pending = (XrEventDataReferenceSpaceChangePending *)type;
 		return pending->session == session;
 	}
+#ifdef OXR_HAVE_KHR_visibility_mask
+	case XR_TYPE_EVENT_DATA_VISIBILITY_MASK_CHANGED_KHR: {
+		XrEventDataVisibilityMaskChangedKHR *changed = (XrEventDataVisibilityMaskChangedKHR *)type;
+		return changed->session == session;
+	}
+#endif // OXR_HAVE_KHR_visibility_mask
+#ifdef OXR_HAVE_EXT_user_presence
+	case XR_TYPE_EVENT_DATA_USER_PRESENCE_CHANGED_EXT: {
+		XrEventDataUserPresenceChangedEXT *changed = (XrEventDataUserPresenceChangedEXT *)type;
+		return changed->session == session;
+	}
+#endif // OXR_HAVE_EXT_user_presence
+#ifdef OXR_HAVE_ML_localization_map
+	case XR_TYPE_EVENT_DATA_LOCALIZATION_CHANGED_ML: {
+		XrEventDataLocalizationChangedML *changed = (XrEventDataLocalizationChangedML *)type;
+		return changed->session == session;
+	}
+#endif // OXR_HAVE_ML_localization_map
 	default: return false;
 	}
 }
@@ -372,22 +390,32 @@ oxr_event_remove_session_events(struct oxr_logger *log, struct oxr_session *sess
 
 	lock(inst);
 
+	struct oxr_event *prev = NULL;
 	struct oxr_event *e = inst->event.next;
 	while (e != NULL) {
 		struct oxr_event *cur = e;
 		e = e->next;
 
 		if (!is_session_link_to_event(cur, session)) {
+			prev = cur;
 			continue;
+		}
+
+		// Unlink cur, keeping the predecessor's next pointer valid.
+		if (prev != NULL) {
+			prev->next = cur->next;
 		}
 
 		if (cur == inst->event.next) {
 			inst->event.next = cur->next;
 		}
 
+		// The new tail is the last retained node (prev), or NULL if
+		// nothing was kept before cur.
 		if (cur == inst->event.last) {
-			inst->event.last = NULL;
+			inst->event.last = prev;
 		}
+
 		free(cur);
 	}
 

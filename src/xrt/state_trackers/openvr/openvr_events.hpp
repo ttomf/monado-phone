@@ -43,18 +43,18 @@ public: // Methods
 	Events(xrt_session *xs);
 
 	void
-	TrackedDeviceActivated(vr::TrackedDeviceIndex_t index);
+	trackedDeviceActivated(vr::TrackedDeviceIndex_t index);
 
 	void
-	TrackedDeviceUserInteractionStarted(vr::TrackedDeviceIndex_t index);
+	trackedDeviceUserInteractionStarted(vr::TrackedDeviceIndex_t index);
 
 	//! Handles active XRT session events, and pushes corresponding OpenVR events to the event queue.
 	xrt_result_t
-	HandleSessionEvents(openvr_logger &logger);
+	handleSessionEvents(openvr_logger &logger);
 
 	//! Polls a single event from the event queue, if no event is available then `false` will be returned.
 	bool
-	PollEvent(openvr_logger &logger, vr::VREvent_t &out_event, uint32_t event_size);
+	pollEvent(openvr_logger &logger, vr::VREvent_t &out_event, uint32_t event_size);
 };
 
 }; // namespace xrt::state_trackers::openvr

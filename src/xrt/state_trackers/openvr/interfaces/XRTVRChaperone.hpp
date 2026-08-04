@@ -11,11 +11,14 @@
 #pragma once
 
 #include "openvr_interfaces_unified.h"
+#include "openvr_forward_macros.h"
 
 #include "XRTVRClientCore.hpp"
 
 
 namespace xrt::state_trackers::openvr {
+
+using namespace vr;
 
 class XRTVRChaperone_004 : public vr::IVRChaperone_004
 {
@@ -26,6 +29,8 @@ public:
 	XRTVRChaperone_004(XRTVRClientCore_003 *clientCore);
 
 	virtual ~XRTVRChaperone_004() = default;
+
+	FnTable_IVRChaperone_004();
 
 	vr::ChaperoneCalibrationState
 	GetCalibrationState() override;

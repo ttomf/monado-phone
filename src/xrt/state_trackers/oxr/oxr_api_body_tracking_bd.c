@@ -72,7 +72,7 @@ oxr_xrLocateBodyJointsBD(XrBodyTrackerBD bodyTracker,
 	OXR_VERIFY_ARG_TYPE_AND_NOT_NULL(&log, locateInfo, XR_TYPE_BODY_JOINTS_LOCATE_INFO_BD);
 	OXR_VERIFY_ARG_TYPE_AND_NOT_NULL(&log, locations, XR_TYPE_BODY_JOINT_LOCATIONS_BD);
 	OXR_VERIFY_SESSION_NOT_LOST(&log, body_tracker_bd->sess);
-	OXR_VERIFY_ARG_NOT_NULL(&log, body_tracker_bd->xdev);
+	OXR_VERIFY_ARG_NOT_NULL(&log, body_tracker_bd->xbt);
 	OXR_VERIFY_ARG_NOT_NULL(&log, locations->jointLocations);
 	OXR_VERIFY_SPACE_NOT_NULL(&log, locateInfo->baseSpace, base_spc);
 

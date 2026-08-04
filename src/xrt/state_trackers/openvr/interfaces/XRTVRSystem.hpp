@@ -11,11 +11,14 @@
 #pragma once
 
 #include "openvr_interfaces_unified.h"
+#include "openvr_forward_macros.h"
 
 #include "XRTVRClientCore.hpp"
 
 
 namespace xrt::state_trackers::openvr {
+
+using namespace vr;
 
 class XRTVRSystem_026 : public vr::IVRSystem_026
 {
@@ -26,6 +29,8 @@ public:
 	XRTVRSystem_026(XRTVRClientCore_003 *core);
 
 	virtual ~XRTVRSystem_026() = default;
+
+	FnTable_IVRSystem_026();
 
 	/* Display Methods */
 

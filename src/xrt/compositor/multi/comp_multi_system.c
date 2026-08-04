@@ -671,7 +671,6 @@ system_compositor_set_z_order(struct xrt_system_compositor *xsc, struct xrt_comp
 
 	//! @todo Locking?
 	mc->state.z_order = z_order;
-	os_mutex_unlock(&msc->list_and_timing_lock);
 
 	return XRT_SUCCESS;
 }

@@ -16,6 +16,7 @@
 #include "util/u_system_devices.h"
 
 #include "b_system.h"
+#include "b_body_tracker.h"
 #include "b_hand_tracker.h"
 
 #include "target_builder_helpers.h"
@@ -43,6 +44,14 @@ sdl_system_devices_get_roles(struct xrt_system_devices *xsysd, struct xrt_system
 	*out_roles = roles;
 
 	return XRT_SUCCESS;
+}
+
+static xrt_result_t
+sdl_system_devices_create_body_tracker(struct xrt_system_devices *xsysd,
+                                       const struct xrt_body_tracker_create_info *info,
+                                       struct xrt_body_tracker **out_xbt)
+{
+	return b_body_tracker_create(xsysd, info, out_xbt);
 }
 
 static xrt_result_t
@@ -146,6 +155,7 @@ sdl_system_devices_init(struct sdl_program *sp)
 {
 	u_system_devices_populate_function_pointers(&sp->xsysd_base, sdl_system_devices_get_roles,
 	                                            sdl_system_devices_destroy);
+	sp->xsysd_base.create_body_tracker = sdl_system_devices_create_body_tracker;
 	sp->xsysd_base.create_hand_tracker = sdl_system_devices_create_hand_tracker;
 
 #ifdef USE_SIMULATED

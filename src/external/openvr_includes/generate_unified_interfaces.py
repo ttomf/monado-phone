@@ -17,6 +17,7 @@ import sys
 
 JSON_PATTERN = "openvr_api_v*.json"
 HEADER_PATTERN = "openvr_{version}.h"
+CAPI_HEADER_PATTERN = "openvr_capi_{version}.h"
 
 
 @dataclass(frozen=True)
@@ -25,6 +26,7 @@ class InterfaceDefinition:
     interface_version: str
     source_version: str
     header_path: Path
+    fn_table_text: str | None = None
 
 
 def version_sort_key(version: str) -> tuple[tuple[int | str, ...], str]:
@@ -101,6 +103,11 @@ def collect_interfaces(input_dir: Path) -> dict[str, InterfaceDefinition]:
             print(f"Skipping {json_path.name}: could not read interface versions", file=sys.stderr)
             continue
 
+        capi_header_path = input_dir / CAPI_HEADER_PATTERN.format(version=source_version)
+        capi_header_text: str | None = None
+        if capi_header_path.exists():
+            capi_header_text = read_header_text(capi_header_path)
+
         for class_name, interface_version in interface_versions.items():
             header_text = header_text_cache.get(header_path)
             if header_text is None:
@@ -110,11 +117,19 @@ def collect_interfaces(input_dir: Path) -> dict[str, InterfaceDefinition]:
             if extract_class_definition(header_text, class_name) is None:
                 continue
 
+            fn_table_text: str | None = None
+            if capi_header_text is not None:
+                raw_fn_table = extract_struct_definition(capi_header_text, f"VR_{class_name}_FnTable")
+                if raw_fn_table is not None:
+                    renamed_fn_table = rename_fntable_definition(raw_fn_table, class_name, interface_version)
+                    fn_table_text = normalize_class_definition(renamed_fn_table)
+
             definitions[interface_version] = InterfaceDefinition(
                 class_name=class_name,
                 interface_version=interface_version,
                 source_version=source_version,
                 header_path=header_path,
+                fn_table_text=fn_table_text,
             )
 
     return definitions
@@ -236,6 +251,32 @@ def normalize_class_definition(definition: str) -> str:
     return "\n".join(normalized_lines)
 
 
+def extract_struct_definition(header_text: str, struct_name: str) -> str | None:
+    lines = header_text.splitlines(keepends=True)
+    struct_index = None
+    struct_pattern = re.compile(rf"^\s*struct\s+{re.escape(struct_name)}\b")
+    for index, line in enumerate(lines):
+        if struct_pattern.search(line):
+            struct_index = index
+            break
+    if struct_index is None:
+        return None
+    end_index = None
+    for index in range(struct_index, len(lines)):
+        if lines[index].strip() == "};":
+            end_index = index
+            break
+    if end_index is None:
+        return None
+    return "".join(lines[struct_index:end_index + 1]).rstrip()
+
+
+def rename_fntable_definition(definition: str, class_name: str, interface_version: str) -> str:
+    old_name = f"VR_{class_name}_FnTable"
+    new_name = f"VR_{interface_version}_FnTable"
+    return re.sub(rf"\b{re.escape(old_name)}\b", new_name, definition)
+
+
 def rename_class_definition(definition: str, class_name: str, interface_version: str) -> str:
     renamed = re.sub(
         rf"\bclass\s+{re.escape(class_name)}\b",
@@ -261,7 +302,7 @@ def run_clang_format(path: Path) -> None:
 
 def generate_header(definitions: dict[str, InterfaceDefinition], include_name: str) -> str:
     header_text_cache: dict[Path, str] = {}
-    blocks: list[tuple[str, str]] = []
+    blocks: list[tuple[str, str, str | None]] = []
 
     ordered_definitions = sorted(
         definitions.values(),
@@ -291,7 +332,7 @@ def generate_header(definitions: dict[str, InterfaceDefinition], include_name: s
             definition.interface_version,
         )
         blocks.append(
-            (definition.interface_version, normalize_class_definition(renamed_definition))
+            (definition.interface_version, normalize_class_definition(renamed_definition), definition.fn_table_text)
         )
 
     output_lines = [
@@ -309,13 +350,16 @@ def generate_header(definitions: dict[str, InterfaceDefinition], include_name: s
         "{",
     ]
 
-    for version_name, block in blocks:
+    for version_name, block, fn_table_text in blocks:
         output_lines.append(
             f'static const char * const {version_name}_Version = "{version_name}";'
         )
         output_lines.append("")
         output_lines.append(block)
         output_lines.append("")
+        if fn_table_text is not None:
+            output_lines.append(fn_table_text)
+            output_lines.append("")
         output_lines.append("")
 
     if output_lines[-1] == "":

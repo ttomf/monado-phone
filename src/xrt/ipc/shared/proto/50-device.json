@@ -130,15 +130,6 @@
 		]
 	},
 
-	"device_get_presence": {
-		"in": [
-			{"name": "id", "type": "uint32_t"}
-		],
-		"out": [
-			{"name": "presence", "type": "bool"}
-		]
-	},
-
 	"device_set_output": {
 		"in": [
 			{"name": "id", "type": "uint32_t"},
@@ -287,5 +278,5 @@
 		"out": [
 			{"name": "info", "type": "struct xrt_device_compositor_info"}
 		]
-	} 
+	}
 }

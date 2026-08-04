@@ -11,6 +11,7 @@
 #pragma once
 
 #include "openvr_interfaces_unified.h"
+#include "openvr_forward_macros.h"
 
 #include "XRTVRClientCore.hpp"
 
@@ -18,6 +19,8 @@
 
 
 namespace xrt::state_trackers::openvr {
+
+using namespace vr;
 
 class XRTVRCompositor_029 : public vr::IVRCompositor_029
 {
@@ -28,6 +31,8 @@ public:
 	XRTVRCompositor_029(XRTVRClientCore_003 *core);
 
 	virtual ~XRTVRCompositor_029() = default;
+
+	FnTable_IVRCompositor_029();
 
 	void
 	SetTrackingSpace(vr::ETrackingUniverseOrigin eOrigin) override;

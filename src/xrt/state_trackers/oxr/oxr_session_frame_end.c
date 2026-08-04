@@ -389,10 +389,8 @@ verify_blend_factors(struct oxr_logger *log,
 			                 layer_index, alphaBlend->dstFactorAlpha);
 		}
 	}
-#else
-	// Extension isn't enabled, always pass.
-	return XR_SUCCESS;
 #endif
+	return XR_SUCCESS;
 }
 
 static XrResult

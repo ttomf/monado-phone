@@ -553,14 +553,6 @@ struct xrt_device
 	xrt_result_t (*get_output_limits)(struct xrt_device *xdev, struct xrt_output_limits *limits);
 
 	/*!
-	 * @brief Get current presence status of the device.
-	 *
-	 * @param[in] xdev           The device.
-	 * @param[out] presence      The returned presence status.
-	 */
-	xrt_result_t (*get_presence)(struct xrt_device *xdev, bool *presence);
-
-	/*!
 	 * Begin a plane detection request
 	 *
 	 * @param[in] xdev               The device.
@@ -960,23 +952,6 @@ xrt_device_get_output_limits(struct xrt_device *xdev, struct xrt_output_limits *
 {
 	if (xdev->get_output_limits) {
 		return xdev->get_output_limits(xdev, limits);
-	} else {
-		return XRT_ERROR_NOT_IMPLEMENTED;
-	}
-}
-
-/*!
- * Helper function for @ref xrt_device::get_presence.
- *
- * @copydoc xrt_device::get_presence
- *
- * @public @memberof xrt_device
- */
-XRT_NONNULL_ALL static inline xrt_result_t
-xrt_device_get_presence(struct xrt_device *xdev, bool *presence)
-{
-	if (xdev->get_presence) {
-		return xdev->get_presence(xdev, presence);
 	} else {
 		return XRT_ERROR_NOT_IMPLEMENTED;
 	}

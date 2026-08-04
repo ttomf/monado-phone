@@ -16,16 +16,16 @@
 namespace xrt::state_trackers::openvr {
 
 void
-xrt_pose_to_openvr_hmd_matrix34(const xrt_pose &pose, vr::HmdMatrix34_t &openvr_mat)
+xrtPoseToHmdMatrix34(const xrt_pose &pose, vr::HmdMatrix34_t &openvr_mat)
 {
 	struct xrt_matrix_4x4 mat;
 	math_matrix_4x4_isometry_from_pose(&pose, &mat);
 
-	xrt_matrix_4x4_to_openvr_hmd_matrix34(mat, openvr_mat);
+	xrtMatrix4x4ToHmdMatrix34(mat, openvr_mat);
 }
 
 void
-xrt_matrix_4x4_to_openvr_hmd_matrix34(const xrt_matrix_4x4 &mat, vr::HmdMatrix34_t &openvr_mat)
+xrtMatrix4x4ToHmdMatrix34(const xrt_matrix_4x4 &mat, vr::HmdMatrix34_t &openvr_mat)
 {
 	for (int row = 0; row < 3; row++) {
 		for (int col = 0; col < 4; col++) {
@@ -36,7 +36,7 @@ xrt_matrix_4x4_to_openvr_hmd_matrix34(const xrt_matrix_4x4 &mat, vr::HmdMatrix34
 }
 
 void
-openvr_hmd_matrix34_identity(vr::HmdMatrix34_t &mat)
+hmdMatrix34Identity(vr::HmdMatrix34_t &mat)
 {
 	std::memset(&mat, 0, sizeof(mat));
 	mat.m[0][0] = 1.0f;

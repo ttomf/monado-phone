@@ -135,7 +135,7 @@ do_print(struct openvr_logger &logger, const char *fmt, const char *prefix, va_l
 }
 
 void
-openvr_log_init(struct openvr_logger &logger, const char *class_name, const char *api_func_name)
+openvrLogInit(struct openvr_logger &logger, const char *class_name, const char *api_func_name)
 {
 	logger.class_name = class_name;
 	logger.api_func_name = api_func_name;
@@ -147,7 +147,7 @@ openvr_log_init(struct openvr_logger &logger, const char *class_name, const char
 }
 
 void
-openvr_log(struct openvr_logger &logger, u_logging_level log_level, const char *fmt, ...)
+openvrLog(struct openvr_logger &logger, u_logging_level log_level, const char *fmt, ...)
 {
 	if (CHECK_SHOULD_NOT_PRINT) {
 		return;

@@ -75,25 +75,25 @@ XRTVRClientCore_003::Init(vr::EVRApplicationType eApplicationType, const char *p
 	xret = xrt_instance_create(&i_info, &this->xinst);
 	if (xret != XRT_SUCCESS) {
 		OPENVR_LOG_ERROR_XRET(logger, "Failed to create xrt_instance", xret);
-		return xret_to_init_error(xret);
+		return xretToInitError(xret);
 	}
 
 	bool is_available;
 	xret = xrt_instance_is_system_available(this->xinst, &is_available);
 	if (xret != XRT_SUCCESS) {
 		OPENVR_LOG_ERROR_XRET(logger, "Failed to check if system is available", xret);
-		return xret_to_init_error(xret);
+		return xretToInitError(xret);
 	}
 
 	if (!is_available) {
 		return vr::EVRInitError::VRInitError_Init_HmdNotFound;
 	}
 
-	xret = xrt_instance_create_system(this->xinst, &this->xsys, &this->xsysd, &this->xso,
-	                                  this->IsHeadless() ? nullptr : &this->xsysc);
+	// @note We need an xsysc here since `getVulkanOutputDevice` must work in a headless session.
+	xret = xrt_instance_create_system(this->xinst, &this->xsys, &this->xsysd, &this->xso, &this->xsysc);
 	if (xret != XRT_SUCCESS) {
 		OPENVR_LOG_ERROR_XRET(logger, "Failed to create xrt_system", xret);
-		return xret_to_init_error(xret);
+		return xretToInitError(xret);
 	}
 
 	xrt_session_info xsi = {
@@ -101,10 +101,10 @@ XRTVRClientCore_003::Init(vr::EVRApplicationType eApplicationType, const char *p
 	    .flags = 0,
 	    .z_order = 0,
 	};
-	xret = xrt_system_create_session(this->xsys, &xsi, &this->xs, this->IsHeadless() ? nullptr : &this->xcn);
+	xret = xrt_system_create_session(this->xsys, &xsi, &this->xs, this->isHeadless() ? nullptr : &this->xcn);
 	if (xret != XRT_SUCCESS) {
 		OPENVR_LOG_ERROR_XRET(logger, "Failed to create xrt_session", xret);
-		return xret_to_init_error(xret);
+		return xretToInitError(xret);
 	}
 
 	this->events = std::make_shared<Events>(this->xs);
@@ -188,19 +188,34 @@ XRTVRClientCore_003::GetGenericInterface(const char *pchNameAndVersion, vr::EVRI
 
 	SET_ERROR(peError, vr::EVRInitError::VRInitError_None);
 
-	OPENVR_LOG_TRACE(logger, "GetGenericInterface called with '%s'", pchNameAndVersion);
+	std::string interface_name(pchNameAndVersion);
+
+	OPENVR_LOG_TRACE(logger, "GetGenericInterface called with '%s'", interface_name.c_str());
+
+	static const std::string fntable_prefix = "FnTable:";
+
+	bool fntable = interface_name.starts_with(fntable_prefix);
+
+	// Trim the C prefix
+	if (fntable) {
+		interface_name = pchNameAndVersion + fntable_prefix.length();
+	}
 
 #define GET_CORE_INTERFACE(name, version)                                                                              \
-	if (std::strcmp(pchNameAndVersion, vr::I##name##version##_Version) == 0) {                                     \
+	if (std::strcmp(interface_name.c_str(), vr::I##name##version##_Version) == 0) {                                \
 		return static_cast<vr::I##name##version *>(this);                                                      \
 	}
 	SUPPORTED_CORE_INTERFACES(GET_CORE_INTERFACE)
 #undef GET_CORE_INTERFACE
 
 #define GET_INTERFACE(name, version_suffix)                                                                            \
-	if (std::strcmp(pchNameAndVersion, vr::I##name##version_suffix##_Version) == 0) {                              \
+	if (std::strcmp(interface_name.c_str(), vr::I##name##version_suffix##_Version) == 0) {                         \
 		if (!this->name##version_suffix) {                                                                     \
 			this->name##version_suffix = std::make_shared<XRT##name##version_suffix>(this);                \
+		}                                                                                                      \
+		if (fntable) {                                                                                         \
+			return static_cast<XRT##name##version_suffix *>(this->name##version_suffix.get())              \
+			    ->getFnTable();                                                                            \
 		}                                                                                                      \
 		return this->name##version_suffix.get();                                                               \
 	}
@@ -209,7 +224,7 @@ XRTVRClientCore_003::GetGenericInterface(const char *pchNameAndVersion, vr::EVRI
 
 	SET_ERROR(peError, vr::EVRInitError::VRInitError_Init_InterfaceNotFound);
 
-	OPENVR_LOG_WARN(logger, "Requested interface '%s' is not supported.", pchNameAndVersion);
+	OPENVR_LOG_WARN(logger, "Requested interface '%s' is not supported.", interface_name.c_str());
 
 	return nullptr;
 }

@@ -74,7 +74,7 @@ public: // Fields
 
 private: // Methods
 	void
-	AddDevice(openvr_logger &logger, vr::TrackedDeviceIndex_t index, xrt_device *xdev);
+	addDevice(openvr_logger &logger, vr::TrackedDeviceIndex_t index, xrt_device *xdev);
 
 public: // Methods
 	Devices() = default;
@@ -90,24 +90,24 @@ public: // Methods
 	 * @return An optional containing the device if it exists, or std::nullopt if it does not.
 	 */
 	std::optional<Device *>
-	GetDevice(vr::TrackedDeviceIndex_t index);
+	getDevice(vr::TrackedDeviceIndex_t index);
 
 	void
-	TrackDevices(openvr_logger &logger,
+	trackDevices(openvr_logger &logger,
 	             timepoint_ns when_ns,
 	             vr::ETrackingUniverseOrigin universe,
 	             vr::TrackedDevicePose_t *poses,
 	             uint32_t pose_count);
 
 	bool
-	GetDeviceStringProperty(openvr_logger &logger,
+	getDeviceStringProperty(openvr_logger &logger,
 	                        vr::TrackedDeviceIndex_t device_index,
 	                        vr::ETrackedDeviceProperty prop,
 	                        std::string &out_str,
 	                        vr::ETrackedPropertyError *pError);
 
 	bool
-	GetTrackedDeviceActivityLevel(openvr_logger &logger,
+	getTrackedDeviceActivityLevel(openvr_logger &logger,
 	                              vr::TrackedDeviceIndex_t device_index,
 	                              vr::EDeviceActivityLevel &activity_level);
 };

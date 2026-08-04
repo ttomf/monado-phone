@@ -31,6 +31,8 @@ public:
 	XRTVRSystem_020(XRTVRClientCore_003 *core) : XRTVRSystem_021(core) {};
 	// clang-format on
 
+	FnTable_IVRSystem_020();
+
 	ForwardDeclareBase_IVRSystem(XRTVRSystem_021);
 
 	Forward_IVRSystem_GetRecommendedRenderTargetSize();

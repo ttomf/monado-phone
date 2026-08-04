@@ -28,7 +28,7 @@ namespace xrt::state_trackers::openvr {
  */
 
 xrt_result_t
-SwapchainCache::EnsureSwapchain(xrt_compositor *xc,
+SwapchainCache::ensureSwapchain(xrt_compositor *xc,
                                 uint32_t storage_format,
                                 uint32_t sample_format,
                                 uint32_t width,
@@ -91,7 +91,7 @@ SwapchainCache::EnsureSwapchain(xrt_compositor *xc,
 }
 
 void
-SwapchainCache::Reset()
+SwapchainCache::reset()
 {
 	this->width = 0;
 	this->height = 0;
@@ -105,7 +105,7 @@ SwapchainCache::Reset()
 
 SwapchainCache::~SwapchainCache()
 {
-	this->Reset();
+	this->reset();
 }
 
 /*
@@ -125,11 +125,11 @@ Compositor::~Compositor()
 {
 	// Wipe the swapchain caches, since we're about to destroy the compositor, and we want to make sure the
 	// swapchains are released before the compositor is destroyed.
-	this->swapchain_caches[0].Reset();
-	this->swapchain_caches[1].Reset();
+	this->swapchain_caches[0].reset();
+	this->swapchain_caches[1].reset();
 
 #ifdef XRT_HAVE_VULKAN
-	this->DestroyVulkanResources();
+	this->destroyVulkanResources();
 #endif
 
 	if (this->active_compositor) {
@@ -137,9 +137,8 @@ Compositor::~Compositor()
 	}
 }
 
-
 vr::EVRCompositorError
-Compositor::WaitBeginFrame(openvr_logger &logger)
+Compositor::waitBeginFrame(openvr_logger &logger)
 {
 	xrt_result_t xret;
 
@@ -150,7 +149,7 @@ Compositor::WaitBeginFrame(openvr_logger &logger)
 	if (this->active_frame.has_value()) {
 		xret = xrt_comp_discard_frame(this->active_compositor, this->active_frame->frame_id);
 		if (xret != XRT_SUCCESS) {
-			return xret_to_compositor_error(xret);
+			return xretToCompositorError(xret);
 		}
 
 		this->active_frame.reset();
@@ -164,12 +163,12 @@ Compositor::WaitBeginFrame(openvr_logger &logger)
 	xret = xrt_comp_wait_frame(this->active_compositor, &frame_state.frame_id, &frame_state.predicted_display_time,
 	                           &frame_state.predicted_display_period);
 	if (xret != XRT_SUCCESS) {
-		return xret_to_compositor_error(xret);
+		return xretToCompositorError(xret);
 	}
 
 	xret = xrt_comp_begin_frame(this->active_compositor, frame_state.frame_id);
 	if (xret != XRT_SUCCESS) {
-		return xret_to_compositor_error(xret);
+		return xretToCompositorError(xret);
 	}
 
 	// We got a frame, we can set it as the active one, now
@@ -183,10 +182,10 @@ Compositor::WaitBeginFrame(openvr_logger &logger)
 	std::array<xrt_fov, 2> fovs;
 	std::array<xrt_pose, 2> poses;
 	xrt_pose head_relation;
-	xret = this->GetFrameRenderState(fovs, poses, head_relation);
+	xret = this->getFrameRenderState(fovs, poses, head_relation);
 	if (xret != XRT_SUCCESS) {
 		OPENVR_LOG_ERROR_XRET(logger, "Failed to cache output data for frame", xret);
-		return xret_to_compositor_error(xret);
+		return xretToCompositorError(xret);
 	}
 
 	this->render_state_cache = {
@@ -196,7 +195,7 @@ Compositor::WaitBeginFrame(openvr_logger &logger)
 	};
 
 	// Handle session events after begin frame
-	xret = this->events->HandleSessionEvents(logger);
+	xret = this->events->handleSessionEvents(logger);
 	if (xret != XRT_SUCCESS) {
 		OPENVR_LOG_ERROR_XRET(logger, "Failed to handle session events, non-fatal so just continuing.", xret);
 	}
@@ -205,7 +204,7 @@ Compositor::WaitBeginFrame(openvr_logger &logger)
 }
 
 vr::EVRCompositorError
-Compositor::Submit(openvr_logger &logger,
+Compositor::submit(openvr_logger &logger,
                    vr::EVREye eye,
                    const vr::Texture_t &texture,
                    const vr::VRTextureBounds_t &bounds,
@@ -221,6 +220,10 @@ Compositor::Submit(openvr_logger &logger,
 		return vr::EVRCompositorError::VRCompositorError_IsNotSceneApplication;
 	}
 
+	if (texture.handle == nullptr) {
+		return vr::EVRCompositorError::VRCompositorError_InvalidTexture;
+	}
+
 	// Eye has already been submit
 	if (this->frame_eye_states[eye].has_value()) {
 		OPENVR_LOG_ERROR(logger, "Already submitted for eye %d in this frame.", eye);
@@ -231,7 +234,7 @@ Compositor::Submit(openvr_logger &logger,
 #ifdef XRT_HAVE_VULKAN
 	case vr::ETextureType::TextureType_Vulkan: {
 		// Supported.
-		auto error = this->SubmitVulkan(logger, eye, *static_cast<vr::VRVulkanTextureData_t *>(texture.handle),
+		auto error = this->submitVulkan(logger, eye, *static_cast<vr::VRVulkanTextureData_t *>(texture.handle),
 		                                texture.eColorSpace, bounds);
 
 		if (error != vr::EVRCompositorError::VRCompositorError_None) {
@@ -251,14 +254,14 @@ Compositor::Submit(openvr_logger &logger,
 
 	// We have a value for both eyes, a frame is completed
 	if (this->frame_eye_states[0].has_value() && this->frame_eye_states[1].has_value()) {
-		this->CompleteFrame(logger);
+		this->completeFrame(logger);
 	}
 
 	return vr::EVRCompositorError::VRCompositorError_None;
 }
 
 xrt_layer_projection_view_data
-Compositor::GetProjectionLayerDataForEye(vr::EVREye eye, const EyeState &eye_state)
+Compositor::getProjectionLayerDataForEye(vr::EVREye eye, const EyeState &eye_state)
 {
 	xrt_pose T_origin_head = this->render_state_cache->head_relation;
 	xrt_pose T_head_eye = this->render_state_cache->T_head_eyes[eye];
@@ -286,7 +289,7 @@ Compositor::GetProjectionLayerDataForEye(vr::EVREye eye, const EyeState &eye_sta
 }
 
 vr::EVRCompositorError
-Compositor::CompleteFrame(openvr_logger &logger)
+Compositor::completeFrame(openvr_logger &logger)
 {
 	xrt_result_t xret;
 
@@ -308,7 +311,7 @@ Compositor::CompleteFrame(openvr_logger &logger)
 	xret = xrt_comp_layer_begin(this->active_compositor, &frame_data);
 	if (xret != XRT_SUCCESS) {
 		OPENVR_LOG_ERROR_XRET(logger, "Failed to begin layer submission", xret);
-		return xret_to_compositor_error(xret);
+		return xretToCompositorError(xret);
 	}
 
 	// @todo push the projection layer here
@@ -321,7 +324,7 @@ Compositor::CompleteFrame(openvr_logger &logger)
 	xrt_layer_data projection_layer_data = {
 	    .type = XRT_LAYER_PROJECTION,
 	    .name = XRT_INPUT_GENERIC_HEAD_POSE,
-	    .timestamp = this->GetTimeForPredictions(),
+	    .timestamp = this->getTimeForPredictions(),
 	    .flags = (enum xrt_layer_composition_flags)0,
 	    .depth_test = {},
 	    .flip_y = false,
@@ -332,8 +335,8 @@ Compositor::CompleteFrame(openvr_logger &logger)
 	        {
 	            .v =
 	                {
-	                    GetProjectionLayerDataForEye(vr::EVREye::Eye_Left, this->frame_eye_states[0].value()),
-	                    GetProjectionLayerDataForEye(vr::EVREye::Eye_Right, this->frame_eye_states[1].value()),
+	                    getProjectionLayerDataForEye(vr::EVREye::Eye_Left, this->frame_eye_states[0].value()),
+	                    getProjectionLayerDataForEye(vr::EVREye::Eye_Right, this->frame_eye_states[1].value()),
 	                },
 	            .chroma_key = {},
 	        },
@@ -343,14 +346,14 @@ Compositor::CompleteFrame(openvr_logger &logger)
 	                                 &projection_layer_data);
 	if (xret != XRT_SUCCESS) {
 		OPENVR_LOG_ERROR_XRET(logger, "Failed to submit projection layer", xret);
-		return xret_to_compositor_error(xret);
+		return xretToCompositorError(xret);
 	}
 
 	// Submit the layers
 	xret = xrt_comp_layer_commit(this->active_compositor, XRT_GRAPHICS_SYNC_HANDLE_INVALID);
 	if (xret != XRT_SUCCESS) {
 		OPENVR_LOG_ERROR_XRET(logger, "Failed to commit layer submission", xret);
-		return xret_to_compositor_error(xret);
+		return xretToCompositorError(xret);
 	}
 
 	this->frame_eye_states[0].reset();
@@ -362,7 +365,7 @@ Compositor::CompleteFrame(openvr_logger &logger)
 }
 
 void
-Compositor::GetOutputDevice(openvr_logger &logger,
+Compositor::getOutputDevice(openvr_logger &logger,
                             uint64_t *out_device,
                             vr::ETextureType texture_type,
                             VkInstance pInstance)
@@ -371,7 +374,7 @@ Compositor::GetOutputDevice(openvr_logger &logger,
 #ifdef XRT_HAVE_VULKAN
 	case vr::ETextureType::TextureType_Vulkan: {
 		// Supported.
-		this->GetVulkanOutputDevice(logger, out_device, pInstance);
+		this->getVulkanOutputDevice(logger, out_device, pInstance);
 		return;
 	}
 #endif
@@ -384,7 +387,7 @@ Compositor::GetOutputDevice(openvr_logger &logger,
 }
 
 timepoint_ns
-Compositor::GetTimeForPredictions()
+Compositor::getTimeForPredictions()
 {
 	// If we have a predicted display time from the runtime, use that for predictions, otherwise fall back to the
 	// current time. This allows us to still provide some level of functionality even before we have successfully
@@ -393,7 +396,7 @@ Compositor::GetTimeForPredictions()
 }
 
 time_duration_ns
-Compositor::GetFramePeriod()
+Compositor::getFramePeriod()
 {
 	// Use the compositor-predicted
 	return this->last_predicted_display_period.value_or(
@@ -401,14 +404,14 @@ Compositor::GetFramePeriod()
 }
 
 xrt_result_t
-Compositor::GetFrameRenderState(std::array<xrt_fov, 2> &fovs,
+Compositor::getFrameRenderState(std::array<xrt_fov, 2> &fovs,
                                 std::array<xrt_pose, 2> &T_head_eyes,
                                 xrt_pose &head_relation)
 {
 	const xrt_vec3 default_eye_relation = {.x = 0.0635f, .y = 0.0f, .z = 0.0f};
 	xrt_space_relation head_relation_space;
 	xrt_result_t xret = xrt_device_get_view_poses(this->xsysd->static_roles.head, &default_eye_relation,
-	                                              this->GetTimeForPredictions(), XRT_VIEW_TYPE_STEREO, 2,
+	                                              this->getTimeForPredictions(), XRT_VIEW_TYPE_STEREO, 2,
 	                                              &head_relation_space, fovs.data(), T_head_eyes.data());
 	if (xret != XRT_SUCCESS) {
 		return xret;

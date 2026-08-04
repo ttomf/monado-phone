@@ -54,15 +54,25 @@ oxr_handle_array_destroy(struct oxr_logger *log, struct oxr_handle_array *array,
 	}
 #endif
 
-	// Destroy child handles
-	for (uint32_t i = 0; i < array->count; ++i) {
-		struct oxr_handle_base *child = array->handles[i];
+	/*
+	 * Destroying a child causes it to remove itself from this array (via
+	 * oxr_handle_destroy_internal -> oxr_handle_array_remove), which shifts
+	 * the remaining entries down and decrements count. So we must not walk
+	 * the array with an incrementing index; instead keep destroying the
+	 * current head until the array is empty.
+	 */
+	while (array->count > 0) {
+		struct oxr_handle_base *child = array->handles[0];
 
-		if (child != NULL) {
-			XrResult result = oxr_handle_destroy_internal(log, child, level + 1);
-			if (result != XR_SUCCESS) {
-				return result;
-			}
+		if (child == NULL) {
+			// Should not happen, but guard against an infinite loop.
+			oxr_handle_array_remove(array, 0);
+			continue;
+		}
+
+		XrResult result = oxr_handle_destroy_internal(log, child, level + 1);
+		if (result != XR_SUCCESS) {
+			return result;
 		}
 	}
 

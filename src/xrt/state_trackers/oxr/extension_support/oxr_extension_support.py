@@ -111,7 +111,7 @@ EXTENSIONS = (
     ['XR_MND_headless', 'XRT_FEATURE_OPENXR_HEADLESS'],
     ['XR_MND_query_egl_device', 'XR_USE_PLATFORM_EGL'],
     ['XR_MND_swapchain_usage_input_attachment_bit'],
-    ['XR_MND_contactglove2_interaction', 'XRT_FEATURE_OPENXR_CONTACTGLOVE2_INTERACTION'],
+    ['XR_MND_contactglove2_interaction', 'XRT_FEATURE_OPENXR_INTERACTION_CONTACTGLOVE2'],
     ['XR_MSFT_hand_interaction', 'XRT_FEATURE_OPENXR_INTERACTION_MSFT_HAND'],
     ['XR_MSFT_unbounded_reference_space', 'XRT_FEATURE_OPENXR_SPACE_UNBOUNDED'],
     ['XR_OPPO_controller_interaction', 'XRT_FEATURE_OPENXR_INTERACTION_OPPO'],

@@ -1,4 +1,5 @@
 // Copyright 2026, Beyley Cardellio
+// Copyright 2026, NVIDIA CORPORATION.
 // SPDX-License-Identifier: BSL-1.0
 /*!
  * @file
@@ -18,6 +19,15 @@
  */
 
 #define E(FN) U_LOG_E("Function " #FN " is not implemented for this system devices implementation")
+
+xrt_result_t
+u_system_devices_ni_create_body_tracker(struct xrt_system_devices *xsysd,
+                                        const struct xrt_body_tracker_create_info *info,
+                                        struct xrt_body_tracker **out_xbt)
+{
+	E(create_body_tracker);
+	return XRT_ERROR_FEATURE_NOT_SUPPORTED;
+}
 
 xrt_result_t
 u_system_devices_ni_create_hand_tracker(struct xrt_system_devices *xsysd,

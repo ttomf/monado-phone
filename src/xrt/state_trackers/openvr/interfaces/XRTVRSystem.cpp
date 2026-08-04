@@ -40,7 +40,7 @@ XRTVRSystem_026::GetRecommendedRenderTargetSize(uint32_t *pnWidth, uint32_t *pnH
 	OPENVR_LOGGER_INIT(logger);
 
 	// Get the head device
-	auto maybe_device = this->core->devices->GetDevice(vr::k_unTrackedDeviceIndex_Hmd);
+	auto maybe_device = this->core->devices->getDevice(vr::k_unTrackedDeviceIndex_Hmd);
 	if (!maybe_device) {
 		OPENVR_LOG_ERROR(logger, "GetProjectionRaw: HMD device not found");
 		XRT_DEBUGBREAK();
@@ -92,7 +92,7 @@ XRTVRSystem_026::GetProjectionRaw(vr::EVREye eEye, float *pfLeft, float *pfRight
 	openvr_logger logger;
 	OPENVR_LOGGER_INIT(logger);
 
-	auto maybe_device = this->core->devices->GetDevice(vr::k_unTrackedDeviceIndex_Hmd);
+	auto maybe_device = this->core->devices->getDevice(vr::k_unTrackedDeviceIndex_Hmd);
 	if (!maybe_device) {
 		OPENVR_LOG_ERROR(logger, "GetProjectionRaw: HMD device not found");
 		XRT_DEBUGBREAK();
@@ -108,7 +108,7 @@ XRTVRSystem_026::GetProjectionRaw(vr::EVREye eEye, float *pfLeft, float *pfRight
 	std::array<xrt_fov, 2> fovs;
 	std::array<xrt_pose, 2> poses;
 	xrt_pose head_relation;
-	xrt_result_t xret = this->core->compositor->GetFrameRenderState(fovs, poses, head_relation);
+	xrt_result_t xret = this->core->compositor->getFrameRenderState(fovs, poses, head_relation);
 	if (xret != XRT_SUCCESS) {
 		OPENVR_LOG_ERROR_XRET(logger, "GetProjectionRaw: Failed to get output data", xret);
 		XRT_DEBUGBREAK();
@@ -181,31 +181,31 @@ XRTVRSystem_026::GetEyeToHeadTransform(vr::EVREye eEye)
 	openvr_logger logger;
 	OPENVR_LOGGER_INIT(logger);
 
-	auto maybe_device = this->core->devices->GetDevice(vr::k_unTrackedDeviceIndex_Hmd);
+	auto maybe_device = this->core->devices->getDevice(vr::k_unTrackedDeviceIndex_Hmd);
 	if (!maybe_device) {
 		OPENVR_LOG_ERROR(logger, "GetProjectionRaw: HMD device not found");
 		XRT_DEBUGBREAK();
 
 		vr::HmdMatrix34_t mat;
-		openvr_hmd_matrix34_identity(mat);
+		hmdMatrix34Identity(mat);
 		return mat;
 	}
 
 	std::array<xrt_fov, 2> fovs;
 	std::array<xrt_pose, 2> T_head_eyes;
 	xrt_pose head_relation;
-	xrt_result_t xret = this->core->compositor->GetFrameRenderState(fovs, T_head_eyes, head_relation);
+	xrt_result_t xret = this->core->compositor->getFrameRenderState(fovs, T_head_eyes, head_relation);
 	if (xret != XRT_SUCCESS) {
 		OPENVR_LOG_ERROR_XRET(logger, "GetEyeToHeadTransform: Failed to get output data", xret);
 		XRT_DEBUGBREAK();
 
 		vr::HmdMatrix34_t mat;
-		openvr_hmd_matrix34_identity(mat);
+		hmdMatrix34Identity(mat);
 		return mat;
 	}
 
 	vr::HmdMatrix34_t mat;
-	xrt_pose_to_openvr_hmd_matrix34(T_head_eyes[eEye], mat);
+	xrtPoseToHmdMatrix34(T_head_eyes[eEye], mat);
 	return mat;
 }
 
@@ -247,7 +247,7 @@ XRTVRSystem_026::GetOutputDevice(uint64_t *pnDevice, vr::ETextureType textureTyp
 	openvr_logger logger;
 	OPENVR_LOGGER_INIT(logger);
 
-	this->core->compositor->GetOutputDevice(logger, pnDevice, textureType, pInstance);
+	this->core->compositor->getOutputDevice(logger, pnDevice, textureType, pInstance);
 }
 
 /* Display Mode methods */
@@ -299,7 +299,7 @@ XRTVRSystem_026::GetSeatedZeroPoseToStandingAbsoluteTrackingPose()
 	OPENVR_LOGGER_INIT(logger);
 
 	vr::HmdMatrix34_t mat;
-	openvr_hmd_matrix34_identity(mat);
+	hmdMatrix34Identity(mat);
 	OPENVR_LOG_UNIMPLEMENTED_RET(logger, "GetSeatedZeroPoseToStandingAbsoluteTrackingPose() -> %p", mat,
 	                             static_cast<void *>(&mat));
 }
@@ -311,7 +311,7 @@ XRTVRSystem_026::GetRawZeroPoseToStandingAbsoluteTrackingPose()
 	OPENVR_LOGGER_INIT(logger);
 
 	vr::HmdMatrix34_t mat;
-	openvr_hmd_matrix34_identity(mat);
+	hmdMatrix34Identity(mat);
 	OPENVR_LOG_UNIMPLEMENTED_RET(logger, "GetRawZeroPoseToStandingAbsoluteTrackingPose() -> %p", mat,
 	                             static_cast<void *>(&mat));
 }
@@ -344,7 +344,7 @@ XRTVRSystem_026::GetTrackedDeviceActivityLevel(vr::TrackedDeviceIndex_t unDevice
 	OPENVR_LOGGER_INIT(logger);
 
 	vr::EDeviceActivityLevel activity_level;
-	if (!this->core->devices->GetTrackedDeviceActivityLevel(logger, unDeviceId, activity_level)) {
+	if (!this->core->devices->getTrackedDeviceActivityLevel(logger, unDeviceId, activity_level)) {
 		return vr::EDeviceActivityLevel::k_EDeviceActivityLevel_Unknown;
 	}
 
@@ -396,7 +396,7 @@ XRTVRSystem_026::GetTrackedDeviceClass(vr::TrackedDeviceIndex_t unDeviceIndex)
 	openvr_logger logger;
 	OPENVR_LOGGER_INIT(logger);
 
-	auto maybe_device = this->core->devices->GetDevice(unDeviceIndex);
+	auto maybe_device = this->core->devices->getDevice(unDeviceIndex);
 	if (!maybe_device) {
 		OPENVR_LOG_ERROR(logger, "GetTrackedDeviceClass: device %u not found", unDeviceIndex);
 		return vr::ETrackedDeviceClass::TrackedDeviceClass_Invalid;
@@ -408,7 +408,7 @@ XRTVRSystem_026::GetTrackedDeviceClass(vr::TrackedDeviceIndex_t unDeviceIndex)
 bool
 XRTVRSystem_026::IsTrackedDeviceConnected(vr::TrackedDeviceIndex_t unDeviceIndex)
 {
-	return this->core->devices->GetDevice(unDeviceIndex).has_value();
+	return this->core->devices->getDevice(unDeviceIndex).has_value();
 }
 
 bool
@@ -478,7 +478,7 @@ XRTVRSystem_026::GetMatrix34TrackedDeviceProperty(vr::TrackedDeviceIndex_t unDev
 	SET_ERROR(pError, vr::TrackedProp_UnknownProperty);
 
 	vr::HmdMatrix34_t mat;
-	openvr_hmd_matrix34_identity(mat);
+	hmdMatrix34Identity(mat);
 	OPENVR_LOG_UNIMPLEMENTED_RET(logger,
 	                             "GetMatrix34TrackedDeviceProperty(unDeviceIndex=%u, prop=%d, pError=%p) -> %p",
 	                             mat, static_cast<unsigned int>(unDeviceIndex), static_cast<int>(prop),
@@ -516,7 +516,7 @@ XRTVRSystem_026::GetStringTrackedDeviceProperty(vr::TrackedDeviceIndex_t unDevic
 	OPENVR_LOGGER_INIT(logger);
 
 	std::string str;
-	if (!this->core->devices->GetDeviceStringProperty(logger, unDeviceIndex, prop, str, pError)) {
+	if (!this->core->devices->getDeviceStringProperty(logger, unDeviceIndex, prop, str, pError)) {
 		return 0;
 	}
 
@@ -552,7 +552,7 @@ XRTVRSystem_026::PollNextEvent(vr::VREvent_t *pEvent, uint32_t uncbVREvent)
 	openvr_logger logger;
 	OPENVR_LOGGER_INIT(logger);
 
-	bool ret = this->core->events->PollEvent(logger, *pEvent, uncbVREvent);
+	bool ret = this->core->events->pollEvent(logger, *pEvent, uncbVREvent);
 
 	// No event
 	if (!ret) {

@@ -342,6 +342,16 @@ struct ipc_hand_tracker_create_info
 };
 
 /*!
+ * Pointer-free arguments for creating an @ref xrt_body_tracker over IPC.
+ */
+struct ipc_body_tracker_create_info
+{
+	enum xrt_input_name body_tracking_type;
+	bool has_locked_xdev;
+	uint32_t locked_xdev_id;
+};
+
+/*!
  * Initial info from a client when it connects.
  */
 struct ipc_client_description

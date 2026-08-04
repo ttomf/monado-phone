@@ -122,9 +122,13 @@ psvr2_hmd_update_inputs(struct xrt_device *xdev)
 
 	timepoint_ns now = os_monotonic_get_ns();
 
+	int32_t proximity = hmd->proximity_sensor;
+	hmd->base.inputs[PSVR2_HMD_INPUT_HEAD_DETECT].value.boolean = proximity;
+	hmd->base.inputs[PSVR2_HMD_INPUT_HEAD_DETECT].timestamp = now;
+
 	os_mutex_lock(&hmd->data_lock);
-	hmd->base.inputs[1].value.boolean = hmd->function_button;
-	hmd->base.inputs[1].timestamp = now;
+	hmd->base.inputs[PSVR2_HMD_INPUT_FUNCTION_BUTTON].value.boolean = hmd->function_button;
+	hmd->base.inputs[PSVR2_HMD_INPUT_FUNCTION_BUTTON].timestamp = now;
 	os_mutex_unlock(&hmd->data_lock);
 
 	return XRT_SUCCESS;
@@ -201,18 +205,6 @@ psvr2_hmd_get_tracked_pose(struct xrt_device *xdev,
 
 	// Resolve the final relation
 	m_relation_chain_resolve(&chain, out_relation);
-
-	return XRT_SUCCESS;
-}
-
-static xrt_result_t
-psvr2_get_presence(struct xrt_device *xdev, bool *presence)
-{
-	struct psvr2_hmd *hmd = psvr2_hmd(xdev);
-
-	int32_t value = hmd->proximity_sensor;
-
-	*presence = value;
 
 	return XRT_SUCCESS;
 }
@@ -1212,7 +1204,6 @@ psvr2_hmd_create(struct xrt_prober_device *xpdev)
 
 	hmd->base.update_inputs = psvr2_hmd_update_inputs;
 	hmd->base.get_view_poses = psvr2_hmd_get_view_poses;
-	hmd->base.get_presence = psvr2_get_presence;
 	hmd->base.get_brightness = psvr2_get_brightness;
 	hmd->base.set_brightness = psvr2_set_brightness;
 	hmd->base.set_output = psvr2_hmd_set_output;
@@ -1238,6 +1229,7 @@ psvr2_hmd_create(struct xrt_prober_device *xpdev)
 	hmd->base.name = XRT_DEVICE_PSVR2;
 	hmd->base.device_type = XRT_DEVICE_TYPE_HMD;
 	hmd->base.inputs[PSVR2_HMD_INPUT_HEAD_POSE].name = XRT_INPUT_GENERIC_HEAD_POSE;
+	hmd->base.inputs[PSVR2_HMD_INPUT_HEAD_DETECT].name = XRT_INPUT_GENERIC_HEAD_DETECT;
 	hmd->base.inputs[PSVR2_HMD_INPUT_FUNCTION_BUTTON].name = XRT_INPUT_PSVR2_SYSTEM_CLICK;
 	hmd->base.inputs[PSVR2_HMD_INPUT_EYE_GAZE_POSE].name = XRT_INPUT_GENERIC_EYE_GAZE_POSE;
 	hmd->base.inputs[PSVR2_HMD_INPUT_FB_FACE_TRACKING2_VISUAL].name = XRT_INPUT_FB_FACE_TRACKING2_VISUAL;

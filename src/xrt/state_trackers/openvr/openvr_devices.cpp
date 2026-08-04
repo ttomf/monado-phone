@@ -65,16 +65,16 @@ Device::Device(openvr_logger &logger, Devices &devices, xrt_device *xdev) : xdev
  */
 
 void
-Devices::AddDevice(openvr_logger &logger, vr::TrackedDeviceIndex_t index, xrt_device *xdev)
+Devices::addDevice(openvr_logger &logger, vr::TrackedDeviceIndex_t index, xrt_device *xdev)
 {
 	if (index >= vr::k_unMaxTrackedDeviceCount) {
-		OPENVR_LOG_ERROR(logger, "AddDevice: device index %u is out of range", index);
+		OPENVR_LOG_ERROR(logger, "addDevice: device index %u is out of range", index);
 		return;
 	}
 
 	Device &device = this->device_array[index];
 	if (device.xdev != nullptr) {
-		OPENVR_LOG_ERROR(logger, "AddDevice: device index %u is already occupied", index);
+		OPENVR_LOG_ERROR(logger, "addDevice: device index %u is already occupied", index);
 		return;
 	}
 
@@ -83,8 +83,8 @@ Devices::AddDevice(openvr_logger &logger, vr::TrackedDeviceIndex_t index, xrt_de
 	OPENVR_LOG_INFO(logger, "Added device %s at index %u with tracked class %d", xdev->str, index,
 	                device.tracked_class);
 
-	this->events->TrackedDeviceActivated(index);
-	this->events->TrackedDeviceUserInteractionStarted(index);
+	this->events->trackedDeviceActivated(index);
+	this->events->trackedDeviceUserInteractionStarted(index);
 }
 
 Devices::Devices(openvr_logger &logger,
@@ -94,7 +94,7 @@ Devices::Devices(openvr_logger &logger,
     : xso(xso), xsysd(xsysd), events(events)
 {
 	// Unconditionally initialize the head device slot to the head static role.
-	this->AddDevice(logger, vr::k_unTrackedDeviceIndex_Hmd, xsysd->static_roles.head);
+	this->addDevice(logger, vr::k_unTrackedDeviceIndex_Hmd, xsysd->static_roles.head);
 
 	xrt_space *seated = xso->semantic.local;
 	if (seated == nullptr) {
@@ -117,7 +117,7 @@ Devices::Devices(openvr_logger &logger,
 }
 
 std::optional<Device *>
-Devices::GetDevice(vr::TrackedDeviceIndex_t index)
+Devices::getDevice(vr::TrackedDeviceIndex_t index)
 {
 	if (index >= vr::k_unMaxTrackedDeviceCount) {
 		return std::nullopt;
@@ -132,7 +132,7 @@ Devices::GetDevice(vr::TrackedDeviceIndex_t index)
 }
 
 void
-Devices::TrackDevices(openvr_logger &logger,
+Devices::trackDevices(openvr_logger &logger,
                       timepoint_ns when_ns,
                       vr::ETrackingUniverseOrigin universe,
                       vr::TrackedDevicePose_t *poses,
@@ -162,7 +162,7 @@ Devices::TrackDevices(openvr_logger &logger,
 		    device.pose_space == nullptr) {
 			// Can't track device
 			poses[i] = identity_tracked_pose;
-			OPENVR_LOG_TRACE(logger, "TrackDevices: device %u is not valid for tracking, skipping", i);
+			OPENVR_LOG_TRACE(logger, "trackDevices: device %u is not valid for tracking, skipping", i);
 			continue;
 		}
 
@@ -193,22 +193,23 @@ Devices::TrackDevices(openvr_logger &logger,
 		    .bPoseIsValid = tracking_result != vr::TrackingResult_Running_OutOfRange,
 		    .bDeviceIsConnected = true,
 		};
-		xrt_pose_to_openvr_hmd_matrix34(relation.pose, poses[i].mDeviceToAbsoluteTracking);
+		xrtPoseToHmdMatrix34(relation.pose, poses[i].mDeviceToAbsoluteTracking);
 
-		OPENVR_LOG_TRACE(logger, "TrackDevices: device %u tracked with result %d", i, tracking_result);
+		OPENVR_LOG_TRACE(logger, "trackDevices: device %u tracked with result %d", i, tracking_result);
 	}
 }
 
 bool
-Devices::GetDeviceStringProperty(openvr_logger &logger,
+Devices::getDeviceStringProperty(openvr_logger &logger,
                                  vr::TrackedDeviceIndex_t device_index,
                                  vr::ETrackedDeviceProperty prop,
                                  std::string &str,
                                  vr::ETrackedPropertyError *pError)
 {
-	auto maybe_device = this->GetDevice(device_index);
+	auto maybe_device = this->getDevice(device_index);
 	if (!maybe_device.has_value()) {
-		OPENVR_LOG_ERROR(logger, "GetStringProperty: device index %u is out of range or invalid", device_index);
+		OPENVR_LOG_ERROR(logger, "getDeviceStringProperty: device index %u is out of range or invalid",
+		                 device_index);
 		SET_ERROR(pError, vr::ETrackedPropertyError::TrackedProp_InvalidDevice);
 		return false;
 	}
@@ -226,13 +227,13 @@ Devices::GetDeviceStringProperty(openvr_logger &logger,
 }
 
 bool
-Devices::GetTrackedDeviceActivityLevel(openvr_logger &logger,
+Devices::getTrackedDeviceActivityLevel(openvr_logger &logger,
                                        vr::TrackedDeviceIndex_t device_index,
                                        vr::EDeviceActivityLevel &activity_level)
 {
-	auto maybe_device = this->GetDevice(device_index);
+	auto maybe_device = this->getDevice(device_index);
 	if (!maybe_device.has_value()) {
-		OPENVR_LOG_ERROR(logger, "GetTrackedDeviceActivityLevel: device index %u is out of range or invalid",
+		OPENVR_LOG_ERROR(logger, "getTrackedDeviceActivityLevel: device index %u is out of range or invalid",
 		                 device_index);
 		return false;
 	}

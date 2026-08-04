@@ -14,6 +14,9 @@ target_sources(
 	base
 	PRIVATE
 		b_documentation.h
+		b_body_tracker.cpp
+		b_body_tracker.h
+		b_body_tracker.hpp
 		b_hand_tracker.cpp
 		b_hand_tracker.h
 		b_hand_tracker.hpp

@@ -9,6 +9,7 @@
  */
 
 #include "b_system_devices.h"
+#include "b_body_tracker.h"
 #include "b_hand_tracker.h"
 
 #include "util/u_device.h"
@@ -203,6 +204,14 @@ feature_dec(struct xrt_system_devices *xsysd, enum xrt_device_feature_type type)
 }
 
 static xrt_result_t
+create_body_tracker(struct xrt_system_devices *xsysd,
+                    const struct xrt_body_tracker_create_info *info,
+                    struct xrt_body_tracker **out_xbt)
+{
+	return b_body_tracker_create(xsysd, info, out_xbt);
+}
+
+static xrt_result_t
 create_hand_tracker(struct xrt_system_devices *xsysd,
                     const struct xrt_hand_tracker_create_info *info,
                     struct xrt_hand_tracker **out_xht)
@@ -221,6 +230,7 @@ b_system_devices_allocate(void)
 {
 	struct b_system_devices *bsysd = U_TYPED_CALLOC(struct b_system_devices);
 	bsysd->base.destroy = destroy;
+	bsysd->base.create_body_tracker = create_body_tracker;
 	bsysd->base.create_hand_tracker = create_hand_tracker;
 
 	return bsysd;
@@ -244,6 +254,7 @@ b_system_devices_static_allocate(void)
 	struct b_system_devices_static *bsysds = U_TYPED_CALLOC(struct b_system_devices_static);
 
 	u_system_devices_populate_function_pointers(&bsysds->base.base, get_roles, destroy);
+	bsysds->base.base.create_body_tracker = create_body_tracker;
 	bsysds->base.base.create_hand_tracker = create_hand_tracker;
 	bsysds->base.base.feature_inc = feature_inc;
 	bsysds->base.base.feature_dec = feature_dec;

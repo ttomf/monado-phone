@@ -1,4 +1,5 @@
 // Copyright 2024, Collabora, Ltd.
+// Copyright 2026, NVIDIA CORPORATION.
 // SPDX-License-Identifier: BSL-1.0
 /*!
  * @file
@@ -70,7 +71,7 @@ oxr_xrGetBodySkeletonFB(XrBodyTrackerFB bodyTracker, XrBodySkeletonFB *skeleton)
 	struct oxr_body_tracker_fb *body_tracker_fb = NULL;
 	OXR_VERIFY_BODY_TRACKER_FB_AND_INIT_LOG(&log, bodyTracker, body_tracker_fb, "xrGetBodySkeletonFB");
 	OXR_VERIFY_SESSION_NOT_LOST(&log, body_tracker_fb->sess);
-	OXR_VERIFY_ARG_NOT_NULL(&log, body_tracker_fb->xdev);
+	OXR_VERIFY_ARG_NOT_NULL(&log, body_tracker_fb->xbt);
 	OXR_VERIFY_ARG_TYPE_AND_NOT_NULL(&log, skeleton, XR_TYPE_BODY_SKELETON_FB);
 
 	return oxr_get_body_skeleton_fb(&log, body_tracker_fb, skeleton);
@@ -90,7 +91,7 @@ oxr_xrLocateBodyJointsFB(XrBodyTrackerFB bodyTracker,
 	OXR_VERIFY_ARG_TYPE_AND_NOT_NULL(&log, locateInfo, XR_TYPE_BODY_JOINTS_LOCATE_INFO_FB);
 	OXR_VERIFY_ARG_TYPE_AND_NOT_NULL(&log, locations, XR_TYPE_BODY_JOINT_LOCATIONS_FB);
 	OXR_VERIFY_SESSION_NOT_LOST(&log, body_tracker_fb->sess);
-	OXR_VERIFY_ARG_NOT_NULL(&log, body_tracker_fb->xdev);
+	OXR_VERIFY_ARG_NOT_NULL(&log, body_tracker_fb->xbt);
 	OXR_VERIFY_ARG_NOT_NULL(&log, locations->jointLocations);
 	OXR_VERIFY_SPACE_NOT_NULL(&log, locateInfo->baseSpace, base_spc);
 #ifdef OXR_HAVE_META_body_tracking_calibration
@@ -122,15 +123,15 @@ oxr_xrResetBodyTrackingCalibrationMETA(XrBodyTrackerFB bodyTracker)
 	OXR_VERIFY_BODY_TRACKER_FB_AND_INIT_LOG(&log, bodyTracker, body_tracker_fb,
 	                                        "xrResetBodyTrackingCalibrationMETA");
 	OXR_VERIFY_SESSION_NOT_LOST(&log, body_tracker_fb->sess);
-	OXR_VERIFY_ARG_NOT_NULL(&log, body_tracker_fb->xdev);
+	OXR_VERIFY_ARG_NOT_NULL(&log, body_tracker_fb->xbt);
 	OXR_VERIFY_EXTENSION(&log, body_tracker_fb->sess->sys->inst, META_body_tracking_calibration);
 
-	if (!body_tracker_fb->xdev->supported.body_tracking_calibration) {
+	if (!body_tracker_fb->xbt->supported.body_tracking_calibration) {
 		return oxr_error(&log, XR_ERROR_FEATURE_UNSUPPORTED,
 		                 "Body tracking device does not support this operation");
 	}
 
-	const xrt_result_t result = xrt_device_reset_body_tracking_calibration_meta(body_tracker_fb->xdev);
+	const xrt_result_t result = xrt_body_tracker_reset_calibration_meta(body_tracker_fb->xbt);
 	if (result != XRT_SUCCESS) {
 		return oxr_error(&log, XR_ERROR_RUNTIME_FAILURE, "resetting body tracking calibration failed");
 	}
@@ -148,17 +149,17 @@ oxr_xrSuggestBodyTrackingCalibrationOverrideMETA(XrBodyTrackerFB bodyTracker,
 	OXR_VERIFY_BODY_TRACKER_FB_AND_INIT_LOG(&log, bodyTracker, body_tracker_fb,
 	                                        "xrSuggestBodyTrackingCalibrationOverrideMETA");
 	OXR_VERIFY_SESSION_NOT_LOST(&log, body_tracker_fb->sess);
-	OXR_VERIFY_ARG_NOT_NULL(&log, body_tracker_fb->xdev);
+	OXR_VERIFY_ARG_NOT_NULL(&log, body_tracker_fb->xbt);
 	OXR_VERIFY_EXTENSION(&log, body_tracker_fb->sess->sys->inst, META_body_tracking_calibration);
 	OXR_VERIFY_ARG_TYPE_AND_NOT_NULL(&log, calibrationInfo, XR_TYPE_BODY_TRACKING_CALIBRATION_INFO_META);
 
-	if (!body_tracker_fb->xdev->supported.body_tracking_calibration) {
+	if (!body_tracker_fb->xbt->supported.body_tracking_calibration) {
 		return oxr_error(&log, XR_ERROR_FEATURE_UNSUPPORTED,
 		                 "Body tracking device does not support this operation");
 	}
 
 	const xrt_result_t result =
-	    xrt_device_set_body_tracking_calibration_override_meta(body_tracker_fb->xdev, calibrationInfo->bodyHeight);
+	    xrt_body_tracker_set_calibration_override_meta(body_tracker_fb->xbt, calibrationInfo->bodyHeight);
 	if (result != XRT_SUCCESS) {
 		return oxr_error(&log, XR_ERROR_RUNTIME_FAILURE, "overriding body tracking calibration failed");
 	}
@@ -177,15 +178,15 @@ oxr_xrRequestBodyTrackingFidelityMETA(XrBodyTrackerFB bodyTracker, const XrBodyT
 	OXR_VERIFY_BODY_TRACKER_FB_AND_INIT_LOG(&log, bodyTracker, body_tracker_fb,
 	                                        "xrRequestBodyTrackingFidelityMETA");
 	OXR_VERIFY_SESSION_NOT_LOST(&log, body_tracker_fb->sess);
-	OXR_VERIFY_ARG_NOT_NULL(&log, body_tracker_fb->xdev);
+	OXR_VERIFY_ARG_NOT_NULL(&log, body_tracker_fb->xbt);
 	OXR_VERIFY_EXTENSION(&log, body_tracker_fb->sess->sys->inst, META_body_tracking_fidelity);
 
-	if (!body_tracker_fb->xdev->supported.body_tracking_fidelity) {
+	if (!body_tracker_fb->xbt->supported.body_tracking_fidelity) {
 		return oxr_error(&log, XR_ERROR_FEATURE_UNSUPPORTED,
 		                 "Body tracking device does not support this operation");
 	}
-	const xrt_result_t result = xrt_device_set_body_tracking_fidelity_meta(
-	    body_tracker_fb->xdev, (enum xrt_body_tracking_fidelity_meta)fidelity);
+	const xrt_result_t result =
+	    xrt_body_tracker_set_fidelity_meta(body_tracker_fb->xbt, (enum xrt_body_tracking_fidelity_meta)fidelity);
 	if (result != XRT_SUCCESS) {
 		return oxr_error(&log, XR_ERROR_FEATURE_UNSUPPORTED, "setting body tracking fidelity failed");
 	}

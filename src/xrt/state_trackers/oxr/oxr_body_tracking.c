@@ -8,6 +8,9 @@
  * @ingroup oxr_main
  */
 
+#include "xrt/xrt_body_tracker.h"
+#include "xrt/xrt_space.h"
+
 #include "math/m_api.h"
 #include "math/m_mathinclude.h"
 #include "math/m_space.h"
@@ -18,6 +21,7 @@
 #include "oxr_conversions.h"
 #include "oxr_chain.h"
 #include "oxr_roles.h"
+#include "oxr_xret.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -38,10 +42,24 @@ oxr_to_xrt_body_joint_set_type_fb(XrBodyJointSetFB joint_set_type)
 	return XRT_BODY_JOINT_SET_UNKNOWN;
 }
 
+static enum xrt_input_name
+xrt_body_joint_set_type_fb_to_input_name(enum xrt_body_joint_set_type_fb joint_set_type)
+{
+	switch (joint_set_type) {
+#ifdef OXR_HAVE_META_body_tracking_full_body
+	case XRT_BODY_JOINT_SET_FULL_BODY_META: return XRT_INPUT_META_FULL_BODY_TRACKING;
+#endif
+	case XRT_BODY_JOINT_SET_DEFAULT_FB: return XRT_INPUT_FB_BODY_TRACKING;
+	default: break;
+	}
+	return (enum xrt_input_name) - 1;
+}
+
 static XrResult
 oxr_body_tracker_fb_destroy_cb(struct oxr_logger *log, struct oxr_handle_base *hb)
 {
 	struct oxr_body_tracker_fb *body_tracker_fb = (struct oxr_body_tracker_fb *)hb;
+	xrt_body_tracker_destroy(&body_tracker_fb->xbt);
 	free(body_tracker_fb);
 	return XR_SUCCESS;
 }
@@ -74,9 +92,10 @@ oxr_create_body_tracker_fb(struct oxr_logger *log,
 	}
 #endif
 
-	struct xrt_device *xdev = GET_STATIC_XDEV_BY_ROLE(sess->sys, body);
-	if (xdev == NULL || !xdev->supported.body_tracking) {
-		return oxr_error(log, XR_ERROR_FEATURE_UNSUPPORTED, "No device found for body tracking role");
+	const enum xrt_input_name input_name = xrt_body_joint_set_type_fb_to_input_name(joint_set_type);
+	if (input_name == (enum xrt_input_name) - 1) {
+		return oxr_error(log, XR_ERROR_FEATURE_UNSUPPORTED,
+		                 "\"bodyJointSet\" set to an unknown body joint set type");
 	}
 
 	struct oxr_body_tracker_fb *body_tracker_fb = NULL;
@@ -84,8 +103,23 @@ oxr_create_body_tracker_fb(struct oxr_logger *log,
 	                              &sess->handle);
 
 	body_tracker_fb->sess = sess;
-	body_tracker_fb->xdev = xdev;
 	body_tracker_fb->joint_set_type = joint_set_type;
+
+	struct xrt_body_tracker_create_info info = {
+	    .body_tracking_type = input_name,
+	    .locked_xdev = NULL,
+	};
+	xrt_result_t xret = xrt_system_devices_create_body_tracker(sess->sys->xsysd, &info, &body_tracker_fb->xbt);
+	if (xret != XRT_SUCCESS) {
+		oxr_handle_destroy(log, &body_tracker_fb->handle);
+		// To get good logging and correct error code.
+		if (xret == XRT_ERROR_FEATURE_NOT_SUPPORTED) {
+			return oxr_error(log, XR_ERROR_FEATURE_UNSUPPORTED,
+			                 "System reported body tracking is unsupported");
+		}
+		// To get good logging and set the instance lost state if needed.
+		OXR_CHECK_XRET(log, sess, xret, xrt_system_devices_create_body_tracker);
+	}
 
 	*out_body_tracker_fb = body_tracker_fb;
 	return XR_SUCCESS;
@@ -97,7 +131,7 @@ oxr_get_body_skeleton_fb(struct oxr_logger *log,
                          XrBodySkeletonFB *skeleton)
 {
 
-	if (body_tracker_fb->xdev == NULL || !body_tracker_fb->xdev->supported.body_tracking) {
+	if (body_tracker_fb->xbt == NULL || !body_tracker_fb->xbt->supported.body_tracking) {
 		return oxr_error(log, XR_ERROR_FUNCTION_UNSUPPORTED,
 		                 "Device not found or does not support body tracking.");
 	}
@@ -114,10 +148,7 @@ oxr_get_body_skeleton_fb(struct oxr_logger *log,
 	    is_meta_full_body ? body_skeleton_result.full_body_skeleton_meta.joints
 	                      : body_skeleton_result.body_skeleton_fb.joints;
 
-	const enum xrt_input_name input_name =
-	    is_meta_full_body ? XRT_INPUT_META_FULL_BODY_TRACKING : XRT_INPUT_FB_BODY_TRACKING;
-
-	if (xrt_device_get_body_skeleton(body_tracker_fb->xdev, input_name, &body_skeleton_result) != XRT_SUCCESS) {
+	if (xrt_body_tracker_get_skeleton(body_tracker_fb->xbt, &body_skeleton_result) != XRT_SUCCESS) {
 		return oxr_error(log, XR_ERROR_RUNTIME_FAILURE, "Failed to get body skeleton");
 	}
 
@@ -139,7 +170,7 @@ oxr_locate_body_joints_fb(struct oxr_logger *log,
                           const XrBodyJointsLocateInfoFB *locateInfo,
                           XrBodyJointLocationsFB *locations)
 {
-	if (body_tracker_fb->xdev == NULL || !body_tracker_fb->xdev->supported.body_tracking) {
+	if (body_tracker_fb->xbt == NULL || !body_tracker_fb->xbt->supported.body_tracking) {
 		return oxr_error(log, XR_ERROR_FUNCTION_UNSUPPORTED,
 		                 "Device not found or does not support body tracking.");
 	}
@@ -159,34 +190,37 @@ oxr_locate_body_joints_fb(struct oxr_logger *log,
 	const struct oxr_instance *inst = body_tracker_fb->sess->sys->inst;
 	const uint64_t at_timestamp_ns = time_state_ts_to_monotonic_ns(inst->timekeeping, locateInfo->time);
 
-	struct xrt_body_joint_set body_joint_set_result = {0};
+	struct xrt_space *xbase = NULL;
+	XrResult ret = oxr_space_get_xrt_space(log, base_spc, &xbase);
+	if (ret != XR_SUCCESS || xbase == NULL) {
+		locations->isActive = XR_FALSE;
+		for (size_t joint_index = 0; joint_index < body_joint_count; ++joint_index) {
+			locations->jointLocations[joint_index].locationFlags = XRT_SPACE_RELATION_BITMASK_NONE;
+		}
+		return ret;
+	}
+
+	struct xrt_body_tracker_location loc = XRT_STRUCT_INIT;
+	xrt_result_t xret = xrt_body_tracker_locate(body_tracker_fb->xbt, body_tracker_fb->sess->sys->xso, xbase,
+	                                            &base_spc->pose, at_timestamp_ns, &loc);
+	xrt_space_reference(&xbase, NULL);
+	if (xret != XRT_SUCCESS) {
+		return oxr_error(log, XR_ERROR_RUNTIME_FAILURE, "Failed to locate body joints");
+	}
+
+	struct xrt_body_joint_set body_joint_set_result = loc.joint_set;
 	const struct xrt_body_joint_location_fb *src_body_joints =
 	    is_meta_full_body ? body_joint_set_result.full_body_joint_set_meta.joint_locations
 	                      : body_joint_set_result.body_joint_set_fb.joint_locations;
 
-	const enum xrt_input_name input_name =
-	    is_meta_full_body ? XRT_INPUT_META_FULL_BODY_TRACKING : XRT_INPUT_FB_BODY_TRACKING;
-
-	if (xrt_device_get_body_joints(body_tracker_fb->xdev, input_name, at_timestamp_ns, &body_joint_set_result) !=
-	    XRT_SUCCESS) {
-		return oxr_error(log, XR_ERROR_RUNTIME_FAILURE, "Failed to get FB body joint set");
-	}
-
-	// Get the body pose in the base space.
-	struct xrt_space_relation T_base_body;
-	const XrResult ret = oxr_get_base_body_pose(log, &body_joint_set_result, base_spc, body_tracker_fb->xdev,
-	                                            locateInfo->time, &T_base_body);
-	if (ret != XR_SUCCESS) {
-		locations->isActive = XR_FALSE;
-		return ret;
-	}
+	const struct xrt_space_relation T_base_body = loc.base_body;
 
 	const struct xrt_base_body_joint_set_meta *body_joint_set_fb = &body_joint_set_result.base_body_joint_set_meta;
 
-	locations->isActive = body_joint_set_fb->is_active;
-	if (!body_joint_set_fb->is_active || T_base_body.relation_flags == 0) {
+	locations->isActive = loc.is_active ? XR_TRUE : XR_FALSE;
+	if (!loc.is_active || T_base_body.relation_flags == 0) {
 		locations->isActive = XR_FALSE;
-		for (size_t joint_index = 0; joint_index < XRT_BODY_JOINT_COUNT_FB; ++joint_index) {
+		for (size_t joint_index = 0; joint_index < body_joint_count; ++joint_index) {
 			locations->jointLocations[joint_index].locationFlags = XRT_SPACE_RELATION_BITMASK_NONE;
 		}
 		return XR_SUCCESS;
@@ -215,7 +249,7 @@ oxr_locate_body_joints_fb(struct oxr_logger *log,
 	XrBodyTrackingCalibrationStatusMETA *calibration_status = OXR_GET_OUTPUT_FROM_CHAIN(
 	    locations, XR_TYPE_BODY_TRACKING_CALIBRATION_STATUS_META, XrBodyTrackingCalibrationStatusMETA);
 	if (calibration_status != NULL) {
-		if (!body_tracker_fb->xdev->supported.body_tracking_calibration) {
+		if (!body_tracker_fb->xbt->supported.body_tracking_calibration) {
 			return oxr_error(log, XR_ERROR_FEATURE_UNSUPPORTED,
 			                 "body tracking device does not support XR_META_body_tracking_calibration");
 		}
@@ -228,7 +262,7 @@ oxr_locate_body_joints_fb(struct oxr_logger *log,
 	XrBodyTrackingFidelityStatusMETA *fidelity_status = OXR_GET_OUTPUT_FROM_CHAIN(
 	    locations, XR_TYPE_BODY_TRACKING_FIDELITY_STATUS_META, XrBodyTrackingFidelityStatusMETA);
 	if (fidelity_status != NULL) {
-		if (!body_tracker_fb->xdev->supported.body_tracking_fidelity) {
+		if (!body_tracker_fb->xbt->supported.body_tracking_fidelity) {
 			return oxr_error(log, XR_ERROR_FEATURE_UNSUPPORTED,
 			                 "body tracking device does not support XR_META_body_tracking_fidelity");
 		}

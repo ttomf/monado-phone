@@ -52,6 +52,7 @@
 { symbol: ["XRT_FEATURE_OPENXR_HAPTIC_PCM", "public", "\"xrt/xrt_config_build.h\"", "public"] },
 { symbol: ["XRT_FEATURE_OPENXR_HEADLESS", "public", "\"xrt/xrt_config_build.h\"", "public"] },
 { symbol: ["XRT_FEATURE_OPENXR_INTERACTION_BYTEDANCE", "public", "\"xrt/xrt_config_build.h\"", "public"] },
+{ symbol: ["XRT_FEATURE_OPENXR_INTERACTION_CONTACTGLOVE2", "public", "\"xrt/xrt_config_build.h\"", "public"] },
 { symbol: ["XRT_FEATURE_OPENXR_INTERACTION_EXT_EYE_GAZE", "public", "\"xrt/xrt_config_build.h\"", "public"] },
 { symbol: ["XRT_FEATURE_OPENXR_INTERACTION_EXT_HAND", "public", "\"xrt/xrt_config_build.h\"", "public"] },
 { symbol: ["XRT_FEATURE_OPENXR_INTERACTION_EXT_PALM_POSE", "public", "\"xrt/xrt_config_build.h\"", "public"] },

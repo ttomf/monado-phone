@@ -13,6 +13,7 @@
 #include "util/u_debug.h"
 #include "util/u_system_devices.h"
 
+#include "b_body_tracker.h"
 #include "b_hand_tracker.h"
 
 #include "r_internal.h"
@@ -418,6 +419,7 @@ r_create_devices(uint16_t port, uint32_t view_count, struct xrt_system_devices *
 
 	u_system_devices_populate_function_pointers(&r->base, r_hub_system_devices_get_roles,
 	                                            r_hub_system_devices_destroy);
+	r->base.create_body_tracker = b_body_tracker_create;
 	r->base.create_hand_tracker = b_hand_tracker_create;
 
 	r->origin.type = XRT_TRACKING_TYPE_RGB;

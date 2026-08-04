@@ -10,6 +10,7 @@
 #include "xrt/xrt_device.h"
 #include "xrt/xrt_tracking.h"
 #include "xrt/xrt_space.h"
+#include "xrt/xrt_body_tracker.h"
 #include "xrt/xrt_hand_tracker.h"
 
 #include "shared/ipc_protocol.h"
@@ -215,6 +216,72 @@ ipc_server_objects_destroy_xspc(volatile struct ipc_client_state *ics, uint32_t 
 
 	struct xrt_space **xspc_ptr = (struct xrt_space **)&ics->xspcs[id];
 	xrt_space_reference(xspc_ptr, NULL);
+
+	return XRT_SUCCESS;
+}
+
+
+/*
+ *
+ * Body tracker functions.
+ *
+ */
+
+xrt_result_t
+ipc_server_objects_get_xbt_and_validate(volatile struct ipc_client_state *ics,
+                                        uint32_t id,
+                                        struct xrt_body_tracker **out_xbt)
+{
+	if (id >= IPC_MAX_CLIENT_BODY_TRACKERS) {
+		IPC_ERROR(ics->server, "Invalid body tracker ID %u (>= IPC_MAX_CLIENT_BODY_TRACKERS)", id);
+		return XRT_ERROR_IPC_FAILURE;
+	}
+
+	struct xrt_body_tracker *xbt = ics->objects.xbts[id];
+	if (xbt == NULL) {
+		IPC_ERROR(ics->server, "Body tracker ID %u not found (NULL)", id);
+		return XRT_ERROR_IPC_FAILURE;
+	}
+
+	*out_xbt = xbt;
+
+	return XRT_SUCCESS;
+}
+
+xrt_result_t
+ipc_server_objects_get_xbt_id_or_add(volatile struct ipc_client_state *ics,
+                                     struct xrt_body_tracker *xbt,
+                                     uint32_t *out_id)
+{
+	assert(out_id != NULL);
+	assert(xbt != NULL);
+
+	for (uint32_t index = 0; index < IPC_MAX_CLIENT_BODY_TRACKERS; index++) {
+		if (ics->objects.xbts[index] == NULL) {
+			ics->objects.xbts[index] = xbt;
+			*out_id = index;
+			return XRT_SUCCESS;
+		}
+	}
+
+	IPC_ERROR(ics->server, "Failed to find available slot for body tracker");
+	return XRT_ERROR_IPC_FAILURE;
+}
+
+xrt_result_t
+ipc_server_objects_destroy_xbt(volatile struct ipc_client_state *ics, uint32_t id)
+{
+	if (id >= IPC_MAX_CLIENT_BODY_TRACKERS) {
+		IPC_ERROR(ics->server, "Invalid body tracker ID %u (>= IPC_MAX_CLIENT_BODY_TRACKERS)", id);
+		return XRT_ERROR_IPC_FAILURE;
+	}
+
+	if (ics->objects.xbts[id] == NULL) {
+		IPC_ERROR(ics->server, "Client tried to destroy non-existent body tracker!");
+		return XRT_ERROR_IPC_FAILURE;
+	}
+
+	xrt_body_tracker_destroy((struct xrt_body_tracker **)&ics->objects.xbts[id]);
 
 	return XRT_SUCCESS;
 }

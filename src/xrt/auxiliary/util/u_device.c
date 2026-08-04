@@ -636,7 +636,6 @@ u_device_populate_function_pointers(struct xrt_device *xdev,
 	xdev->set_body_tracking_calibration_override_meta = u_device_ni_set_body_tracking_calibration_override_meta;
 	xdev->set_output = u_device_ni_set_output;
 	xdev->get_output_limits = u_device_ni_get_output_limits;
-	xdev->get_presence = u_device_ni_get_presence;
 	xdev->begin_plane_detection_ext = u_device_ni_begin_plane_detection_ext;
 	xdev->destroy_plane_detection_ext = u_device_ni_destroy_plane_detection_ext;
 	xdev->get_plane_detection_state_ext = u_device_ni_get_plane_detection_state_ext;
