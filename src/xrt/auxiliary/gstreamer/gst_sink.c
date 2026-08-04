@@ -131,17 +131,22 @@ push_frame(struct xrt_frame_sink *xfs, struct xrt_frame *xf)
 	// Need to be offset or gstreamer becomes sad.
 	GST_BUFFER_PTS(buffer) = xtimestamp_ns - gs->offset_ns;
 
-	// Duration is measured from last time stamp, but sanitized: sources like
-	// the phone compositor can emit stale (warm start) or duplicate frames
-	// with huge or zero gaps, which makes videorate duplicate frames many
-	// times over.
-	int64_t duration_ns = (int64_t)(xtimestamp_ns - gs->timestamp_ns);
-	if (duration_ns <= 0) {
-		duration_ns = gs->nominal_duration_ns;
-	} else if ((uint64_t)duration_ns > gs->max_duration_ns) {
-		duration_ns = gs->max_duration_ns;
+	// Duration is measured from last time stamp. For live streams with a
+	// known fixed fps it is sanitized: sources like the phone compositor
+	// can emit stale (warm start) or duplicate frames with huge or zero
+	// gaps, which makes videorate duplicate frames many times over.
+	if (gs->nominal_duration_ns > 0) {
+		int64_t duration_ns = (int64_t)(xtimestamp_ns - gs->timestamp_ns);
+		if (duration_ns <= 0) {
+			duration_ns = gs->nominal_duration_ns;
+		} else if ((uint64_t)duration_ns > gs->max_duration_ns) {
+			duration_ns = gs->max_duration_ns;
+		}
+		GST_BUFFER_DURATION(buffer) = duration_ns;
+	} else {
+		// No fps known, keep the raw measured duration.
+		GST_BUFFER_DURATION(buffer) = xtimestamp_ns - gs->timestamp_ns;
 	}
-	GST_BUFFER_DURATION(buffer) = duration_ns;
 	gs->timestamp_ns = xtimestamp_ns;
 
 	// All done, send it to the gstreamer pipeline.
@@ -246,10 +251,6 @@ gstreamer_sink_create_with_pipeline_fps(struct gstreamer_pipeline *gp,
 	if (fps_num > 0) {
 		gs->nominal_duration_ns = GST_SECOND * fps_den / fps_num;
 		gs->max_duration_ns = gs->nominal_duration_ns * 2;
-	} else {
-		// No fps known, assume 30fps.
-		gs->nominal_duration_ns = GST_SECOND / 30;
-		gs->max_duration_ns = GST_SECOND / 15;
 	}
 
 	if (need_even_dims) {
@@ -285,10 +286,17 @@ gstreamer_sink_create_with_pipeline_fps(struct gstreamer_pipeline *gp,
 	             "stream-type", GST_APP_STREAM_TYPE_STREAM, //
 	             "format", GST_FORMAT_TIME,                 //
 	             "is-live", TRUE,                           //
-	             "max-buffers", 4,                          //
-	             "max-bytes", 0,                            //
-	             "leaky-type", GST_APP_LEAKY_TYPE_DOWNSTREAM, //
 	             NULL);
+
+	if (fps_num > 0) {
+		// Live stream: bound the appsrc queue so a slow downstream drops
+		// frames instead of accumulating latency.
+		g_object_set(G_OBJECT(gs->appsrc),      //
+		             "max-buffers", 4,          //
+		             "max-bytes", 0,            //
+		             "leaky-type", GST_APP_LEAKY_TYPE_DOWNSTREAM, //
+		             NULL);
+	}
 
 	g_signal_connect(G_OBJECT(gs->appsrc), "enough-data", G_CALLBACK(enough_data), gs);
 
