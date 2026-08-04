@@ -7,9 +7,9 @@
  * @ingroup drv_phone
  */
 
-#include <arpa/inet.h>
-
 #pragma once
+
+#include <arpa/inet.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -23,7 +23,7 @@ extern "C" {
  */
 
 /*!
- * Create a auto prober for a Phone HMD.
+ * Create an auto prober for a Phone HMD.
  *
  * @ingroup drv_phone
  */

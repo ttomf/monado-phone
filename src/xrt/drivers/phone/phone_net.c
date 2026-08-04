@@ -14,6 +14,10 @@
 #include <unistd.h>
 
 #include "os/os_threading.h"
+#include "os/os_time.h"
+
+#include "math/m_api.h"
+#include "math/m_relation_history.h"
 
 #include "util/u_logging.h"
 #include "util/u_misc.h"
@@ -29,6 +33,7 @@
 
 #define PHONE_MCAST_ADDR "239.1.1.1"
 #define PHONE_PORT 5500
+#define PHONE_POSE_PORT 5501
 #define PHONE_DISCOVER_MSG_PHONE "MONADO_PHONE_DISCOVER_PHONE"
 #define PHONE_DISCOVER_MSG_PC "MONADO_PHONE_DISCOVER_PC"
 
@@ -36,8 +41,8 @@
 #define PHONE_STREAM_QUEUE_SIZE 4
 
 //! Resolution the frames are scaled to before being sent to the phone.
-#define PHONE_STREAM_WIDTH 1280
-#define PHONE_STREAM_HEIGHT 720
+#define PHONE_STREAM_WIDTH 1920
+#define PHONE_STREAM_HEIGHT 1080
 
 
 /*
@@ -62,7 +67,7 @@ phone_discover(struct sockaddr_in *out_addr)
 	if (sock < 0) {
 		U_LOG_W("phone: socket() failed: %d", errno);
 		return false;
-	};
+	}
 	sock_opt(sock, SO_REUSEADDR, 1);
 	sock_opt(sock, SO_REUSEPORT, 1);
 
@@ -95,12 +100,13 @@ phone_discover(struct sockaddr_in *out_addr)
 		return false;
 	}
 
-	char recvBuffer[256];
+	char recv_buffer[256];
 	struct sockaddr_in from = {0};
 	socklen_t from_len = sizeof(from);
 	while (true) {
 		U_LOG_W("phone: recvfrom() waiting...");
-		ssize_t n = recvfrom(sock, recvBuffer, sizeof(recvBuffer) - 1, 0, (struct sockaddr *)&from, &from_len);
+		ssize_t n =
+		    recvfrom(sock, recv_buffer, sizeof(recv_buffer) - 1, 0, (struct sockaddr *)&from, &from_len);
 		if (n < 0) {
 			if (errno == EAGAIN || errno == EWOULDBLOCK) {
 				U_LOG_W("phone: recvfrom() timed out, no phone found");
@@ -110,9 +116,9 @@ phone_discover(struct sockaddr_in *out_addr)
 			U_LOG_W("phone: recvfrom() failed: %d", errno);
 			continue;
 		}
-		recvBuffer[n] = '\0';
-		U_LOG_I("phone: received: %s", recvBuffer);
-		if (strcmp(recvBuffer, PHONE_DISCOVER_MSG_PHONE) == 0) {
+		recv_buffer[n] = '\0';
+		U_LOG_I("phone: received: %s", recv_buffer);
+		if (strcmp(recv_buffer, PHONE_DISCOVER_MSG_PHONE) == 0) {
 			*out_addr = from;
 			sendto(sock, PHONE_DISCOVER_MSG_PC, strlen(PHONE_DISCOVER_MSG_PC), 0, (struct sockaddr *)&from,
 			       from_len);
@@ -547,4 +553,186 @@ phone_stream_destroy(void)
 	os_cond_destroy(&ps->cond);
 
 	free(ps);
+}
+
+
+/*
+ *
+ * Pose stream (phone -> PC)
+ *
+ */
+
+//! Size of the pose packet sent by the phone app.
+#define PHONE_POSE_PACKET_SIZE 40
+
+//! TrackingState values from the Android ARCore TrackingState enum.
+enum phone_pose_state
+{
+	PHONE_POSE_TRACKING = 0,
+	PHONE_POSE_PAUSED = 1,
+	PHONE_POSE_STOPPED = 2,
+};
+
+/*!
+ * State of the phone pose receiver, one instance per process
+ */
+struct phone_pose_receiver
+{
+	//! UDP socket the phone sends poses to.
+	int sock;
+
+	//! Receiver thread.
+	struct os_thread_helper thread;
+
+	//! History the received poses are pushed into, owned by the HMD device.
+	struct m_relation_history *rh;
+
+	volatile bool running;
+};
+
+static struct phone_pose_receiver *g_pose = NULL;
+
+static uint32_t
+phone_pose_read_u32_le(const uint8_t *buf)
+{
+	return (uint32_t)buf[0] | ((uint32_t)buf[1] << 8) | ((uint32_t)buf[2] << 16) | ((uint32_t)buf[3] << 24);
+}
+
+static float
+phone_pose_read_f32_le(const uint8_t *buf)
+{
+	uint32_t bits = phone_pose_read_u32_le(buf);
+	float value;
+	memcpy(&value, &bits, sizeof(value));
+	return value;
+}
+
+static void *
+phone_pose_thread(void *ptr)
+{
+	struct phone_pose_receiver *pr = (struct phone_pose_receiver *)ptr;
+
+	uint8_t buf[PHONE_POSE_PACKET_SIZE];
+	while (pr->running) {
+		ssize_t n = recvfrom(pr->sock, buf, sizeof(buf), 0, NULL, NULL);
+		if (n < 0) {
+			if (errno == EAGAIN || errno == EWOULDBLOCK) {
+				continue;
+			}
+			if (!pr->running) {
+				break;
+			}
+			U_LOG_W("phone: pose recvfrom() failed: %d", errno);
+			continue;
+		}
+		if (n != PHONE_POSE_PACKET_SIZE) {
+			continue;
+		}
+
+		// int64 timestamp_ns at [0..8] is on the phone clock, ignore for now.
+		int32_t state = (int32_t)phone_pose_read_u32_le(&buf[8]);
+		if (state != PHONE_POSE_TRACKING) {
+			// Tracking lost, drop the stale poses.
+			m_relation_history_clear(pr->rh);
+			continue;
+		}
+
+		struct xrt_space_relation rel = XRT_SPACE_RELATION_ZERO;
+		rel.pose.orientation.x = phone_pose_read_f32_le(&buf[12]);
+		rel.pose.orientation.y = phone_pose_read_f32_le(&buf[16]);
+		rel.pose.orientation.z = phone_pose_read_f32_le(&buf[20]);
+		rel.pose.orientation.w = phone_pose_read_f32_le(&buf[24]);
+		rel.pose.position.x = phone_pose_read_f32_le(&buf[28]);
+		rel.pose.position.y = phone_pose_read_f32_le(&buf[32]);
+		rel.pose.position.z = phone_pose_read_f32_le(&buf[36]);
+
+		math_quat_normalize(&rel.pose.orientation);
+
+		rel.relation_flags = (enum xrt_space_relation_flags)(
+		    XRT_SPACE_RELATION_ORIENTATION_TRACKED_BIT | XRT_SPACE_RELATION_ORIENTATION_VALID_BIT |
+		    XRT_SPACE_RELATION_POSITION_TRACKED_BIT | XRT_SPACE_RELATION_POSITION_VALID_BIT);
+
+		/*
+		 * The phone clock is not the PC clock, stamp the pose at arrival
+		 * time and let the relation history extrapolate for the network
+		 * latency when the compositor asks for a future timestamp.
+		 */
+		// m_relation_history_push_with_motion_estimation(pr->rh, &rel, os_monotonic_get_ns());
+		m_relation_history_push(pr->rh, &rel, os_monotonic_get_ns());
+	}
+
+	return NULL;
+}
+
+bool
+phone_pose_receive_init(struct m_relation_history *rh)
+{
+	if (g_pose != NULL) {
+		return true;
+	}
+
+	struct phone_pose_receiver *pr = U_TYPED_CALLOC(struct phone_pose_receiver);
+
+	pr->sock = socket(AF_INET, SOCK_DGRAM, 0);
+	if (pr->sock < 0) {
+		U_LOG_W("phone: pose socket() failed: %d", errno);
+		free(pr);
+		return false;
+	}
+	sock_opt(pr->sock, SO_REUSEADDR, 1);
+
+	// Wake up periodically so the thread can notice it should stop.
+	struct timeval tv = {.tv_sec = 0, .tv_usec = 100000};
+	if (setsockopt(pr->sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
+		U_LOG_W("phone: pose SO_RCVTIMEO failed: %d", errno);
+	}
+
+	struct sockaddr_in bind_addr = {0};
+	bind_addr.sin_family = AF_INET;
+	bind_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	bind_addr.sin_port = htons(PHONE_POSE_PORT);
+
+	if (bind(pr->sock, (struct sockaddr *)&bind_addr, sizeof(bind_addr)) < 0) {
+		U_LOG_W("phone: pose bind() failed: %d", errno);
+		close(pr->sock);
+		free(pr);
+		return false;
+	}
+
+	pr->rh = rh;
+	pr->running = true;
+
+	os_thread_helper_init(&pr->thread);
+	if (os_thread_helper_start(&pr->thread, phone_pose_thread, pr) != 0) {
+		U_LOG_E("phone: failed to start pose thread");
+		pr->running = false;
+		close(pr->sock);
+		os_thread_helper_destroy(&pr->thread);
+		free(pr);
+		return false;
+	}
+
+	g_pose = pr;
+
+	U_LOG_I("phone: pose receiver started on port %d", PHONE_POSE_PORT);
+
+	return true;
+}
+
+void
+phone_pose_receive_destroy(void)
+{
+	struct phone_pose_receiver *pr = g_pose;
+	if (pr == NULL) {
+		return;
+	}
+	g_pose = NULL;
+
+	// Wake up the thread blocked in recvfrom().
+	pr->running = false;
+	close(pr->sock);
+	os_thread_helper_stop_and_wait(&pr->thread);
+	os_thread_helper_destroy(&pr->thread);
+
+	free(pr);
 }

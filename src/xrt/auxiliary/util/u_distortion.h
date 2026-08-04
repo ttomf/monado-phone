@@ -10,6 +10,7 @@
 #pragma once
 
 #include "xrt/xrt_defines.h"
+#include "xrt/xrt_limits.h"
 
 
 #ifdef __cplusplus

@@ -1,9 +1,14 @@
 package org.tom.monadophone
 
+import android.content.Context
 import android.media.MediaCodec
 import android.media.MediaFormat
+import android.opengl.GLSurfaceView
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.Surface
+import android.widget.Toast
 import java.io.ByteArrayOutputStream
 import java.net.DatagramPacket
 import java.net.DatagramSocket
@@ -11,42 +16,80 @@ import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.MulticastSocket
 import java.net.SocketTimeoutException
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.time.Duration.Companion.milliseconds
 
 private const val MCAST_ADDR = "239.1.1.1"
 private const val PORT = 5500
+private const val POSE_PORT = 5501
+private const val POSE_PACKET_SIZE = 40
 private const val DISCOVER_MSG_PHONE = "MONADO_PHONE_DISCOVER_PHONE"
 private const val DISCOVER_MSG_PC = "MONADO_PHONE_DISCOVER_PC"
+private const val TAG = "MonadoDriver"
 
-object MonadoDriver {
+class MonadoDriver(
+    private val context: Context
+) {
     private var surface: Surface? = null
     private var job: Job? = null
     private var streamSocket: DatagramSocket? = null
+    private var poseSocket: DatagramSocket? = null
+    private var glSurfaceView: GLSurfaceView? = null
+    private var poseSource: ArCorePose? = null
+    private var shouldResume = false
     private var scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private lateinit var runtimeAddr: InetAddress
 
+    fun setGlSurfaceView(view: GLSurfaceView) {
+        if (glSurfaceView !== view) {
+            poseSource?.close()
+            poseSource = null
+            glSurfaceView = view
+            poseSource = ArCorePose(context, view)
+            if (shouldResume) {
+                poseSource?.resume()
+            }
+        }
+    }
+
+    fun resume() {
+        shouldResume = true
+        if (poseSource == null) {
+            val view = glSurfaceView ?: return
+            poseSource = ArCorePose(context, view)
+        }
+        poseSource?.resume()
+    }
+
+    fun pause() {
+        shouldResume = false
+        poseSource?.pause()
+    }
+
     fun start(surf: Surface) {
-        Log.d("MonadoDriver", "start")
+        Log.d(TAG, "start")
         if (!surf.isValid) {
-            Log.w("MonadoDriver", "start: surface is not valid, ignoring")
+            Log.w(TAG, "start: surface is not valid, ignoring")
             return
         }
         surface = surf
 
-        job?.cancel() // Replace any previous job.
-        streamSocket?.close() // Free the stream port synchronously.
+        job?.cancel() // Replace any previous job
+        streamSocket?.close() // Free the stream port synchronously
         streamSocket = null
 
-        job = scope.launch stream@{
+        job = scope.launch {
             val discoverySocket = MulticastSocket()
             discoverySocket.timeToLive = 1
             discoverySocket.soTimeout = 500
@@ -54,10 +97,11 @@ object MonadoDriver {
             val packet =
                 DatagramPacket(msg, msg.size, InetAddress.getByName(MCAST_ADDR), PORT)
 
-            Log.d("MonadoDriver", "start sending beacon packets")
+            Log.d(TAG, "start sending beacon packets")
             discoverySocket.use { socket ->
                 // Periodically send beacon packets
-                while (isActive) {
+                toast("Starting discovery...")
+                while (currentCoroutineContext().isActive) {
                     try {
                         socket.send(packet)
                     } catch (e: Exception) {
@@ -67,7 +111,7 @@ object MonadoDriver {
                     val recvPacket = DatagramPacket(buf, buf.size)
                     try {
                         socket.receive(recvPacket)
-                        Log.i("MonadoDriver", "beacon: received ${recvPacket.length} bytes")
+                        Log.i(TAG, "beacon: received ${recvPacket.length} bytes")
                         if (String(recvPacket.data, 0, recvPacket.length) == DISCOVER_MSG_PC) {
                             // When paired, stop sending beacon packets
                             runtimeAddr = recvPacket.address
@@ -77,24 +121,95 @@ object MonadoDriver {
                     }
                     delay(500.milliseconds)
                 }
-                if (!this@stream.isActive) return@stream
-                Log.d("MonadoDriver", "paired with ${runtimeAddr.hostAddress}, opening stream")
-                receiveVideo(surf)
             }
+            if (currentCoroutineContext().isActive) {
+                Log.d(TAG, "paired with ${runtimeAddr.hostAddress}, opening stream")
+                toast("Opening stream ${runtimeAddr.hostAddress}")
+                coroutineScope {
+                    launch { receiveVideo(surf) }
+                    launch { sendPose() }
+                }
+            }
+        }
+    }
+
+    private fun toast(msg: String) {
+        Handler(Looper.getMainLooper()).post {
+            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /**
+     * Sends the latest ARCore pose to the PC over UDP.
+     *
+     * Packet layout, 40 bytes, little-endian:
+     *   int64 timestamp_ns
+     *   int32 tracking_state (0 = tracking, 1 = paused, 2 = stopped)
+     *   float qx qy qz qw
+     *   float tx ty tz
+     */
+    private suspend fun sendPose() {
+        val src = poseSource
+        if (src == null) {
+            Log.w(TAG, "sendPose: no pose source")
+            return
+        }
+        val socket = withContext(Dispatchers.IO) {
+            DatagramSocket()
+        }
+        poseSocket = socket
+        try {
+            socket.use { s ->
+                Log.d(TAG, "sending pose to ${runtimeAddr.hostAddress}:$POSE_PORT")
+                val buffer = ByteBuffer.allocate(POSE_PACKET_SIZE).order(ByteOrder.LITTLE_ENDIAN)
+                val datagram = DatagramPacket(buffer.array(), POSE_PACKET_SIZE, runtimeAddr, POSE_PORT)
+                var sent = 0L
+                var lastLog = 0L
+                while (currentCoroutineContext().isActive) {
+                    val pose = src.latestPose()
+                    if (pose == null) {
+                        delay(10.milliseconds)
+                        continue
+                    }
+                    buffer.clear()
+                    buffer.putLong(pose.timestampNs)
+                    buffer.putInt(pose.trackingState)
+                    buffer.putFloat(pose.qx)
+                    buffer.putFloat(pose.qy)
+                    buffer.putFloat(pose.qz)
+                    buffer.putFloat(pose.qw)
+                    buffer.putFloat(pose.tx)
+                    buffer.putFloat(pose.ty)
+                    buffer.putFloat(pose.tz)
+                    s.send(datagram)
+                    sent++
+                    val now = System.nanoTime()
+                    if (now - lastLog > 1_000_000_000L) {
+                        Log.d(TAG, "pose sent: $sent, ts=${pose.timestampNs}, state=${pose.trackingState}")
+                        lastLog = now
+                    }
+                    delay(5.milliseconds)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "sendPose failed", e)
+        } finally {
+            poseSocket = null
         }
     }
 
     private suspend fun receiveVideo(surf: Surface) {
         val codec = try {
             MediaCodec.createDecoderByType("video/hevc").apply {
-                configure(MediaFormat.createVideoFormat("video/hevc", 1280, 720), surf, null, 0)
+                configure(MediaFormat.createVideoFormat("video/hevc", 1920, 1080), surf, null, 0)
                 start()
             }
         } catch (e: Exception) {
-            Log.e("MonadoDriver", "failed to create/configure codec", e)
+            Log.e(TAG, "failed to create/configure codec", e)
+            toast("Codec error")
             return
         }
-        Log.d("MonadoDriver", "codec started")
+        Log.d(TAG, "codec started")
 
         val startCode = byteArrayOf(0, 0, 0, 1)
         val buf = ByteArray(65536)
@@ -102,16 +217,18 @@ object MonadoDriver {
         val fu = ByteArrayOutputStream()
 
         try {
-            val socket = DatagramSocket(null).apply {
-                reuseAddress = true
-                soTimeout = 500
-                // Large kernel receive buffer so bursty RTP traffic does not get dropped.
-                setReceiveBufferSize(4 * 1024 * 1024)
-                bind(InetSocketAddress(PORT))
+            val socket = withContext(Dispatchers.IO) {
+                DatagramSocket(null).apply {
+                    reuseAddress = true
+                    soTimeout = 500
+                    // Large kernel receive buffer so bursty RTP traffic does not get dropped
+                    receiveBufferSize = 4 * 1024 * 1024
+                    bind(InetSocketAddress(PORT))
+                }
             }
             streamSocket = socket
             socket.use { socket ->
-                Log.d("MonadoDriver", "listening for stream on port $PORT")
+                Log.d(TAG, "listening for stream on port $PORT")
                 var lastSeq = -1
                 var lostPackets = 0L
                 var lastLossLog = 0L
@@ -129,20 +246,20 @@ object MonadoDriver {
                     val n = packet.length
                     if (n < 12) continue
 
-                    // Track RTP sequence gaps (packet loss) for diagnostics.
+                    // Track RTP sequence gaps (packet loss) for diagnostics
                     val seq = ((buf[2].toInt() and 0xFF) shl 8) or (buf[3].toInt() and 0xFF)
                     if (lastSeq >= 0 && seq != ((lastSeq + 1) and 0xFFFF)) {
                         val gap = if (seq > lastSeq) seq - lastSeq - 1 else (seq + 0x10000 - lastSeq - 1)
                         lostPackets += gap
                         val now = System.nanoTime()
                         if (now - lastLossLog > 1_000_000_000L) {
-                            Log.w("MonadoDriver", "RTP gap: last=$lastSeq got=$seq, lost≈$lostPackets")
+                            Log.w(TAG, "RTP gap: last=$lastSeq got=$seq, lost≈$lostPackets")
                             lastLossLog = now
                         }
                     }
                     lastSeq = seq
 
-                    // RTP header, skip CSRCs if present.
+                    // RTP header, skip CSRCs if present
                     val csrcCount = buf[0].toInt() and 0x0F
                     val hdrLen = 12 + csrcCount * 4
                     if (n <= hdrLen) continue
@@ -150,11 +267,11 @@ object MonadoDriver {
                     val payload = buf.copyOfRange(hdrLen, n)
                     if (payload.size < 2) continue
 
-                    // HEVC 2-byte NAL header, the type is in the first byte.
+                    // HEVC 2-byte NAL header, the type is in the first byte
                     val nalType = (payload[0].toInt() shr 1) and 0x3F
 
                     val ok = when {
-                        // Single NAL unit packet.
+                        // Single NAL unit packet
                         nalType <= 47 -> {
                             val nal = ByteArray(4 + payload.size)
                             startCode.copyInto(nal)
@@ -162,7 +279,7 @@ object MonadoDriver {
                             feedCodec(codec, nal, nalType)
                         }
 
-                        // Aggregation packet.
+                        // Aggregation packet
                         nalType == 48 -> {
                             var off = 2
                             var allOk = true
@@ -186,7 +303,7 @@ object MonadoDriver {
                             allOk
                         }
 
-                        // Fragmentation unit.
+                        // Fragmentation unit
                         nalType == 49 -> {
                             if (payload.size < 3) {
                                 true
@@ -218,26 +335,27 @@ object MonadoDriver {
 
                         else -> true
                     }
-                    // A single decode hiccup must not kill the whole stream.
+                    // A single decode hiccup must not kill the whole stream
                     if (!ok) {
                         decodeErrors++
                         val now = System.nanoTime()
                         if (now - lastDecodeErrorLog > 1_000_000_000L) {
-                            Log.w("MonadoDriver", "feedCodec failed $decodeErrors times, continuing")
+                            Log.w(TAG, "feedCodec failed $decodeErrors times, continuing")
                             lastDecodeErrorLog = now
                         }
                     }
                 }
             }
         } catch (e: Exception) {
-            Log.e("MonadoDriver", "stream error", e)
+            Log.e(TAG, "stream error", e)
+            toast("Stream error")
         } finally {
             try {
                 codec.stop()
             } catch (e: Exception) {
             }
             codec.release()
-            Log.d("MonadoDriver", "codec released")
+            Log.d(TAG, "codec released")
         }
     }
 
@@ -251,13 +369,13 @@ object MonadoDriver {
         return try {
             val index = codec.dequeueInputBuffer(10000)
             if (index < 0) {
-                Log.w("MonadoDriver", "feedCodec: no input buffer within 10s")
+                Log.w(TAG, "feedCodec: no input buffer within 10s")
                 return false
             }
 
             val input = codec.getInputBuffer(index)
             if (input == null) {
-                Log.w("MonadoDriver", "feedCodec: getInputBuffer($index) is null")
+                Log.w(TAG, "feedCodec: getInputBuffer($index) is null")
                 return false
             }
             input.clear()
@@ -265,14 +383,14 @@ object MonadoDriver {
 
             codec.queueInputBuffer(index, 0, nal.size, System.nanoTime() / 1000, 0)
 
-            // Drain output buffers onto the surface.
+            // Drain output buffers onto the surface
             val info = MediaCodec.BufferInfo()
             while (true) {
                 val out = codec.dequeueOutputBuffer(info, 0)
                 when {
                     out == MediaCodec.INFO_TRY_AGAIN_LATER -> break
                     out == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED -> {
-                        Log.d("MonadoDriver", "output format: ${codec.outputFormat}")
+                        Log.d(TAG, "output format: ${codec.outputFormat}")
                     }
 
                     out >= 0 -> codec.releaseOutputBuffer(out, true)
@@ -281,33 +399,37 @@ object MonadoDriver {
             }
             true
         } catch (e: Exception) {
-            Log.e("MonadoDriver", "feedCodec failed", e)
+            Log.e(TAG, "feedCodec failed", e)
             false
         }
     }
 
     fun stop() {
-        Log.d("MonadoDriver", "stop")
+        Log.d(TAG, "stop")
         job?.cancel()
         streamSocket?.close()
         streamSocket = null
+        poseSocket?.close()
+        poseSocket = null
         job = null
     }
 
     fun destroy() {
-        Log.d("MonadoDriver", "destroy")
+        Log.d(TAG, "destroy")
         stop()
+        poseSource?.pause()
         surface = null
     }
 
     fun restart() {
-        Log.d("MonadoDriver", "restart")
+        Toast.makeText(context, "Reloading...", Toast.LENGTH_SHORT).show()
+        Log.d(TAG, "restart")
         stop()
         val s = surface
         if (s != null && s.isValid) {
             start(s)
         } else {
-            Log.w("MonadoDriver", "restart: no valid surface")
+            Log.w(TAG, "restart: no valid surface")
         }
     }
 }

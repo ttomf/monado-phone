@@ -26,7 +26,7 @@
 
 /*
  *
- * Defines.
+ * Defines
  *
  */
 
@@ -35,7 +35,7 @@
 
 /*
  *
- * Structs.
+ * Structs
  *
  */
 
@@ -83,7 +83,7 @@ struct phone_target
 
 /*
  *
- * Vulkan helpers.
+ * Vulkan helpers
  *
  */
 
@@ -180,7 +180,7 @@ ensure_images(struct phone_target *pt, struct vk_bundle *vk, VkExtent2D extent, 
 
 /*
  *
- * Target members.
+ * Target members
  *
  */
 

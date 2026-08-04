@@ -7,6 +7,8 @@
  * @ingroup drv_phone
  */
 
+#pragma once
+
 #include <arpa/inet.h>
 #include <stdbool.h>
 
@@ -14,8 +16,16 @@
 
 #include "../../../xrt/compositor/main/comp_compositor.h"
 
+struct m_relation_history;
+
 bool
 phone_discover(struct sockaddr_in *out_addr);
+
+bool
+phone_pose_receive_init(struct m_relation_history *rh);
+
+void
+phone_pose_receive_destroy(void);
 
 struct sockaddr_in *
 phone_hmd_get_addr(struct xrt_device *xdev);
