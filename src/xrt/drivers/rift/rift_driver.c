@@ -65,12 +65,31 @@ DEBUG_GET_ONCE_FLOAT_OPTION(rift_override_icd_mm, "RIFT_OVERRIDE_ICD", -1.0f)
 DEBUG_GET_ONCE_BOOL_OPTION(rift_use_firmware_distortion, "RIFT_USE_FIRMWARE_DISTORTION", false)
 DEBUG_GET_ONCE_BOOL_OPTION(rift_power_override, "RIFT_POWER_OVERRIDE", false)
 DEBUG_GET_ONCE_FLOAT_OPTION(rift_startup_wait_time, "RIFT_STARTUP_WAIT_TIME", 5.0f)
+DEBUG_GET_ONCE_BOOL_OPTION(rift_enable_back_strap_leds, "RIFT_ENABLE_BACK_STRAP_LEDS", false)
+
+//! LEDs further behind the origin than this, along the device's backward (+Z) axis, are considered part of the back
+//! strap and disabled by @ref rift_upload_back_strap_disable_pattern.
+#define RIFT_BACK_STRAP_THRESHOLD_M 0.1f // 100mm
+
+// The headset doesn't like it when you give a sequence of length 1 for some reason, so let's give it what it wants.
+#define RIFT_CUSTOM_PATTERN_SEQUENCE_LENGTH 10
 
 /*
  *
  * Headset functions
  *
  */
+
+//! Repeats a 2-bit LED state across all @ref RIFT_CUSTOM_PATTERN_SEQUENCE_LENGTH phases of a custom pattern sequence.
+static uint32_t
+rift_custom_pattern_sequence_repeat(enum rift_custom_pattern_state state)
+{
+	uint32_t sequence = 0;
+	for (int phase = 0; phase < RIFT_CUSTOM_PATTERN_SEQUENCE_LENGTH; phase++) {
+		sequence |= ((uint32_t)state & 0x3) << (phase * 2);
+	}
+	return sequence;
+}
 
 static int
 rift_sensor_thread_tick(struct rift_hmd *hmd)
@@ -450,7 +469,7 @@ rift_read_led_model(struct rift_hmd *hmd)
 			    .normal = normal,
 			    .radius_m = 0.0035f,                   // 3.5mm
 			    .visibility_angle = DEG_TO_RAD(90.0f), // TODO: tune this value properly
-			    .id = hmd->led_model.led_count - 1,
+			    .id = (t_constellation_led_id_it)position_report.position_index,
 			};
 		}
 	}
@@ -471,6 +490,62 @@ read_led_model_err:
 }
 
 #undef PARSE_MICROMETER_TRIPLET
+
+/*!
+ * Uploads a custom pattern that holds every LED high except the back strap LEDs, which are held off, then drops
+ * the back strap LEDs from @ref rift_hmd::led_model so the constellation tracker never tries to match blobs
+ * against LEDs that are physically dark. The caller must have already set RIFT_TRACKING_CUSTOM_PATTERN on the
+ * tracking report: writes to the CustomPattern report are no-ops until that bit is set.
+ */
+static int
+rift_upload_back_strap_disable_pattern(struct rift_hmd *hmd)
+{
+	int result;
+	const size_t total_count = hmd->led_model.led_count;
+	size_t kept_count = 0;
+
+	const uint32_t sequence_high = rift_custom_pattern_sequence_repeat(RIFT_CUSTOM_PATTERN_STAT_HIGH);
+	const uint32_t sequence_off = rift_custom_pattern_sequence_repeat(RIFT_CUSTOM_PATTERN_STAT_OFF);
+
+	for (size_t i = 0; i < total_count; i++) {
+		// Copied out since the compaction below writes to index `kept_count`, which trails `i`.
+		struct t_constellation_tracker_led led = hmd->led_model.leds[i];
+
+		// Monado device space is -Z forward, so a LED further than the threshold along +Z sits behind the
+		// origin by more than the threshold, i.e. on the back strap.
+		bool is_back_strap = led.position.z > RIFT_BACK_STRAP_THRESHOLD_M;
+
+		struct rift_custom_pattern_report pattern = {
+		    .command_id = 0,
+		    .sequence_length = RIFT_CUSTOM_PATTERN_SEQUENCE_LENGTH,
+		    .sequence = is_back_strap ? sequence_off : sequence_high,
+		    .led_index = led.id,
+		    .led_count = (uint16_t)total_count,
+		};
+
+		result = rift_set_custom_pattern(hmd, &pattern);
+		if (result < 0) {
+			HMD_ERROR(hmd, "Failed to upload custom pattern for LED %d, reason %d", led.id, result);
+			return result;
+		}
+
+		if (is_back_strap) {
+			HMD_DEBUG(hmd, "Disabling LED %d as back strap, %.1fmm behind origin", led.id,
+			          (double)(led.position.z * 1000.0f));
+			continue;
+		}
+
+		// Dropped from the model as well as the hardware.
+		hmd->led_model.leds[kept_count++] = led;
+	}
+
+	hmd->led_model.led_count = kept_count;
+
+	HMD_INFO(hmd, "Disabled %zu back strap LED(s), %zu of %zu LEDs remain in the model.", total_count - kept_count,
+	         kept_count, total_count);
+
+	return 0;
+}
 
 static void
 get_raw_pose(struct rift_hmd *hmd, timepoint_ns when_ns, struct xrt_space_relation *out_relation)
@@ -857,6 +932,8 @@ rift_devices_create(struct os_hid_device *hmd_dev,
 
 	result = rift_get_tracking_report(hmd, &hmd->tracking);
 	if (result == 0) {
+		// @note Intentionally we don't enable CUSTOM_PATTERN bit so that we don't inherit external custom
+		//       patterns that may have been written by other processes or prior Monado runs
 		hmd->tracking.flags = RIFT_TRACKING_ENABLE | RIFT_TRACKING_USE_CARRIER;
 		hmd->tracking.pattern_idx = 0xff;
 
@@ -887,6 +964,26 @@ rift_devices_create(struct os_hid_device *hmd_dev,
 		goto error;
 	} else {
 		HMD_DEBUG(hmd, "Read LED model from Rift.");
+	}
+
+	if (!debug_get_bool_option_rift_enable_back_strap_leds()) {
+		// Writes to the CustomPattern report only work with CUSTOM_PATTERN set to true
+		hmd->tracking.flags |= RIFT_TRACKING_CUSTOM_PATTERN | RIFT_TRACKING_AUTO_INCREMENT;
+		hmd->tracking.pattern_idx = 0;
+
+		result = rift_set_tracking(hmd, &hmd->tracking);
+		if (result < 0) {
+			HMD_ERROR(hmd, "Failed to enable custom pattern mode, reason %d", result);
+			goto error;
+		}
+
+		result = rift_upload_back_strap_disable_pattern(hmd);
+		if (result < 0) {
+			HMD_ERROR(hmd, "Failed to upload back strap disable pattern, reason %d", result);
+			goto error;
+		}
+
+		HMD_INFO(hmd, "Disabled back strap LEDs via custom pattern.");
 	}
 
 	hmd->constellation_tracking_source.get_tracked_pose = rift_hmd_constellation_tracking_source_get_tracked_pose;

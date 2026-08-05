@@ -151,6 +151,12 @@ rift_set_config(struct rift_hmd *hmd, struct rift_config_report *config)
 }
 
 int
+rift_set_custom_pattern(struct rift_hmd *hmd, struct rift_custom_pattern_report *pattern)
+{
+	return rift_send_report(hmd, false, FEATURE_REPORT_CUSTOM_PATTERN, pattern, sizeof(*pattern));
+}
+
+int
 rift_get_tracking_report(struct rift_hmd *hmd, struct rift_tracking_report *tracking_report)
 {
 	uint8_t buf[REPORT_MAX_SIZE] = {0};
