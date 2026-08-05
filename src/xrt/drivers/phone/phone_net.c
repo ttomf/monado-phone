@@ -2,41 +2,16 @@
 // SPDX-License-Identifier: BSL-1.0
 /*!
  * @file
- * @brief Phone HMD networking: discovery, pose stream and the video stream sink.
+ * @brief Networking for Phone HMD driver.
  * @author Tom F. <tom.fucik@email.cz>
  * @ingroup drv_phone
- *
- * Everything that talks to the phone. The host-side frame production lives
- * in phone_stream.c, wire protocol parsing in phone_packet.c.
  */
 
-#include <arpa/inet.h>
-#include <errno.h>
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
-
-#include "os/os_threading.h"
-#include "os/os_time.h"
-
-#include "math/m_api.h"
-#include "math/m_relation_history.h"
-
-#include "util/u_logging.h"
-#include "util/u_misc.h"
-
-#include "gstreamer/gst_pipeline.h"
-#include "gstreamer/gst_sink.h"
-
+#include "phone_config.h"
 #include "phone_internals.h"
 
 
-/*
- *
- * Socket helpers
- *
- */
-
+// Fast socket options setter
 static void
 sock_opt(int sock, int opt, int val)
 {
@@ -45,17 +20,11 @@ sock_opt(int sock, int opt, int val)
 	}
 }
 
-
-/*
- *
- * Discovery
- *
- */
-
+// Discovery via UDP multicast
 bool
 phone_discover(struct sockaddr_in *out_addr)
 {
-	// Create a UDP socket for multicast discovery.
+	// Create a UDP socket for multicast discovery
 	int sock = socket(AF_INET, SOCK_DGRAM, 0);
 	if (sock < 0) {
 		U_LOG_W("phone: socket() failed: %d", errno);
@@ -64,7 +33,7 @@ phone_discover(struct sockaddr_in *out_addr)
 	sock_opt(sock, SO_REUSEADDR, 1);
 	sock_opt(sock, SO_REUSEPORT, 1);
 
-	// Don't block the prober forever if the phone never answers.
+	// Wait max 5 seconds
 	struct timeval tv = {.tv_sec = 5, .tv_usec = 0};
 	if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
 		U_LOG_W("phone: SO_RCVTIMEO failed: %d", errno);
@@ -74,7 +43,7 @@ phone_discover(struct sockaddr_in *out_addr)
 	struct sockaddr_in bind_addr = {0};
 	bind_addr.sin_family = AF_INET;
 	bind_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	bind_addr.sin_port = htons(PHONE_PORT);
+	bind_addr.sin_port = htons(get_port());
 
 	if (bind(sock, (struct sockaddr *)&bind_addr, sizeof(bind_addr)) < 0) {
 		U_LOG_W("phone: bind() failed: %d", errno);
@@ -84,7 +53,7 @@ phone_discover(struct sockaddr_in *out_addr)
 
 	// Join the multicast group.
 	struct ip_mreq mreq = {0};
-	mreq.imr_multiaddr.s_addr = inet_addr(PHONE_MCAST_ADDR);
+	mreq.imr_multiaddr.s_addr = inet_addr(get_multicast_addr());
 	mreq.imr_interface.s_addr = htonl(INADDR_ANY);
 
 	if (setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0) {
@@ -97,7 +66,7 @@ phone_discover(struct sockaddr_in *out_addr)
 	struct sockaddr_in from = {0};
 	socklen_t from_len = sizeof(from);
 	while (true) {
-		U_LOG_D("phone: recvfrom() waiting...");
+		U_LOG_I("phone: recvfrom() waiting...");
 		ssize_t n =
 		    recvfrom(sock, recv_buffer, sizeof(recv_buffer) - 1, 0, (struct sockaddr *)&from, &from_len);
 		if (n < 0) {
@@ -111,10 +80,9 @@ phone_discover(struct sockaddr_in *out_addr)
 		}
 		recv_buffer[n] = '\0';
 		U_LOG_D("phone: received: %s", recv_buffer);
-		if (strcmp(recv_buffer, PHONE_DISCOVER_MSG_PHONE) == 0) {
+		if (strcmp(recv_buffer, PHONE_DISCOVER_MSG) == 0) {
 			*out_addr = from;
-			sendto(sock, PHONE_DISCOVER_MSG_PC, strlen(PHONE_DISCOVER_MSG_PC), 0, (struct sockaddr *)&from,
-			       from_len);
+			sendto(sock, PC_DISCOVER_MSG, strlen(PC_DISCOVER_MSG), 0, (struct sockaddr *)&from, from_len);
 			close(sock);
 			break;
 		}
@@ -123,37 +91,25 @@ phone_discover(struct sockaddr_in *out_addr)
 }
 
 
-/*
- *
- * Video stream sink (encode + UDP)
- *
- */
-
-/*!
- * State of the network side of the video stream, one instance per process.
- */
-struct phone_net_stream
+struct net_stream
 {
-	//! GStreamer encoder + network pipeline.
 	struct xrt_frame_context xfctx;
 	struct gstreamer_pipeline *gp;
 	struct gstreamer_sink *gs;
 	struct xrt_frame_sink *xfs;
 };
 
-static struct phone_net_stream *g_net_stream = NULL;
+static struct net_stream *g_net_stream = NULL;
 
-//! @public @memberof phone_net_stream
 bool
-phone_net_stream_sink_create(const struct sockaddr_in *addr, struct xrt_frame_sink **out_xfs)
+net_stream_create(const struct sockaddr_in *addr, struct xrt_frame_sink **out_xfs)
 {
 	if (g_net_stream != NULL) {
 		*out_xfs = g_net_stream->xfs;
 		return true;
 	}
 
-	struct phone_net_stream *ns = U_TYPED_CALLOC(struct phone_net_stream);
-
+	struct net_stream *ns = U_TYPED_CALLOC(struct net_stream);
 	char ip_str[INET_ADDRSTRLEN];
 	inet_ntop(AF_INET, &addr->sin_addr, ip_str, sizeof(ip_str));
 
@@ -172,24 +128,14 @@ phone_net_stream_sink_create(const struct sockaddr_in *addr, struct xrt_frame_si
 	         "video/x-h265,stream-format=byte-stream,alignment=nal ! "
 	         "rtph265pay config-interval=1 ! "
 	         "udpsink host=%s port=%d sync=false async=false",
-	         PHONE_STREAM_WIDTH, PHONE_STREAM_HEIGHT, ip_str, PHONE_PORT);
+	         PHONE_STREAM_WIDTH, PHONE_STREAM_HEIGHT, ip_str, get_port());
 	U_LOG_I("phone: stream pipeline: %s", pipeline);
 
 	gstreamer_pipeline_create_from_string(&ns->xfctx, pipeline, &ns->gp);
-	gstreamer_sink_create_with_pipeline_fps( //
-	    ns->gp,                              //
-	    PHONE_STREAM_WIDTH,                  //
-	    PHONE_STREAM_HEIGHT,                 //
-	    60,                                  //
-	    1,                                   //
-	    XRT_FORMAT_R8G8B8A8,                 //
-	    "xr_src",                            //
-	    &ns->gs,                             //
-	    &ns->xfs);                           //
+	gstreamer_sink_create_with_pipeline(ns->gp, PHONE_STREAM_WIDTH, PHONE_STREAM_HEIGHT, XRT_FORMAT_R8G8B8A8,
+	                                    "xr_src", &ns->gs, &ns->xfs);
 	gstreamer_pipeline_play(ns->gp);
-
 	g_net_stream = ns;
-
 	*out_xfs = ns->xfs;
 
 	U_LOG_I("phone: stream sink created");
@@ -197,56 +143,53 @@ phone_net_stream_sink_create(const struct sockaddr_in *addr, struct xrt_frame_si
 	return true;
 }
 
-//! @public @memberof phone_net_stream
 void
-phone_net_stream_destroy(void)
+net_stream_destroy(void)
 {
-	struct phone_net_stream *ns = g_net_stream;
+	struct net_stream *ns = g_net_stream;
 	if (ns == NULL) {
 		return;
 	}
 	g_net_stream = NULL;
 
-	gstreamer_sink_send_eos(ns->gs);
+	gstreamer_pipeline_stop(ns->gp);
 	xrt_frame_context_destroy_nodes(&ns->xfctx);
 
 	free(ns);
 }
 
 
-/*
- *
- * Pose stream (phone -> PC)
- *
- */
-
-/*!
- * State of the phone pose receiver, one instance per process.
- */
-struct phone_pose_receiver
+struct pose_receiver
 {
-	//! UDP socket the phone sends poses to.
+	// UDP socket the phone sends poses to.
 	int sock;
 
-	//! Receiver thread.
+	// Receiver thread.
 	struct os_thread_helper thread;
 
-	//! History the received poses are pushed into, owned by the HMD device.
+	// History the received poses are pushed into, owned by the HMD device.
 	struct m_relation_history *rh;
 
-	//! Thread stop flag, also checked after an unexpected recvfrom() error.
+	// Thread stop flag, also checked after an unexpected recvfrom() error.
 	volatile bool running;
 };
 
-static struct phone_pose_receiver *g_pose = NULL;
-
-//! @private @memberof phone_pose_receiver
-static void *
-phone_pose_thread(void *ptr)
+struct pose_packet
 {
-	struct phone_pose_receiver *pr = (struct phone_pose_receiver *)ptr;
+	int64_t timestamp_ns;
+	int32_t tracking_state;
+	float qx, qy, qz;
+	float qw, tx, ty, tz;
+};
 
-	uint8_t buf[PHONE_POSE_PACKET_SIZE];
+static struct pose_receiver *g_pose = NULL;
+
+static void *
+net_pose_thread(void *ptr)
+{
+	struct pose_receiver *pr = (struct pose_receiver *)ptr;
+
+	uint8_t buf[40];
 	while (pr->running) {
 		ssize_t n = recvfrom(pr->sock, buf, sizeof(buf), 0, NULL, NULL);
 		if (n < 0) {
@@ -260,43 +203,39 @@ phone_pose_thread(void *ptr)
 			continue;
 		}
 
-		enum phone_pose_tracking_state state;
-		struct xrt_space_relation rel;
-		if (!phone_packet_pose_parse(buf, (size_t)n, &state, &rel)) {
-			continue;
-		}
-		if (state != PHONE_POSE_TRACKING) {
-			// Tracking lost, drop the stale poses.
-			m_relation_history_clear(pr->rh);
+		struct pose_packet *pp = (struct pose_packet *)buf;
+		if (pp->tracking_state != 0) {
 			continue;
 		}
 
+		struct xrt_space_relation rel;
+		rel.pose.orientation.x = pp->qx;
+		rel.pose.orientation.y = pp->qy;
+		rel.pose.orientation.z = pp->qz;
+		rel.pose.orientation.w = pp->qw;
+		rel.pose.position.x = pp->tx;
+		rel.pose.position.y = pp->ty;
+		rel.pose.position.z = pp->tz;
 		math_quat_normalize(&rel.pose.orientation);
 
 		rel.relation_flags = (enum xrt_space_relation_flags)(
 		    XRT_SPACE_RELATION_ORIENTATION_TRACKED_BIT | XRT_SPACE_RELATION_ORIENTATION_VALID_BIT |
 		    XRT_SPACE_RELATION_POSITION_TRACKED_BIT | XRT_SPACE_RELATION_POSITION_VALID_BIT);
 
-		/*
-		 * The phone clock is not the PC clock, stamp the pose at arrival
-		 * time and let the relation history extrapolate for the network
-		 * latency when the compositor asks for a future timestamp.
-		 */
 		m_relation_history_push(pr->rh, &rel, os_monotonic_get_ns());
 	}
 
 	return NULL;
 }
 
-//! @public @memberof phone_pose_receiver
 bool
-phone_pose_receive_init(struct m_relation_history *rh)
+net_pose_create(struct m_relation_history *rh)
 {
 	if (g_pose != NULL) {
 		return true;
 	}
 
-	struct phone_pose_receiver *pr = U_TYPED_CALLOC(struct phone_pose_receiver);
+	struct pose_receiver *pr = U_TYPED_CALLOC(struct pose_receiver);
 
 	pr->sock = socket(AF_INET, SOCK_DGRAM, 0);
 	if (pr->sock < 0) {
@@ -306,7 +245,7 @@ phone_pose_receive_init(struct m_relation_history *rh)
 	}
 	sock_opt(pr->sock, SO_REUSEADDR, 1);
 
-	// Wake up periodically so the thread can notice it should stop.
+	// Wake up periodically so the thread can notice it should stop
 	struct timeval tv = {.tv_sec = 0, .tv_usec = 100000};
 	if (setsockopt(pr->sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
 		U_LOG_W("phone: pose SO_RCVTIMEO failed: %d", errno);
@@ -315,7 +254,7 @@ phone_pose_receive_init(struct m_relation_history *rh)
 	struct sockaddr_in bind_addr = {0};
 	bind_addr.sin_family = AF_INET;
 	bind_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	bind_addr.sin_port = htons(PHONE_POSE_PORT);
+	bind_addr.sin_port = htons(get_pose_port());
 
 	if (bind(pr->sock, (struct sockaddr *)&bind_addr, sizeof(bind_addr)) < 0) {
 		U_LOG_W("phone: pose bind() failed: %d", errno);
@@ -328,7 +267,7 @@ phone_pose_receive_init(struct m_relation_history *rh)
 	pr->running = true;
 
 	os_thread_helper_init(&pr->thread);
-	if (os_thread_helper_start(&pr->thread, phone_pose_thread, pr) != 0) {
+	if (os_thread_helper_start(&pr->thread, net_pose_thread, pr) != 0) {
 		U_LOG_E("phone: failed to start pose thread");
 		pr->running = false;
 		close(pr->sock);
@@ -339,22 +278,21 @@ phone_pose_receive_init(struct m_relation_history *rh)
 
 	g_pose = pr;
 
-	U_LOG_I("phone: pose receiver started on port %d", PHONE_POSE_PORT);
+	U_LOG_I("phone: pose receiver started on port %d", get_pose_port());
 
 	return true;
 }
 
-//! @public @memberof phone_pose_receiver
 void
-phone_pose_receive_destroy(void)
+net_pose_destroy(void)
 {
-	struct phone_pose_receiver *pr = g_pose;
+	struct pose_receiver *pr = g_pose;
 	if (pr == NULL) {
 		return;
 	}
 	g_pose = NULL;
 
-	// Wake up the thread blocked in recvfrom().
+	// Wake up the thread blocked in recvfrom()
 	pr->running = false;
 	close(pr->sock);
 	os_thread_helper_stop_and_wait(&pr->thread);

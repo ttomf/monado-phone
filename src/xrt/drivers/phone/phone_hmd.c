@@ -2,71 +2,24 @@
 // SPDX-License-Identifier: BSL-1.0
 /*!
  * @file
- * @brief Phone HMD device.
+ * @brief Phone HMD device for Phone HMD driver.
  * @author Tom F. <tom.fucik@email.cz>
  * @ingroup drv_phone
  */
 
-#include "os/os_time.h"
-#include "util/u_distortion.h"
-#include "xrt/xrt_defines.h"
-#include "xrt/xrt_device.h"
-
-#include "math/m_relation_history.h"
-#include "math/m_api.h"
-#include "math/m_mathinclude.h" // IWYU pragma: keep
-
-#include "util/u_debug.h"
-#include "util/u_device.h"
-#include "util/u_distortion_mesh.h"
-#include "util/u_logging.h"
-#include "util/u_time.h"
-#include "util/u_var.h"
-#include "util/u_visibility_mask.h"
-#include "xrt/xrt_results.h"
-
-#include <stdio.h>
-#include <arpa/inet.h>
-
 #include "phone_internals.h"
+#include "phone_interface.h"
+#include "util/u_logging.h"
 
-/*!
- * A Phone HMD device.
- *
- * @implements xrt_device
- */
-struct phone_hmd
+
+// Update inputs, no-op
+static xrt_result_t
+phone_hmd_update_inputs(struct xrt_device *xdev)
 {
-	struct xrt_device base;
-	enum u_logging_level log_level;
-	struct xrt_hmd_parts parts;
-	struct u_cardboard_distortion distortion;
-	//! Has a built-in mutex, so it is thread safe.
-	struct m_relation_history *relation_hist;
-	struct sockaddr_in phone_addr;
-};
-
-DEBUG_GET_ONCE_LOG_OPTION(phone_log, "PHONE_LOG", U_LOGGING_WARN)
-
-#define HMD_ERROR(hmd, ...) U_LOG_XDEV_IFL_E(&hmd->base, hmd->log_level, __VA_ARGS__)
-
-//! @private @memberof phone_hmd
-static void
-phone_hmd_destroy(struct xrt_device *xdev)
-{
-	struct phone_hmd *hmd = (struct phone_hmd *)(xdev);
-
-	// Remove the variable tracking.
-	u_var_remove_root(hmd);
-
-	phone_pose_receive_destroy();
-
-	m_relation_history_destroy(&hmd->relation_hist);
-
-	u_device_free(&hmd->base);
+	return u_device_noop_update_inputs(xdev);
 }
 
-//! @public @memberof phone_hmd
+// Get tracked pose, return from relation history
 static xrt_result_t
 phone_hmd_get_tracked_pose(struct xrt_device *xdev,
                            enum xrt_input_name name,
@@ -76,21 +29,22 @@ phone_hmd_get_tracked_pose(struct xrt_device *xdev,
 	struct phone_hmd *hmd = (struct phone_hmd *)(xdev);
 
 	if (name != XRT_INPUT_GENERIC_HEAD_POSE) {
+		// Only supported is head pose
 		U_LOG_XDEV_UNSUPPORTED_INPUT(&hmd->base, hmd->log_level, name);
 		return XRT_ERROR_INPUT_UNSUPPORTED;
 	}
 
+	// Initialize as zero
 	struct xrt_space_relation relation = XRT_SPACE_RELATION_ZERO;
 
+	// Get relation from history
 	enum m_relation_history_result history_result =
 	    m_relation_history_get(hmd->relation_hist, at_timestamp_ns, &relation);
 	if (history_result == M_RELATION_HISTORY_RESULT_INVALID) {
-		// No poses have been pushed yet, the phone has not started streaming.
-		HMD_ERROR(hmd, "Internal error: no poses pushed?");
+		U_LOG_E("phone: no poses pushed");
 	}
-
-	if ((relation.relation_flags & XRT_SPACE_RELATION_ORIENTATION_VALID_BIT) != 0) {
-		// If we provide an orientation, make sure that it is normalized.
+	if (relation.relation_flags & XRT_SPACE_RELATION_ORIENTATION_VALID_BIT) {
+		// Provide only normalized orientation
 		math_quat_normalize(&relation.pose.orientation);
 	}
 
@@ -98,7 +52,7 @@ phone_hmd_get_tracked_pose(struct xrt_device *xdev,
 	return XRT_SUCCESS;
 }
 
-//! @public @memberof phone_hmd
+// Get view poses, return default
 static xrt_result_t
 phone_hmd_get_view_poses(struct xrt_device *xdev,
                          const struct xrt_vec3 *default_eye_relation,
@@ -109,54 +63,47 @@ phone_hmd_get_view_poses(struct xrt_device *xdev,
                          struct xrt_fov *out_fovs,
                          struct xrt_pose *out_poses)
 {
-	return u_device_get_view_poses( //
-	    xdev,                       //
-	    default_eye_relation,       //
-	    at_timestamp_ns,            //
-	    view_type,                  //
-	    view_count,                 //
-	    out_head_relation,          //
-	    out_fovs,                   //
-	    out_poses);                 //
+	return u_device_get_view_poses(xdev, default_eye_relation, at_timestamp_ns, view_type, view_count,
+	                               out_head_relation, out_fovs, out_poses);
 }
 
-//! @public @memberof phone_hmd
+// Get visibility mask, return default
 static xrt_result_t
 phone_hmd_get_visibility_mask(struct xrt_device *xdev,
                               enum xrt_visibility_mask_type type,
                               uint32_t view_index,
                               struct xrt_visibility_mask **out_mask)
 {
-	struct xrt_fov fov = xdev->hmd->distortion.fov[view_index];
-	u_visibility_mask_get_default(type, &fov, out_mask);
+	u_visibility_mask_get_default(type, &xdev->hmd->distortion.fov[view_index], out_mask);
 	return XRT_SUCCESS;
 }
 
-//! @public @memberof phone_hmd
-struct sockaddr_in *
-phone_hmd_get_addr(struct xrt_device *xdev)
+// Destroy phone hmd and free resources
+static void
+phone_hmd_destroy(struct xrt_device *xdev)
 {
 	struct phone_hmd *hmd = (struct phone_hmd *)(xdev);
 
-	return &hmd->phone_addr;
+	// Stop the pose receiver thread before it can write to a freed history.
+	net_pose_destroy();
+	m_relation_history_destroy(&hmd->relation_hist);
+	u_device_free(&hmd->base);
 }
 
-//! @public @memberof phone_hmd
+
 struct xrt_device *
 phone_hmd_create(struct sockaddr_in *phone_addr)
 {
-	// Tracking data comes from the phone over the network, not from Monado.
-	enum u_device_alloc_flags flags =
-	    (enum u_device_alloc_flags)(U_DEVICE_ALLOC_HMD | U_DEVICE_ALLOC_TRACKING_NONE);
+	// Create hmd
+	struct phone_hmd *hmd =
+	    U_DEVICE_ALLOCATE(struct phone_hmd, (U_DEVICE_ALLOC_HMD | U_DEVICE_ALLOC_TRACKING_NONE), 1, 0);
 
-	struct phone_hmd *hmd = U_DEVICE_ALLOCATE(struct phone_hmd, flags, 1, 0);
+	// Initialize blend modes
+	hmd->base.hmd->blend_modes[0] = XRT_BLEND_MODE_OPAQUE;
+	hmd->base.hmd->blend_mode_count = 1;
 
-	// This list should be ordered, most preferred first.
-	size_t idx = 0;
-	hmd->base.hmd->blend_modes[idx++] = XRT_BLEND_MODE_OPAQUE;
-	hmd->base.hmd->blend_mode_count = idx;
-
-	hmd->base.update_inputs = u_device_noop_update_inputs;
+	// Set function pointers
+	hmd->base.update_inputs = phone_hmd_update_inputs;
 	hmd->base.get_tracked_pose = phone_hmd_get_tracked_pose;
 	hmd->base.get_view_poses = phone_hmd_get_view_poses;
 	hmd->base.get_visibility_mask = phone_hmd_get_visibility_mask;
@@ -164,65 +111,55 @@ phone_hmd_create(struct sockaddr_in *phone_addr)
 
 	hmd->phone_addr = *phone_addr;
 
-	hmd->log_level = debug_get_log_option_phone_log();
-
-	// Print name.
-	snprintf(hmd->base.str, XRT_DEVICE_NAME_LEN, PHONE_HMD_STR);
-	snprintf(hmd->base.serial, XRT_DEVICE_NAME_LEN, "Phone HMD S/N");
+	hmd->log_level = U_LOGGING_DEBUG;
+	strcpy(hmd->base.str, "Phone HMD");
+	strcpy(hmd->base.serial, "Phone HMD");
 
 	m_relation_history_create(&hmd->relation_hist);
 
-	if (!phone_pose_receive_init(hmd->relation_hist)) {
+
+	if (!net_pose_create(hmd->relation_hist)) {
 		U_LOG_W("phone: failed to start pose receiver, tracking will not work");
 	}
 
-	// Setup input.
+	// Setup device properties
 	hmd->base.name = XRT_DEVICE_GENERIC_HMD;
 	hmd->base.device_type = XRT_DEVICE_TYPE_HMD;
 	hmd->base.inputs[0].name = XRT_INPUT_GENERIC_HEAD_POSE;
 	hmd->base.supported.orientation_tracking = true;
 	hmd->base.supported.position_tracking = true;
 
-	// Display details: refresh rate. The video stream is fixed at 60 fps,
-	// so pace the compositor at the same rate.
+	// Set screen refresh rate to 60Hz
 	hmd->base.hmd->screens[0].nominal_frame_interval_ns = time_s_to_ns(1.0f / 60.0f);
 
+	// Setup distortion model
 	const double hFOV = 90 * (M_PI / 180.0);
 	const double vFOV = 96.73 * (M_PI / 180.0);
-	// Center of projection.
 	const double hCOP = 0.329;
 	const double vCOP = 0.5;
-	if (
-	    /* right eye */
-	    !math_compute_fovs(1, hCOP, hFOV, 1, vCOP, vFOV, &hmd->base.hmd->distortion.fov[1]) ||
-	    /*
-	     * left eye - same as right eye, except the horizontal center of projection is moved in the opposite
-	     * direction now
-	     */
+	if (!math_compute_fovs(1, hCOP, hFOV, 1, vCOP, vFOV, &hmd->base.hmd->distortion.fov[1]) ||
 	    !math_compute_fovs(1, 1.0 - hCOP, hFOV, 1, vCOP, vFOV, &hmd->base.hmd->distortion.fov[0])) {
-		// If those failed, it means our math was impossible.
-		HMD_ERROR(hmd, "Failed to setup basic device info");
+		U_LOG_E("phone: failed to setup basic device info");
 		phone_hmd_destroy(&hmd->base);
 		return NULL;
 	}
-	const int panel_w = 1200;
-	const int panel_h = 1080;
 
-	// Single "screen" (always the case)
+	const int panel_w = get_panel_size()[0];
+	const int panel_h = get_panel_size()[1];
+
+	// Screen has two eyes
 	hmd->base.hmd->screens[0].w_pixels = panel_w * 2;
 	hmd->base.hmd->screens[0].h_pixels = panel_h;
 
-	// Left, Right
+	// Set every eye
 	for (uint8_t eye = 0; eye < 2; ++eye) {
 		hmd->base.hmd->views[eye].display.w_pixels = panel_w;
 		hmd->base.hmd->views[eye].display.h_pixels = panel_h;
 		hmd->base.hmd->views[eye].viewport.y_pixels = 0;
 		hmd->base.hmd->views[eye].viewport.w_pixels = panel_w;
 		hmd->base.hmd->views[eye].viewport.h_pixels = panel_h;
-		// If rotation is not identity, the dimensions can get more complex.
 		hmd->base.hmd->views[eye].rot = u_device_rotation_ident;
 	}
-	// left eye starts at x=0, right eye starts at x=panel_width
 	hmd->base.hmd->views[0].viewport.x_pixels = 0;
 	hmd->base.hmd->views[1].viewport.x_pixels = panel_w;
 
@@ -230,7 +167,8 @@ phone_hmd_create(struct sockaddr_in *phone_addr)
 
 	// Distortion information, fills in xdev->compute_distortion().
 	u_distortion_mesh_set_none(&hmd->base);
-	// TODO:
+	// TODO: finish disortion and fovs
+
 	// const struct u_cardboard_distortion_arguments distortion = {
 	//     .distortion_k = {0.24, 0.24, 0.24, 0.24, 0.24},
 	//     .screen.w_pixels = panel_w,
@@ -253,16 +191,12 @@ phone_hmd_create(struct sockaddr_in *phone_addr)
 	// u_distortion_mesh_fill_in_compute(&hmd->base);
 
 
-	// Just put an initial identity value in the tracker
+	// Push initial pose to history
 	struct xrt_space_relation identity = XRT_SPACE_RELATION_ZERO;
 	identity.relation_flags = (enum xrt_space_relation_flags)(XRT_SPACE_RELATION_ORIENTATION_TRACKED_BIT |
 	                                                          XRT_SPACE_RELATION_ORIENTATION_VALID_BIT);
 	uint64_t now = os_monotonic_get_ns();
 	m_relation_history_push(hmd->relation_hist, &identity, now);
-
-	// Setup variable tracker: optional but useful for debugging.
-	u_var_add_root(hmd, "Phone HMD", true);
-	u_var_add_log_level(hmd, &hmd->log_level, "log_level");
 
 	return &hmd->base;
 }

@@ -2,34 +2,16 @@
 // SPDX-License-Identifier: BSL-1.0
 /*!
  * @file
- * @brief Host-side frame production for the Phone HMD video stream.
+ * @brief Stream for Phone HMD driver.
  * @author Tom F. <tom.fucik@email.cz>
  * @ingroup drv_phone
- *
- * Reads rendered frames back from the GPU, scales them down and hands them
- * to the network sink in phone_net.c. Contains no networking itself.
  */
-
-#include <stdlib.h>
-
-#include "os/os_threading.h"
-
-#include "util/u_logging.h"
-#include "util/u_misc.h"
-
-#include "vk/vk_cmd.h"
-#include "vk/vk_cmd_pool.h"
-#include "vk/vk_image_readback_to_xf_pool.h"
 
 #include "phone_internals.h"
 
-//! Size of the ring buffer of frames waiting for readback + send.
 #define PHONE_STREAM_QUEUE_SIZE 4
 
-
-/*!
- * One frame waiting to be read back from the GPU and sent to the phone.
- */
+// One frame waiting to be read
 struct phone_stream_entry
 {
 	struct vk_image_readback_to_xf *wrap;
@@ -38,32 +20,30 @@ struct phone_stream_entry
 	uint64_t sequence;
 };
 
-/*!
- * State of the host-side video stream, one instance per process.
- */
+// State of the video stream
 struct phone_stream
 {
 	struct vk_bundle *vk;
 
-	//! Sink the completed frames are pushed into, owned by phone_net.c.
+	// Sink the completed frames are pushed into
 	struct xrt_frame_sink *xfs;
 
-	//! Pool of host-visible images that the GPU copies into.
+	// Pool of images the GPU copies into
 	struct vk_image_readback_to_xf_pool *pool;
 
-	//! Command pool for the readback copy, only used by the producer.
+	// Command pool for readback copy
 	struct vk_cmd_pool cmd_pool;
 
-	//! Size of the source images (the phone screen).
+	// Size of the source images
 	VkExtent2D src_extent;
 
-	//! Intermediate optimal-tiled image the GPU scales into, then 1:1 copied to the host-visible wrap.
+	// Intermediate tiled image
 	VkImage scale_image;
 	VkDeviceMemory scale_memory;
 	VkImageLayout scale_layout;
 	VkAccessFlags scale_access;
 
-	//! Producer/consumer queue of frames pending readback + send.
+	// Queue of frames pending readback
 	struct os_mutex mutex;
 	struct os_cond cond;
 	struct phone_stream_entry queue[PHONE_STREAM_QUEUE_SIZE];
@@ -71,18 +51,18 @@ struct phone_stream
 	uint32_t count;
 	bool running;
 
-	//! Worker thread that waits for the readback to finish and pushes the frame.
+	// Worker thread that waits for the readback to finish and pushes the frame
 	struct os_thread_helper thread;
 
-	//! Frame counter, also used as the sequence number.
+	// Frame counter
 	uint64_t sequence;
 };
 
 static struct phone_stream *g_stream = NULL;
 
-//! @private @memberof phone_stream
+
 static void *
-phone_stream_thread(void *ptr)
+stream_thread(void *ptr)
 {
 	struct phone_stream *ps = (struct phone_stream *)ptr;
 
@@ -103,7 +83,7 @@ phone_stream_thread(void *ptr)
 
 		struct vk_bundle *vk = ps->vk;
 
-		// Wait for the copy to finish, then the host can read the data.
+		// Wait for the copy to finish
 		VkResult ret = vk->vkWaitForFences(vk->device, 1, &entry.fence, VK_TRUE, UINT64_MAX);
 		if (ret != VK_SUCCESS) {
 			U_LOG_W("phone: vkWaitForFences: %s", vk_result_string(ret));
@@ -125,9 +105,79 @@ phone_stream_thread(void *ptr)
 	return NULL;
 }
 
-//! @public @memberof phone_stream
+bool
+stream_create(struct vk_bundle *vk, VkExtent2D extent, struct xrt_frame_sink *xfs)
+{
+	if (g_stream != NULL) {
+		return true;
+	}
+
+	struct phone_stream *ps = U_TYPED_CALLOC(struct phone_stream);
+	ps->vk = vk;
+	ps->xfs = xfs;
+
+	ps->src_extent = extent;
+
+	// Host-visible pool that the GPU copies the rendered images into
+	VkExtent2D stream_extent = {.width = PHONE_STREAM_WIDTH, .height = PHONE_STREAM_HEIGHT};
+	vk_image_readback_to_xf_pool_create(vk, stream_extent, &ps->pool, XRT_FORMAT_R8G8B8A8,
+	                                    VK_FORMAT_R8G8B8A8_UNORM);
+
+	// Intermediate optimal-tiled image for the GPU-side downscale
+	VkResult res = vk_create_image_advanced(
+	    vk, (VkExtent3D){.width = stream_extent.width, .height = stream_extent.height, .depth = 1},
+	    VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
+	    VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+	    &ps->scale_memory, &ps->scale_image);
+	if (res != VK_SUCCESS) {
+		U_LOG_E("phone: scale image create failed: %s", vk_result_string(res));
+		vk_image_readback_to_xf_pool_destroy(vk, &ps->pool);
+		free(ps);
+		return false;
+	}
+	ps->scale_layout = VK_IMAGE_LAYOUT_UNDEFINED;
+	ps->scale_access = 0;
+
+	VkResult ret =
+	    vk_cmd_pool_init_for_queue(vk, &ps->cmd_pool, VK_COMMAND_POOL_CREATE_TRANSIENT_BIT, vk->graphics_queue);
+	if (ret != VK_SUCCESS) {
+		U_LOG_E("phone: vk_cmd_pool_init_for_queue: %s", vk_result_string(ret));
+		vk_image_readback_to_xf_pool_destroy(vk, &ps->pool);
+		vk->vkDestroyImage(vk->device, ps->scale_image, NULL);
+		vk->vkFreeMemory(vk->device, ps->scale_memory, NULL);
+		free(ps);
+		return false;
+	}
+
+	os_mutex_init(&ps->mutex);
+	os_cond_init(&ps->cond);
+	os_thread_helper_init(&ps->thread);
+
+	ps->running = true;
+
+	ret = os_thread_helper_start(&ps->thread, stream_thread, ps);
+	if (ret != 0) {
+		U_LOG_E("phone: failed to start stream thread");
+		ps->running = false;
+		vk_cmd_pool_destroy(vk, &ps->cmd_pool);
+		vk_image_readback_to_xf_pool_destroy(vk, &ps->pool);
+		vk->vkDestroyImage(vk->device, ps->scale_image, NULL);
+		vk->vkFreeMemory(vk->device, ps->scale_memory, NULL);
+		os_mutex_destroy(&ps->mutex);
+		os_cond_destroy(&ps->cond);
+		free(ps);
+		return false;
+	}
+
+	g_stream = ps;
+
+	U_LOG_I("phone: stream started");
+
+	return true;
+}
+
 void
-phone_stream_frame(struct comp_target_image *image, struct comp_frame *frame)
+stream_frame(struct comp_target_image *image, struct comp_frame *frame)
 {
 	struct phone_stream *ps = g_stream;
 	if (ps == NULL || !ps->running) {
@@ -139,7 +189,7 @@ phone_stream_frame(struct comp_target_image *image, struct comp_frame *frame)
 	os_mutex_lock(&ps->mutex);
 
 	if (ps->count == PHONE_STREAM_QUEUE_SIZE) {
-		// Queue is full, the worker is behind, drop this frame.
+		// Queue is full, drop this frame
 		static uint64_t dropped = 0;
 		os_mutex_unlock(&ps->mutex);
 		if (dropped++ % 90 == 0) {
@@ -176,10 +226,6 @@ phone_stream_frame(struct comp_target_image *image, struct comp_frame *frame)
 	    .layerCount = 1,
 	};
 
-	// The compositor renders into the target images and leaves them in
-	// VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, our copy takes them from there.
-	// The copy is submitted to the same queue the renderer uses, so it
-	// runs after the render of this frame has finished.
 	vk_cmd_pool_lock(&ps->cmd_pool);
 
 	VkCommandBuffer cmd;
@@ -196,7 +242,7 @@ phone_stream_frame(struct comp_target_image *image, struct comp_frame *frame)
 	struct xrt_size src_size = {.w = ps->src_extent.width, .h = ps->src_extent.height};
 	struct xrt_size scale_size = {.w = PHONE_STREAM_WIDTH, .h = PHONE_STREAM_HEIGHT};
 
-	// Scale the rendered image down into an optimal-tiled intermediate image.
+	// Scale the rendered image down into an optimal-tiled intermediate image
 	struct vk_cmd_image_transfer_info blit_info = {
 	    .src.params.layout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
 	    .src.params.access_mask =
@@ -215,7 +261,7 @@ phone_stream_frame(struct comp_target_image *image, struct comp_frame *frame)
 
 	vk_cmd_blit_image_locked(vk, cmd, &blit_info);
 
-	// Copy the scaled image into the host-visible wrap.
+	// Copy the scaled image into the host-visible wrap
 	struct vk_cmd_image_transfer_info copy_info = {
 	    .src.params.layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 	    .src.params.access_mask = VK_ACCESS_TRANSFER_WRITE_BIT,
@@ -232,38 +278,24 @@ phone_stream_frame(struct comp_target_image *image, struct comp_frame *frame)
 
 	vk_cmd_copy_image_locked(vk, cmd, &copy_info);
 
-	// Remember the layout the intermediate is in for next time.
+	// Remember the layout the intermediate is in for next time
 	ps->scale_layout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
 	ps->scale_access = VK_ACCESS_TRANSFER_READ_BIT;
 
-	// Put the source image back into the layout the compositor expects.
-	vk_cmd_image_barrier_locked(     //
-	    vk,                          //
-	    cmd,                         //
-	    image->handle,               //
-	    VK_ACCESS_TRANSFER_READ_BIT, // src_access_mask
-	    VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT, //
-	    VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, // old_image_layout
-	    VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,      // new_image_layout
-	    VK_PIPELINE_STAGE_TRANSFER_BIT,       // src_stage_mask
-	    VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT |
-	        VK_PIPELINE_STAGE_TRANSFER_BIT, //
-	    subresource_range);                 // subresource_range
+	// Put the source image back into the layout the compositor expects
+	vk_cmd_image_barrier_locked(
+	    vk, cmd, image->handle, VK_ACCESS_TRANSFER_READ_BIT,
+	    VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT,
+	    VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, VK_PIPELINE_STAGE_TRANSFER_BIT,
+	    VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT,
+	    subresource_range);
 
-	// Make the copy readable by the host.
-	vk_cmd_image_barrier_locked(              //
-	    vk,                                   //
-	    cmd,                                  //
-	    wrap->image,                          //
-	    VK_ACCESS_TRANSFER_WRITE_BIT,         // src_access_mask
-	    VK_ACCESS_HOST_READ_BIT,              // dst_access_mask
-	    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, // old_image_layout
-	    VK_IMAGE_LAYOUT_GENERAL,              // new_image_layout
-	    VK_PIPELINE_STAGE_TRANSFER_BIT,       // src_stage_mask
-	    VK_PIPELINE_STAGE_HOST_BIT,           // dst_stage_mask
-	    subresource_range);                   // subresource_range
+	// Make the copy readable by the host
+	vk_cmd_image_barrier_locked(vk, cmd, wrap->image, VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_HOST_READ_BIT,
+	                            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL,
+	                            VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_HOST_BIT, subresource_range);
 
-	// Remember the layout the wrap is in for next time.
+	// Remember the layout the wrap is in for next time
 	wrap->layout = VK_IMAGE_LAYOUT_GENERAL;
 
 	VkResult submit_ret = vk->vkEndCommandBuffer(cmd);
@@ -283,7 +315,7 @@ phone_stream_frame(struct comp_target_image *image, struct comp_frame *frame)
 
 	vk_cmd_pool_unlock(&ps->cmd_pool);
 
-	// Hand the frame to the worker thread.
+	// Push the frame to the worker thread
 	uint32_t tail = (ps->head + ps->count) % PHONE_STREAM_QUEUE_SIZE;
 	ps->queue[tail].wrap = wrap;
 	ps->queue[tail].fence = fence;
@@ -295,90 +327,8 @@ phone_stream_frame(struct comp_target_image *image, struct comp_frame *frame)
 	os_mutex_unlock(&ps->mutex);
 }
 
-//! @public @memberof phone_stream
-bool
-phone_stream_init(struct vk_bundle *vk, VkExtent2D extent, struct xrt_frame_sink *xfs)
-{
-	// Already running, a recreate of the images does not restart the stream.
-	if (g_stream != NULL) {
-		return true;
-	}
-
-	struct phone_stream *ps = U_TYPED_CALLOC(struct phone_stream);
-	ps->vk = vk;
-	ps->xfs = xfs;
-
-	ps->src_extent = extent;
-
-	// Host-visible pool that the GPU copies the rendered images into.
-	VkExtent2D stream_extent = {.width = PHONE_STREAM_WIDTH, .height = PHONE_STREAM_HEIGHT};
-	vk_image_readback_to_xf_pool_create( //
-	    vk,                              //
-	    stream_extent,                   //
-	    &ps->pool,                       //
-	    XRT_FORMAT_R8G8B8A8,             //
-	    VK_FORMAT_R8G8B8A8_UNORM);       //
-
-	// Intermediate optimal-tiled image for the GPU-side downscale.
-	VkResult res = vk_create_image_advanced(                                                    //
-	    vk,                                                                                     //
-	    (VkExtent3D){.width = stream_extent.width, .height = stream_extent.height, .depth = 1}, //
-	    VK_FORMAT_R8G8B8A8_UNORM,                                                               //
-	    VK_IMAGE_TILING_OPTIMAL,                                                                //
-	    VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,                      //
-	    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,                                                    //
-	    &ps->scale_memory,                                                                      //
-	    &ps->scale_image);                                                                      //
-	if (res != VK_SUCCESS) {
-		U_LOG_E("phone: scale image create failed: %s", vk_result_string(res));
-		vk_image_readback_to_xf_pool_destroy(vk, &ps->pool);
-		free(ps);
-		return false;
-	}
-	ps->scale_layout = VK_IMAGE_LAYOUT_UNDEFINED;
-	ps->scale_access = 0;
-
-	VkResult ret =
-	    vk_cmd_pool_init_for_queue(vk, &ps->cmd_pool, VK_COMMAND_POOL_CREATE_TRANSIENT_BIT, vk->graphics_queue);
-	if (ret != VK_SUCCESS) {
-		U_LOG_E("phone: vk_cmd_pool_init_for_queue: %s", vk_result_string(ret));
-		vk_image_readback_to_xf_pool_destroy(vk, &ps->pool);
-		vk->vkDestroyImage(vk->device, ps->scale_image, NULL);
-		vk->vkFreeMemory(vk->device, ps->scale_memory, NULL);
-		free(ps);
-		return false;
-	}
-
-	os_mutex_init(&ps->mutex);
-	os_cond_init(&ps->cond);
-	os_thread_helper_init(&ps->thread);
-
-	ps->running = true;
-
-	ret = os_thread_helper_start(&ps->thread, phone_stream_thread, ps);
-	if (ret != 0) {
-		U_LOG_E("phone: failed to start stream thread");
-		ps->running = false;
-		vk_cmd_pool_destroy(vk, &ps->cmd_pool);
-		vk_image_readback_to_xf_pool_destroy(vk, &ps->pool);
-		vk->vkDestroyImage(vk->device, ps->scale_image, NULL);
-		vk->vkFreeMemory(vk->device, ps->scale_memory, NULL);
-		os_mutex_destroy(&ps->mutex);
-		os_cond_destroy(&ps->cond);
-		free(ps);
-		return false;
-	}
-
-	g_stream = ps;
-
-	U_LOG_I("phone: stream started");
-
-	return true;
-}
-
-//! @public @memberof phone_stream
 void
-phone_stream_destroy(void)
+stream_destroy(void)
 {
 	struct phone_stream *ps = g_stream;
 	if (ps == NULL) {
@@ -392,9 +342,7 @@ phone_stream_destroy(void)
 	os_mutex_unlock(&ps->mutex);
 	os_thread_helper_stop_and_wait(&ps->thread);
 
-	// The worker stops as soon as running is false, so drop any frames that
-	// were queued but never processed: destroy their fences and return the
-	// wraps to the pool before the pool itself is destroyed.
+	// Destroy the queue
 	os_mutex_lock(&ps->mutex);
 	while (ps->count > 0) {
 		struct phone_stream_entry entry = ps->queue[ps->head];

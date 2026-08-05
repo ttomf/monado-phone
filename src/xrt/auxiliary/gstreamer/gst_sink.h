@@ -34,17 +34,6 @@ gstreamer_sink_create_with_pipeline(struct gstreamer_pipeline *gp,
                                     struct gstreamer_sink **out_gs,
                                     struct xrt_frame_sink **out_xfs);
 
-void
-gstreamer_sink_create_with_pipeline_fps(struct gstreamer_pipeline *gp,
-                                        uint32_t width,
-                                        uint32_t height,
-                                        uint32_t fps_num,
-                                        uint32_t fps_den,
-                                        enum xrt_format format,
-                                        const char *appsrc_name,
-                                        struct gstreamer_sink **out_gs,
-                                        struct xrt_frame_sink **out_xfs);
-
 
 #ifdef __cplusplus
 }
