@@ -767,6 +767,7 @@ struct rift_touch_controller_input_state
 struct rift_touch_controller
 {
 	struct xrt_device base;
+	struct xrt_frame_node node;
 
 	struct rift_hmd *hmd;
 
@@ -842,6 +843,7 @@ enum rift_remote_inputs
 struct rift_remote
 {
 	struct xrt_device base;
+	struct xrt_frame_node node;
 
 	//! The button state of the remote, stored as an atomic to avoid needing a mutex.
 	xrt_atomic_s32_t buttons;
@@ -915,6 +917,9 @@ struct rift_exposure_event
 struct rift_hmd
 {
 	struct xrt_device base;
+	struct xrt_frame_node node;
+
+	struct xrt_frame_context *xfctx;
 
 	enum u_logging_level log_level;
 
@@ -1010,11 +1015,17 @@ struct rift_hmd
 	} radio_state;
 };
 
-/// Casting helper function
+//! Casting helper function from xrt_device->rift_hmd
 static inline struct rift_hmd *
 rift_hmd(struct xrt_device *xdev)
 {
 	return (struct rift_hmd *)xdev;
+}
+
+static inline struct rift_hmd *
+rift_hmd_from_node(struct xrt_frame_node *node)
+{
+	return (struct rift_hmd *)container_of(node, struct rift_hmd, node);
 }
 
 static inline struct rift_touch_controller *
@@ -1023,10 +1034,22 @@ rift_touch_controller(struct xrt_device *xdev)
 	return (struct rift_touch_controller *)xdev;
 }
 
+static inline struct rift_touch_controller *
+rift_touch_controller_from_node(struct xrt_frame_node *node)
+{
+	return (struct rift_touch_controller *)container_of(node, struct rift_touch_controller, node);
+}
+
 static inline struct rift_remote *
 rift_remote(struct xrt_device *xdev)
 {
 	return (struct rift_remote *)xdev;
+}
+
+static inline struct rift_remote *
+rift_remote_from_node(struct xrt_frame_node *node)
+{
+	return (struct rift_remote *)container_of(node, struct rift_remote, node);
 }
 
 static inline size_t

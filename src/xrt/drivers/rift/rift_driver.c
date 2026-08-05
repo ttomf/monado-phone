@@ -25,6 +25,7 @@
 #include "math/m_clock_tracking.h"
 #include "math/m_api.h"
 #include "math/m_vec2.h"
+#include "math/m_space.h"
 #include "math/m_vec3.h"
 #include "math/m_mathinclude.h" // IWYU pragma: keep
 
@@ -548,7 +549,7 @@ rift_upload_back_strap_disable_pattern(struct rift_hmd *hmd)
 }
 
 static void
-get_raw_pose(struct rift_hmd *hmd, timepoint_ns when_ns, struct xrt_space_relation *out_relation)
+get_raw_pose(struct rift_hmd *hmd, timepoint_ns when_ns, struct xrt_relation_chain *xrc)
 {
 	struct xrt_space_relation relation = XRT_SPACE_RELATION_ZERO;
 	if (hmd->use_constellation_poses) {
@@ -583,7 +584,7 @@ get_raw_pose(struct rift_hmd *hmd, timepoint_ns when_ns, struct xrt_space_relati
 		m_relation_history_get(hmd->relation_hist, when_ns, &relation);
 	}
 
-	*out_relation = relation;
+	(*m_relation_chain_reserve(xrc)) = relation;
 }
 
 /*
@@ -597,60 +598,8 @@ rift_hmd_destroy(struct xrt_device *xdev)
 {
 	struct rift_hmd *hmd = rift_hmd(xdev);
 
-	if (hmd->constellation_tracker) {
-		t_constellation_tracker_remove_device(hmd->constellation_tracker, hmd->constellation_device_id);
-	}
-
-	// Remove the variable tracking.
-	u_var_remove_root(hmd);
-
-	if (hmd->sensor_thread.initialized) {
-		os_thread_helper_destroy(&hmd->sensor_thread);
-	}
-
-	if (hmd->clock_tracker) {
-		m_clock_windowed_skew_tracker_destroy(hmd->clock_tracker);
-	}
-
-	m_relation_history_destroy(&hmd->relation_hist);
-	m_relation_history_destroy(&hmd->raw_constellation_relation_hist);
-
-	m_ff_vec3_f32_free(&hmd->gyro_ff);
-	m_ff_vec3_f32_free(&hmd->accel_ff);
-	m_ff_f64_free(&hmd->gravity_correction);
-
-	// Only free if we are definitely the ones that allocated it
-	if (hmd->lens_distortions && debug_get_bool_option_rift_use_firmware_distortion())
-		free((void *)hmd->lens_distortions);
-
-	os_hid_destroy(hmd->hmd_dev);
-	if (hmd->radio_dev != NULL) {
-		if (hmd->radio_state.thread.initialized) {
-			os_thread_helper_destroy(&hmd->radio_state.thread);
-		}
-
-		os_hid_destroy(hmd->radio_dev);
-	}
-
-	if (hmd->device_count >= 0) {
-		os_mutex_destroy(&hmd->device_mutex);
-
-		// Free any sub-devices we created that weren't returned to the caller
-		if (hmd->added_devices > 1) {
-			for (int i = (hmd->added_devices - 1); i < hmd->device_count; i++) {
-				u_device_free(hmd->devices[i]);
-			}
-		}
-	}
-
-	if (hmd->led_model.leds != NULL) {
-		free(hmd->led_model.leds);
-
-		hmd->led_model.leds = NULL;
-		hmd->led_model.led_count = 0;
-	}
-
-	u_device_free(&hmd->base);
+	// Don't do anything but break apart the device
+	hmd->node.break_apart(&hmd->node);
 }
 
 static xrt_result_t
@@ -681,9 +630,17 @@ rift_hmd_get_tracked_pose(struct xrt_device *xdev,
 		return XRT_ERROR_INPUT_UNSUPPORTED;
 	}
 
-	struct xrt_space_relation relation = XRT_SPACE_RELATION_ZERO;
+	struct xrt_relation_chain xrc = {0};
 
-	get_raw_pose(hmd, at_timestamp_ns, &relation);
+	if (hmd->use_constellation_poses) {
+		// Constellation poses are in IMU space
+		m_relation_chain_push_pose(&xrc, &hmd->T_imu_device);
+	}
+
+	get_raw_pose(hmd, at_timestamp_ns, &xrc);
+
+	struct xrt_space_relation relation;
+	m_relation_chain_resolve(&xrc, &relation);
 
 	if ((relation.relation_flags & XRT_SPACE_RELATION_ORIENTATION_VALID_BIT) != 0) {
 		// If we provide an orientation, make sure that it is normalized.
@@ -742,12 +699,12 @@ rift_hmd_constellation_tracking_source_get_tracked_pose(struct t_constellation_t
 {
 	struct rift_hmd *hmd = container_of(tracking_source, struct rift_hmd, constellation_tracking_source);
 
-	*out_relation = (struct xrt_space_relation)XRT_SPACE_RELATION_ZERO;
-
-	get_raw_pose(hmd, when_ns, out_relation);
+	struct xrt_relation_chain xrc = {0};
+	get_raw_pose(hmd, when_ns, &xrc);
+	m_relation_chain_resolve(&xrc, out_relation);
 }
 
-void
+static void
 rift_hmd_constellation_device_push_constellation_tracker_sample(struct t_constellation_tracker_device *connection,
                                                                 struct t_constellation_tracker_sample *sample)
 {
@@ -771,6 +728,87 @@ rift_hmd_constellation_device_push_constellation_tracker_sample(struct t_constel
 	                                               sample->timestamp_ns);
 }
 
+static void
+rift_frame_node_break_apart(struct xrt_frame_node *node)
+{
+	struct rift_hmd *hmd = rift_hmd_from_node(node);
+
+	if (hmd->sensor_thread.initialized) {
+		os_thread_helper_stop_and_wait(&hmd->sensor_thread);
+	}
+
+	if (hmd->radio_state.thread.initialized) {
+		os_thread_helper_stop_and_wait(&hmd->radio_state.thread);
+	}
+}
+
+static void
+rift_frame_node_destroy(struct xrt_frame_node *node)
+{
+	struct rift_hmd *hmd = rift_hmd_from_node(node);
+
+	if (hmd->constellation_tracker) {
+		t_constellation_tracker_remove_device(hmd->constellation_tracker, hmd->constellation_device_id);
+	}
+
+	// Remove the variable tracking.
+	u_var_remove_root(hmd);
+
+	if (hmd->sensor_thread.initialized) {
+		os_thread_helper_destroy(&hmd->sensor_thread);
+	}
+
+	if (hmd->clock_tracker) {
+		m_clock_windowed_skew_tracker_destroy(hmd->clock_tracker);
+	}
+
+	m_relation_history_destroy(&hmd->relation_hist);
+	m_relation_history_destroy(&hmd->raw_constellation_relation_hist);
+
+	m_ff_vec3_f32_free(&hmd->gyro_ff);
+	m_ff_vec3_f32_free(&hmd->accel_ff);
+	m_ff_f64_free(&hmd->gravity_correction);
+
+	// Only free if we are definitely the ones that allocated it
+	if (hmd->lens_distortions && debug_get_bool_option_rift_use_firmware_distortion())
+		free((void *)hmd->lens_distortions);
+
+	os_hid_destroy(hmd->hmd_dev);
+	if (hmd->radio_dev != NULL) {
+		if (hmd->radio_state.thread.initialized) {
+			os_thread_helper_destroy(&hmd->radio_state.thread);
+		}
+
+		os_hid_destroy(hmd->radio_dev);
+	}
+
+	if (hmd->device_count >= 0) {
+		os_mutex_destroy(&hmd->device_mutex);
+
+		// Free any sub-devices we created that weren't returned to the caller
+		if (hmd->added_devices > 1) {
+			for (int i = (hmd->added_devices - 1); i < hmd->device_count; i++) {
+				u_device_free(hmd->devices[i]);
+			}
+		}
+	}
+
+	if (hmd->led_model.leds != NULL) {
+		free(hmd->led_model.leds);
+
+		hmd->led_model.leds = NULL;
+		hmd->led_model.led_count = 0;
+	}
+
+	u_device_free(&hmd->base);
+}
+
+/*
+ *
+ * Exported functions
+ *
+ */
+
 int
 rift_devices_create(struct os_hid_device *hmd_dev,
                     struct os_hid_device *radio_dev,
@@ -789,6 +827,11 @@ rift_devices_create(struct os_hid_device *hmd_dev,
 	bool has_presence = variant == RIFT_VARIANT_CV1;
 	struct rift_hmd *hmd = U_DEVICE_ALLOCATE(struct rift_hmd, flags, has_presence ? 2 : 1, 0);
 
+	hmd->xfctx = xfctx;
+
+	hmd->node.break_apart = rift_frame_node_break_apart;
+	hmd->node.destroy = rift_frame_node_destroy;
+
 	// Mark mutex as not initialized yet
 	hmd->device_count = -1;
 
@@ -801,10 +844,8 @@ rift_devices_create(struct os_hid_device *hmd_dev,
 	m_ff_vec3_f32_alloc(&hmd->accel_ff, 4096);
 	m_ff_f64_alloc(&hmd->gravity_correction, 4096);
 
-	if (xfctx) {
-		xrt_result_t xret = b_timing_source_create(xfctx, &hmd->timing_event_sink, &hmd->timing_event_source);
-		U_LOG_CHK_ONLY_PRINT(hmd->log_level, xret, "b_timing_source_create");
-	}
+	xrt_result_t xret = b_timing_source_create(xfctx, &hmd->timing_event_sink, &hmd->timing_event_source);
+	U_LOG_CHK_ONLY_PRINT(hmd->log_level, xret, "b_timing_source_create");
 
 	result = rift_send_keepalive(hmd);
 	if (result < 0) {
@@ -1226,7 +1267,7 @@ rift_devices_create(struct os_hid_device *hmd_dev,
 
 	return hmd->added_devices;
 error:
-	rift_hmd_destroy(&hmd->base);
+	rift_frame_node_destroy(&hmd->node);
 	return -1;
 }
 

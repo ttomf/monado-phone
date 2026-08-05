@@ -52,8 +52,7 @@ enum rift_variant
  * @param radio_dev     The HID device for the radio, if present (CV1 only).
  * @param variant       The Rift variant (DK2 or CV1).
  * @param serial_number The serial number of the device.
- * @param xfctx         The frame context to use for the timing source functions. This is optional if you do not plan to
- *                      use the Rift as a timing source.
+ * @param xfctx         The frame context to use for the timing source functions. Non-optional.
  * @param out_hmd       Output pointer for the created rift_hmd struct.
  * @param out_xdevs     Output array for the created xrt_device pointers. The array must have space for at least 4
  *                      devices (HMD, left touch, right touch, remote).
