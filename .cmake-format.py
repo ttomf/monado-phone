@@ -33,7 +33,7 @@ with section("parse"):
             "pargs": {"flags": ["IGNORE_OTHER_ENUMS", "VERBOSE"], "nargs": "*"},
         },
         "monado_set_options": {
-            "kwargs": {"ENABLE": "+", "KEEP": "+"},
+            "kwargs": {"ENABLE": "+", "KEEP": "+", "KEEP_SET": "+"},
             "pargs": {"flags": [], "nargs": "*"},
         },
         "option_with_deps": {
