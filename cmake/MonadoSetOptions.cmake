@@ -47,6 +47,8 @@
 #   Useful for options that auto-detect (like XRT_HAVE_SYSTEM_CJSON,
 #   XRT_FEATURE_SSE2).
 #
+#   If an option is listed as both ENABLE and KEEP, it is treated as ENABLE.
+#
 # All other known Monado options will be set to OFF.
 
 function(monado_set_options)
@@ -237,17 +239,18 @@ function(monado_set_options)
 
 	# Process all options
 	foreach(_option ${_ALL_XRT_OPTIONS})
+		# Check if this option should be enabled
+		list(FIND _enable_options ${_option} _enable_index)
+		if(NOT _enable_index EQUAL -1)
+			set(${_option} ON PARENT_SCOPE)
+			continue()
+		endif()
+
 		# Check if this option should be kept unchanged
 		list(FIND _keep_options ${_option} _keep_index)
 		if(NOT _keep_index EQUAL -1)
 			# Skip this option
 			continue()
-		endif()
-
-		# Check if this option should be enabled
-		list(FIND _enable_options ${_option} _enable_index)
-		if(NOT _enable_index EQUAL -1)
-			set(${_option} ON PARENT_SCOPE)
 		else()
 			set(${_option} OFF PARENT_SCOPE)
 		endif()
