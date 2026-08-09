@@ -995,7 +995,9 @@ rift_devices_create(struct os_hid_device *hmd_dev,
 			hmd->tracking.frame_interval = 16666;
 			break;
 		case RIFT_VARIANT_CV1:
-			hmd->tracking.exposure_length = 399;
+			// @todo we need to pull the real configured exposure time we're using somehow, 495us is the
+			//       actual exposure time we configure for CV1 sensors.
+			hmd->tracking.exposure_length = 495;
 			hmd->tracking.frame_interval = 19200;
 			break;
 		}
