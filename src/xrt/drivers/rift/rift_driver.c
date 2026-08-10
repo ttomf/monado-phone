@@ -234,7 +234,9 @@ rift_sensor_thread_tick(struct rift_hmd *hmd)
 			          "had %d samples in the queue! Having to work back that first sample...",
 			          report.num_samples);
 
-		for (int i = 0; i < MIN(DK2_MAX_SAMPLES, report.num_samples); i++) {
+		const int num_samples = MIN(DK2_MAX_SAMPLES, report.num_samples);
+
+		for (int i = 0; i < num_samples; i++) {
 			struct rift_dk2_sample_pack latest_sample_pack = report.samples[i];
 
 			struct xrt_vec3 accel, gyro;
@@ -254,7 +256,7 @@ rift_sensor_thread_tick(struct rift_hmd *hmd)
 			// if there's only one sample, then this will always be zero, if there's two or more samples,
 			// the previous samples will be offset by the sample rate of the IMU
 			int64_t sample_local_timestamp_ns =
-			    local_timestamp_ns - ((MIN(report.num_samples, DK2_MAX_SAMPLES) - 1) * NS_PER_SAMPLE);
+			    local_timestamp_ns - ((num_samples - 1 - i) * NS_PER_SAMPLE);
 
 			// drop packets which are in the past (TODO: figure out why these happen..)
 			if (sample_local_timestamp_ns < hmd->last_sample_local_timestamp_ns) {
