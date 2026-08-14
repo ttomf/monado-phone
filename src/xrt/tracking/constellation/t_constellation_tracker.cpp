@@ -270,8 +270,18 @@ void
 Camera::deferSampleToSlowThread(CameraSample &sample)
 {
 	os_thread_helper_lock(&this->slow_processing_thread);
-	this->slow_processing_thread_data.sample = sample;
-	os_thread_helper_signal_locked(&this->slow_processing_thread);
+	{
+		if (this->slow_processing_thread_data.sample.has_value()) {
+			// Warn that we're dropping a frame.
+			CT_WARN(this->tracker,
+			        "Dropping slow sample %" PRIu64 " at ts %" PRIi64 ". Tracker is likely running slow.",
+			        this->slow_processing_thread_data.sample->id,
+			        this->slow_processing_thread_data.sample->timestamp_ns);
+		}
+
+		this->slow_processing_thread_data.sample = sample;
+		os_thread_helper_signal_locked(&this->slow_processing_thread);
+	}
 	os_thread_helper_unlock(&this->slow_processing_thread);
 }
 
@@ -1085,8 +1095,19 @@ constellation_tracker_camera_push_blobs(t_blob_sink *tbs, t_blob_observation *tb
 	} else {
 		// Send to the fast thread
 		os_thread_helper_lock(&camera->fast_processing_thread);
-		camera->fast_processing_thread_data.sample = CameraSample(*tbo, camera);
-		os_thread_helper_signal_locked(&camera->fast_processing_thread);
+		{
+			if (camera->fast_processing_thread_data.sample.has_value()) {
+				// Warn that we're dropping a frame
+				CT_WARN(tracker,
+				        "Dropping fast sample %" PRIu64 " at ts %" PRIi64
+				        ". Tracker is likely running slow.",
+				        camera->fast_processing_thread_data.sample->id,
+				        camera->fast_processing_thread_data.sample->timestamp_ns);
+			}
+
+			camera->fast_processing_thread_data.sample = CameraSample(*tbo, camera);
+			os_thread_helper_signal_locked(&camera->fast_processing_thread);
+		}
 		os_thread_helper_unlock(&camera->fast_processing_thread);
 	}
 }

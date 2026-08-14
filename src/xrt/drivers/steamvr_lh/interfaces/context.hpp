@@ -114,7 +114,15 @@ public:
 	bool in_setup{true};
 	const u_logging_level log_level;
 
+	void
+	wait_for_discover();
+
+	void
+	extend_discover();
+
 private:
+	std::condition_variable discover_cv;
+	std::chrono::steady_clock::time_point discover_end_time;
 	std::atomic<bool> frame_thread_run;
 	std::binary_semaphore frame_thread_event{0};
 	std::thread frame_thread;

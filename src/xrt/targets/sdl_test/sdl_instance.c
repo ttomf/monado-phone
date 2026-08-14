@@ -184,12 +184,25 @@ sdl_system_devices_init(struct sdl_program *sp)
 	    &sp->xso);                          // out_xso
 }
 
+static xrt_result_t
+sdl_is_system_available(struct xrt_instance *xinst, bool *out_available)
+{
+	XRT_TRACE_MARKER();
+
+	assert(out_available != NULL);
+
+	*out_available = true;
+
+	return XRT_SUCCESS;
+}
+
 void
 sdl_instance_init(struct sdl_program *sp)
 {
 	sp->xinst_base.create_system = sdl_instance_create_system;
 	sp->xinst_base.get_prober = sdl_instance_get_prober;
 	sp->xinst_base.destroy = sdl_instance_destroy;
+	sp->xinst_base.is_system_available = sdl_is_system_available;
 }
 
 xrt_result_t

@@ -177,15 +177,15 @@ Context::create(const std::string &steam_install,
 			return nullptr;
 		}
 	}
-	c->frame_thread = std::thread([c] {
-		while (c->frame_thread_run.load()) {
+	c->frame_thread = std::thread([ctx = c.get()] {
+		while (ctx->frame_thread_run.load()) {
 			using namespace std::chrono_literals;
 			// SteamVR calls `RunFrame()` approximately every 10.1ms
 			const std::chrono::time_point<std::chrono::steady_clock> next =
 			    std::chrono::steady_clock::now() + 10ms;
-			for (vr::IServerTrackedDeviceProvider *const &provider : c->providers)
+			for (vr::IServerTrackedDeviceProvider *const &provider : ctx->providers)
 				provider->RunFrame();
-			c->frame_thread_event.try_acquire_until(next);
+			ctx->frame_thread_event.try_acquire_until(next);
 		}
 	});
 	return c;
@@ -371,6 +371,29 @@ Context::setup_controller(const char *serial, vr::ITrackedDeviceServerDriver *dr
 	return true;
 }
 
+void
+Context::wait_for_discover()
+{
+	this->discover_end_time =
+	    std::chrono::steady_clock::now() + std::chrono::milliseconds(debug_get_num_option_lh_discover_wait_ms());
+	while (true) {
+		std::unique_lock lk(this->devices_mut);
+		this->discover_cv.wait_until(lk, this->discover_end_time);
+
+		if (this->discover_end_time <= std::chrono::steady_clock::now())
+			break;
+	}
+}
+
+void
+Context::extend_discover()
+{
+	this->discover_end_time = std::chrono::steady_clock::now() + std::chrono::milliseconds(2000);
+	this->discover_cv.notify_all();
+}
+
+
+
 // NOLINTBEGIN(bugprone-easily-swappable-parameters)
 bool
 Context::TrackedDeviceAdded(const char *pchDeviceSerialNumber,
@@ -384,6 +407,8 @@ Context::TrackedDeviceAdded(const char *pchDeviceSerialNumber,
 		CTX_WARN("Cannot add device after setup; consider increasing LH_DISCOVER_WAIT_MS");
 		return false;
 	}
+
+	this->extend_discover();
 
 	CTX_INFO("New device added: %s", pchDeviceSerialNumber);
 	switch (eDeviceClass) {
@@ -953,6 +978,7 @@ destroy(struct xrt_system_devices *xsysd)
 		xrt_device_destroy(&xsysd->static_xdevs[i]);
 	}
 
+	assert(svrs->ctx.use_count() == 1);
 	svrs->ctx.reset();
 	free(svrs);
 }
@@ -1024,9 +1050,7 @@ steamvr_lh_create_devices(struct xrt_prober *xp, struct xrt_system_devices **out
 
 	U_LOG_IFL_I(level, "Lighthouse initialization complete, giving time to setup connected devices...");
 	// RunFrame needs to be called to detect controllers
-	using namespace std::chrono_literals;
-	auto end_time = std::chrono::steady_clock::now() + 1ms * debug_get_num_option_lh_discover_wait_ms();
-	std::this_thread::sleep_until(end_time);
+	svrs->ctx->wait_for_discover();
 	U_LOG_IFL_I(level, "Device search time complete.");
 
 	if (out_xsysd == NULL || *out_xsysd != NULL) {
