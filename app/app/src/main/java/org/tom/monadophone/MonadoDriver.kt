@@ -9,22 +9,22 @@ import android.os.Looper
 import android.util.Log
 import android.view.Surface
 import android.widget.Toast
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.MulticastSocket
 import java.net.SocketTimeoutException
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlin.time.Duration.Companion.milliseconds
 
 private const val MCAST_ADDR = "239.1.1.1"
@@ -99,8 +99,7 @@ class MonadoDriver(
             discoverySocket.timeToLive = 1
             discoverySocket.soTimeout = 500
             val msg = DISCOVER_MSG_PHONE.toByteArray(Charsets.UTF_8)
-            val packet =
-                DatagramPacket(msg, msg.size, InetAddress.getByName(MCAST_ADDR), PORT)
+            val packet = DatagramPacket(msg, msg.size, InetAddress.getByName(MCAST_ADDR), PORT)
 
             Log.d(TAG, "start sending beacon packets")
             discoverySocket.use { socket ->
@@ -178,7 +177,10 @@ class MonadoDriver(
                     sent++
                     val now = System.nanoTime()
                     if (now - lastLog > 1_000_000_000L) {
-                        Log.d(TAG, "pose sent: $sent, ts=${pose.timestampNs}, state=${pose.trackingState}")
+                        Log.d(
+                            TAG,
+                            "pose sent: $sent, ts=${pose.timestampNs}, state=${pose.trackingState}"
+                        )
                         lastLog = now
                     }
                     delay(5.milliseconds)
@@ -206,7 +208,7 @@ class MonadoDriver(
 
         val buf = ByteArray(65536)
         val packet = DatagramPacket(buf, buf.size)
-        val depacketizer = HevcRtpDepacketizer()
+        val depacketizer = Depacketizer()
 
         try {
             val socket = withContext(Dispatchers.IO) {
@@ -241,7 +243,8 @@ class MonadoDriver(
                     // Track RTP sequence gaps (packet loss) for diagnostics
                     val seq = ((buf[2].toInt() and 0xFF) shl 8) or (buf[3].toInt() and 0xFF)
                     if (lastSeq >= 0 && seq != ((lastSeq + 1) and 0xFFFF)) {
-                        val gap = if (seq > lastSeq) seq - lastSeq - 1 else (seq + 0x10000 - lastSeq - 1)
+                        val gap =
+                            if (seq > lastSeq) seq - lastSeq - 1 else (seq + 0x10000 - lastSeq - 1)
                         lostPackets += gap
                         val now = System.nanoTime()
                         if (now - lastLossLog > 1_000_000_000L) {

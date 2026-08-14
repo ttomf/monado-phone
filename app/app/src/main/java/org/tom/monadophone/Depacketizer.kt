@@ -11,7 +11,7 @@ import java.io.ByteArrayOutputStream
  *
  * Not thread-safe; use from a single thread.
  */
-class HevcRtpDepacketizer {
+class Depacketizer {
     private val fragment = ByteArrayOutputStream()
 
     /**
@@ -49,8 +49,8 @@ class HevcRtpDepacketizer {
         var offset = 2
         while (offset + 2 < payload.size) {
             // Each NAL is prefixed with a 2-byte big-endian size.
-            val size = ((payload[offset].toInt() and 0xFF) shl 8) or
-                (payload[offset + 1].toInt() and 0xFF)
+            val size =
+                ((payload[offset].toInt() and 0xFF) shl 8) or (payload[offset + 1].toInt() and 0xFF)
             if (size < 2 || offset + 2 + size > payload.size) {
                 break
             }
