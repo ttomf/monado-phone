@@ -46,6 +46,30 @@ map_quat(struct xrt_quat &q)
 	return Eigen::Map<Eigen::Quaternionf>{&q.x};
 }
 
+/*!
+ * @brief Wrap an internal 2D vector struct in an Eigen type, const overload.
+ *
+ * Permits zero-overhead manipulation of `const xrt_vec2&` by Eigen routines as
+ * if it were a `const Eigen::Vector2f&`.
+ */
+static inline Eigen::Map<const Eigen::Vector2f>
+map_vec2(const struct xrt_vec2 &v)
+{
+	return Eigen::Map<const Eigen::Vector2f>{&v.x};
+}
+
+/*!
+ * @brief Wrap an internal 2D vector struct in an Eigen type, non-const
+ * overload.
+ *
+ * Permits zero-overhead manipulation of `xrt_vec2&` by Eigen routines as
+ * if it were a `Eigen::Vector2f&`.
+ */
+static inline Eigen::Map<Eigen::Vector2f>
+map_vec2(struct xrt_vec2 &v)
+{
+	return Eigen::Map<Eigen::Vector2f>{&v.x};
+}
 
 /*!
  * @brief Wrap an internal 3D vector struct in an Eigen type, const overload.
