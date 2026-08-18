@@ -271,6 +271,16 @@ struct xrt_vec2
 };
 
 /*!
+ * All-zero value for @ref xrt_vec2
+ *
+ * @ingroup xrt_iface math
+ * @relates xrt_vec2
+ */
+// clang-format off
+#define XRT_VEC2_ZERO {0.f, 0.f}
+// clang-format on
+
+/*!
  * Represents a uv triplet for distortion, basically just three xrt_vec2.
  *
  * @ingroup xrt_iface_math
