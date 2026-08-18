@@ -7,9 +7,9 @@
  * @ingroup drv_contactglove
  */
 
-#include <util/u_logging.h>
+#include "util/u_logging.h"
 
-#include <os/os_serial.h>
+#include "os/os_serial.h"
 
 #include "contactglove_interface.h"
 

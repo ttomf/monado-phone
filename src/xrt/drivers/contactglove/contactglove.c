@@ -7,20 +7,20 @@
  * @ingroup drv_contactglove
  */
 
-#include <xrt/xrt_device.h>
+#include "xrt/xrt_device.h"
 
-#include <util/u_logging.h>
-#include <util/u_misc.h>
-#include <util/u_device.h>
-#include <util/u_debug.h>
-#include <util/u_var.h>
-#include <util/u_cobs.h>
-#include <util/u_hand_simulation.h>
+#include "util/u_logging.h"
+#include "util/u_misc.h"
+#include "util/u_device.h"
+#include "util/u_debug.h"
+#include "util/u_var.h"
+#include "util/u_cobs.h"
+#include "util/u_hand_simulation.h"
 
-#include <math/m_api.h>
+#include "math/m_api.h"
 
 #include "contactglove_interface.h"
-#include "contactglove.h"
+#include "contactglove_internal.h"
 
 #include <unistd.h>
 #include <errno.h>
@@ -45,47 +45,6 @@ DEBUG_GET_ONCE_BOOL_OPTION(contactglove_pair, "CONTACTGLOVE_PAIR", false)
  * Implementation functions.
  *
  */
-
-static void
-contactglove_none_curl_cal_callback(void *ptr)
-{
-	struct contactglove_device *glove = (struct contactglove_device *)ptr;
-
-	os_mutex_lock(&glove->dongle->data_lock);
-
-	glove->no_curl_cal = (struct u_hand_tracking_curl_values){
-	    .thumb = glove->raw_flex_adc_values[CONTACTGLOVE_SENSOR_POSITION_FINGER_THUMB_ROOT1],
-	    .index = glove->raw_flex_adc_values[CONTACTGLOVE_SENSOR_POSITION_FINGER_INDEX_ROOT1],
-	    .middle = glove->raw_flex_adc_values[CONTACTGLOVE_SENSOR_POSITION_FINGER_MIDDLE_ROOT1],
-	    .ring = glove->raw_flex_adc_values[CONTACTGLOVE_SENSOR_POSITION_FINGER_RING_ROOT1],
-	    .little = glove->raw_flex_adc_values[CONTACTGLOVE_SENSOR_POSITION_FINGER_PINKY_ROOT1],
-	};
-
-	os_mutex_unlock(&glove->dongle->data_lock);
-}
-
-static void
-contactglove_full_curl_cal_callback(void *ptr)
-{
-	struct contactglove_device *glove = (struct contactglove_device *)ptr;
-
-	os_mutex_lock(&glove->dongle->data_lock);
-
-	glove->full_curl_cal = (struct u_hand_tracking_curl_values){
-	    .thumb =
-	        glove->raw_flex_adc_values[CONTACTGLOVE_SENSOR_POSITION_FINGER_THUMB_ROOT1] - glove->no_curl_cal.thumb,
-	    .index =
-	        glove->raw_flex_adc_values[CONTACTGLOVE_SENSOR_POSITION_FINGER_INDEX_ROOT1] - glove->no_curl_cal.index,
-	    .middle = glove->raw_flex_adc_values[CONTACTGLOVE_SENSOR_POSITION_FINGER_MIDDLE_ROOT1] -
-	              glove->no_curl_cal.middle,
-	    .ring =
-	        glove->raw_flex_adc_values[CONTACTGLOVE_SENSOR_POSITION_FINGER_RING_ROOT1] - glove->no_curl_cal.ring,
-	    .little =
-	        glove->raw_flex_adc_values[CONTACTGLOVE_SENSOR_POSITION_FINGER_PINKY_ROOT1] - glove->no_curl_cal.little,
-	};
-
-	os_mutex_unlock(&glove->dongle->data_lock);
-}
 
 static void
 contactglove_dongle_destroy(struct contactglove_dongle *dongle)
@@ -607,6 +566,9 @@ contactglove_dongle_handle_packet(void *user_data, const uint8_t *data, size_t l
 		if (glove) {
 			memcpy(&glove->raw_flex_adc_values, sensor_data.sensor_values,
 			       sizeof(sensor_data.sensor_values));
+
+			contactglove_calibration_wizard_push_flex_sensors(&glove->calibration_wizard,
+			                                                  glove->raw_flex_adc_values);
 		}
 
 		os_mutex_unlock(&dongle->data_lock);
@@ -720,6 +682,16 @@ contactglove_dongle_handle_packet(void *user_data, const uint8_t *data, size_t l
 
 			glove->raw_input = magnetra2_input;
 			glove->raw_input_update_time_ns = now_ns - glove->avg_glove_to_dongle_offset_ns;
+
+			contactglove_calibration_wizard_push_joystick(
+			    &glove->calibration_wizard, magnetra2_input.joystick_x, magnetra2_input.joystick_y);
+
+			contactglove_calibration_wizard_push_trigger(&glove->calibration_wizard,
+			                                             magnetra2_input.trigger);
+
+			contactglove_calibration_wizard_push_button(
+			    &glove->calibration_wizard,
+			    (magnetra2_input.button_bits & MAGNETRA2_BUTTON_BITS_TRACKPAD_BOTTOM) == 0);
 		}
 		os_mutex_unlock(&dongle->data_lock);
 
@@ -759,21 +731,21 @@ static void
 contactglove_get_curl_values(struct contactglove_device *glove, struct u_hand_tracking_curl_values *curl_values)
 {
 	(*curl_values) = (struct u_hand_tracking_curl_values){
-	    .index = (glove->raw_flex_adc_values[CONTACTGLOVE_SENSOR_POSITION_FINGER_INDEX_ROOT1] -
-	              glove->no_curl_cal.index) /
-	             glove->full_curl_cal.index,
-	    .middle = (glove->raw_flex_adc_values[CONTACTGLOVE_SENSOR_POSITION_FINGER_MIDDLE_ROOT1] -
-	               glove->no_curl_cal.middle) /
-	              glove->full_curl_cal.middle,
-	    .ring =
-	        (glove->raw_flex_adc_values[CONTACTGLOVE_SENSOR_POSITION_FINGER_RING_ROOT1] - glove->no_curl_cal.ring) /
-	        glove->full_curl_cal.ring,
-	    .little = (glove->raw_flex_adc_values[CONTACTGLOVE_SENSOR_POSITION_FINGER_PINKY_ROOT1] -
-	               glove->no_curl_cal.little) /
-	              glove->full_curl_cal.little,
-	    .thumb = (glove->raw_flex_adc_values[CONTACTGLOVE_SENSOR_POSITION_FINGER_THUMB_ROOT1] -
-	              glove->no_curl_cal.thumb) /
-	             glove->full_curl_cal.thumb,
+	    .index = contactglove_apply_sensor_calibration(glove->calibration_wizard.calibration,
+	                                                   CONTACTGLOVE_SENSOR_POSITION_FINGER_INDEX_ROOT1,
+	                                                   glove->raw_flex_adc_values),
+	    .middle = contactglove_apply_sensor_calibration(glove->calibration_wizard.calibration,
+	                                                    CONTACTGLOVE_SENSOR_POSITION_FINGER_MIDDLE_ROOT1,
+	                                                    glove->raw_flex_adc_values),
+	    .ring = contactglove_apply_sensor_calibration(glove->calibration_wizard.calibration,
+	                                                  CONTACTGLOVE_SENSOR_POSITION_FINGER_RING_ROOT1,
+	                                                  glove->raw_flex_adc_values),
+	    .little = contactglove_apply_sensor_calibration(glove->calibration_wizard.calibration,
+	                                                    CONTACTGLOVE_SENSOR_POSITION_FINGER_PINKY_ROOT1,
+	                                                    glove->raw_flex_adc_values),
+	    .thumb = contactglove_apply_sensor_calibration(glove->calibration_wizard.calibration,
+	                                                   CONTACTGLOVE_SENSOR_POSITION_FINGER_THUMB_ROOT1,
+	                                                   glove->raw_flex_adc_values),
 	};
 }
 
@@ -789,7 +761,7 @@ contactglove_get_tracked_pose(struct xrt_device *xdev,
                               const int64_t at_timestamp_ns,
                               struct xrt_space_relation *out_relation)
 {
-	struct contactglove_device *contactglove = (struct contactglove_device *)xdev;
+	struct contactglove_device *glove = (struct contactglove_device *)xdev;
 
 	switch (name) {
 	case XRT_INPUT_HT_UNOBSTRUCTED_LEFT:
@@ -802,11 +774,11 @@ contactglove_get_tracked_pose(struct xrt_device *xdev,
 	*out_relation = (struct xrt_space_relation)XRT_SPACE_RELATION_ZERO;
 
 	// If not connected, return empty relation
-	if (!contactglove->connected) {
+	if (!glove->connected) {
 		return XRT_SUCCESS;
 	}
 
-	m_relation_history_get(contactglove->relation_history, at_timestamp_ns, out_relation);
+	m_relation_history_get(glove->relation_history, at_timestamp_ns, out_relation);
 
 	return XRT_SUCCESS;
 }
@@ -814,41 +786,43 @@ contactglove_get_tracked_pose(struct xrt_device *xdev,
 static void
 contactglove_destroy(struct xrt_device *xdev)
 {
-	struct contactglove_device *contactglove = (struct contactglove_device *)xdev;
+	struct contactglove_device *glove = (struct contactglove_device *)xdev;
 
-	os_mutex_lock(&contactglove->dongle->data_lock);
-	switch (contactglove->hand) {
-	case XRT_HAND_RIGHT: contactglove->dongle->right_glove = NULL; break;
-	case XRT_HAND_LEFT: contactglove->dongle->left_glove = NULL; break;
+	os_mutex_lock(&glove->dongle->data_lock);
+	switch (glove->hand) {
+	case XRT_HAND_RIGHT: glove->dongle->right_glove = NULL; break;
+	case XRT_HAND_LEFT: glove->dongle->left_glove = NULL; break;
 	default: break;
 	}
-	os_mutex_unlock(&contactglove->dongle->data_lock);
+	os_mutex_unlock(&glove->dongle->data_lock);
 
-	contactglove_dongle_decrement(contactglove->dongle);
+	contactglove_dongle_decrement(glove->dongle);
 
-	m_relation_history_destroy(&contactglove->relation_history);
+	m_relation_history_destroy(&glove->relation_history);
 
-	u_device_free(&contactglove->base);
+	contactglove_calibration_wizard_deinit(&glove->calibration_wizard);
+
+	u_device_free(&glove->base);
 }
 
 static xrt_result_t
 contactglove_get_battery_status(struct xrt_device *xdev, bool *out_present, bool *out_charging, float *out_charge)
 {
-	struct contactglove_device *contactglove = (struct contactglove_device *)xdev;
+	struct contactglove_device *glove = (struct contactglove_device *)xdev;
 
-	os_mutex_lock(&contactglove->dongle->data_lock);
+	os_mutex_lock(&glove->dongle->data_lock);
 
-	if (contactglove->raw_battery.battery_raw == 0xFF || !contactglove->connected) {
+	if (glove->raw_battery.battery_raw == 0xFF || !glove->connected) {
 		*out_present = false;
 		*out_charge = 0.0f;
 	} else {
 		*out_present = true;
-		*out_charge = (float)contactglove->raw_battery.battery_raw / 100.0f;
+		*out_charge = (float)glove->raw_battery.battery_raw / 100.0f;
 	}
 
 	*out_charging = false;
 
-	os_mutex_unlock(&contactglove->dongle->data_lock);
+	os_mutex_unlock(&glove->dongle->data_lock);
 
 	return XRT_SUCCESS;
 }
@@ -860,24 +834,23 @@ contactglove_get_hand_tracking(struct xrt_device *xdev,
                                struct xrt_hand_joint_set *out_value,
                                int64_t *out_timestamp_ns)
 {
-	struct contactglove_device *contactglove = (struct contactglove_device *)xdev;
+	struct contactglove_device *glove = (struct contactglove_device *)xdev;
 
-	os_mutex_lock(&contactglove->dongle->data_lock);
+	os_mutex_lock(&glove->dongle->data_lock);
 
 	struct u_hand_tracking_curl_values curl_values;
-	contactglove_get_curl_values(contactglove, &curl_values);
+	contactglove_get_curl_values(glove, &curl_values);
 
 	struct xrt_space_relation root_relation;
-	xrt_device_get_tracked_pose(xdev,
-	                            contactglove->hand == XRT_HAND_LEFT ? XRT_INPUT_HT_UNOBSTRUCTED_LEFT
-	                                                                : XRT_INPUT_HT_UNOBSTRUCTED_RIGHT,
-	                            desired_timestamp_ns, &root_relation);
+	xrt_device_get_tracked_pose(
+	    xdev, glove->hand == XRT_HAND_LEFT ? XRT_INPUT_HT_UNOBSTRUCTED_LEFT : XRT_INPUT_HT_UNOBSTRUCTED_RIGHT,
+	    desired_timestamp_ns, &root_relation);
 
-	u_hand_sim_simulate_for_valve_index_knuckles(&curl_values, contactglove->hand, &root_relation, out_value);
+	u_hand_sim_simulate_for_valve_index_knuckles(&curl_values, glove->hand, &root_relation, out_value);
 
 	*out_timestamp_ns = desired_timestamp_ns;
 
-	os_mutex_unlock(&contactglove->dongle->data_lock);
+	os_mutex_unlock(&glove->dongle->data_lock);
 
 	return XRT_SUCCESS;
 }
@@ -902,21 +875,19 @@ contactglove_update_inputs(struct xrt_device *xdev)
 	UPDATE_BOOL(X_CLICK, !(glove->raw_input.button_bits & MAGNETRA2_BUTTON_BITS_TRACKPAD_BOTTOM))
 	UPDATE_BOOL(PAIRING_CLICK, !(glove->raw_input.button_bits & MAGNETRA2_BUTTON_BITS_PAIRING))
 
-	glove->base.inputs[CONTACTGLOVE_DEVICE_INPUT_THUMBSTICK].value.vec2 = (struct xrt_vec2){
-	    .x = ((float)glove->raw_input.joystick_y / 255.0f) * 2.0f - 1.0f,
-	    .y = (((float)glove->raw_input.joystick_x / 255.0f) * 2.0f - 1.0f),
-	};
+	glove->base.inputs[CONTACTGLOVE_DEVICE_INPUT_THUMBSTICK].value.vec2 = contactglove_apply_stick_calibration(
+	    glove->calibration_wizard.calibration.joystick, glove->raw_input.joystick_x, glove->raw_input.joystick_y);
 	UPDATE_TIME(THUMBSTICK)
 	glove->base.inputs[CONTACTGLOVE_DEVICE_INPUT_TRIGGER_VALUE].value.vec1 = (struct xrt_vec1){
-	    .x = CLAMP((glove->raw_input.trigger - 85.0f) / 35.0f, 0.0f, 1.0f), // range seems to be ~85-120?
+	    .x = contactglove_apply_trigger_calibration(glove->calibration_wizard.calibration.trigger,
+	                                                glove->raw_input.trigger),
 	};
 	UPDATE_TIME(TRIGGER_VALUE)
 
 	struct u_hand_tracking_curl_values curl_values;
 	contactglove_get_curl_values(glove, &curl_values);
 
-	float squeeze = curl_values.middle + curl_values.ring + curl_values.little;
-
+	float squeeze = (curl_values.middle + curl_values.ring + curl_values.little) / 3.0f;
 	glove->base.inputs[CONTACTGLOVE_DEVICE_INPUT_SQUEEZE_VALUE].value.vec1 = (struct xrt_vec1){
 	    .x = CLAMP(squeeze, 0.0f, 1.0f),
 	};
@@ -948,55 +919,55 @@ contactglove_create_glove(struct contactglove_dongle *dongle,
                           enum xrt_hand hand,
                           struct contactglove_device **out_glove)
 {
-	struct contactglove_device *contactglove = U_DEVICE_ALLOCATE(
-	    struct contactglove_device, U_DEVICE_ALLOC_TRACKING_NONE, CONTACTGLOVE_DEVICE_INPUT_COUNT, 1);
-	if (contactglove == NULL) {
+	struct contactglove_device *glove = U_DEVICE_ALLOCATE(struct contactglove_device, U_DEVICE_ALLOC_TRACKING_NONE,
+	                                                      CONTACTGLOVE_DEVICE_INPUT_COUNT, 1);
+	if (glove == NULL) {
 		U_LOG_E("Failed to allocate ContactGlove device");
 		return -1;
 	}
 
-	m_relation_history_create(&contactglove->relation_history);
+	m_relation_history_create(&glove->relation_history);
 
-	contactglove->dongle = dongle;
-	contactglove->hand = hand;
-	contactglove->raw_battery.battery_raw = 0xFF; // unknown
+	glove->dongle = dongle;
+	glove->hand = hand;
+	glove->raw_battery.battery_raw = 0xFF; // unknown
 
-	contactglove->base.name = XRT_DEVICE_CONTACTGLOVE2_WITH_MAGNETRA2;
-	snprintf(contactglove->base.serial, XRT_DEVICE_NAME_LEN, "%s", serial_number);
+	glove->base.name = XRT_DEVICE_CONTACTGLOVE2_WITH_MAGNETRA2;
+	snprintf(glove->base.serial, XRT_DEVICE_NAME_LEN, "%s", serial_number);
 
-	contactglove->base.binding_profiles = binding_profiles_magnetra2;
-	contactglove->base.binding_profile_count = ARRAY_SIZE(binding_profiles_magnetra2);
+	contactglove_calibration_wizard_init(&glove->calibration_wizard, glove);
+
+	glove->base.binding_profiles = binding_profiles_magnetra2;
+	glove->base.binding_profile_count = ARRAY_SIZE(binding_profiles_magnetra2);
 
 	switch (hand) {
 	case XRT_HAND_RIGHT: {
-		contactglove->base.device_type = XRT_DEVICE_TYPE_RIGHT_HAND_CONTROLLER;
-		contactglove->base.inputs[CONTACTGLOVE_DEVICE_INPUT_HT_UNOBSTRUCTED].name =
-		    XRT_INPUT_HT_UNOBSTRUCTED_RIGHT;
-		snprintf(contactglove->base.str, XRT_DEVICE_NAME_LEN, "ContactGlove2 (Right)");
-		contactglove->role = CONTACTGLOVE_DEVICE_ROLE_RIGHT;
+		glove->base.device_type = XRT_DEVICE_TYPE_RIGHT_HAND_CONTROLLER;
+		glove->base.inputs[CONTACTGLOVE_DEVICE_INPUT_HT_UNOBSTRUCTED].name = XRT_INPUT_HT_UNOBSTRUCTED_RIGHT;
+		snprintf(glove->base.str, XRT_DEVICE_NAME_LEN, "ContactGlove2 (Right)");
+		glove->role = CONTACTGLOVE_DEVICE_ROLE_RIGHT;
 		break;
 	}
 	case XRT_HAND_LEFT: {
-		contactglove->base.device_type = XRT_DEVICE_TYPE_LEFT_HAND_CONTROLLER;
-		contactglove->base.inputs[CONTACTGLOVE_DEVICE_INPUT_HT_UNOBSTRUCTED].name =
-		    XRT_INPUT_HT_UNOBSTRUCTED_LEFT;
-		snprintf(contactglove->base.str, XRT_DEVICE_NAME_LEN, "ContactGlove2 (Left)");
-		contactglove->role = CONTACTGLOVE_DEVICE_ROLE_LEFT;
+		glove->base.device_type = XRT_DEVICE_TYPE_LEFT_HAND_CONTROLLER;
+		glove->base.inputs[CONTACTGLOVE_DEVICE_INPUT_HT_UNOBSTRUCTED].name = XRT_INPUT_HT_UNOBSTRUCTED_LEFT;
+		snprintf(glove->base.str, XRT_DEVICE_NAME_LEN, "ContactGlove2 (Left)");
+		glove->role = CONTACTGLOVE_DEVICE_ROLE_LEFT;
 		break;
 	}
 	}
 
-	u_device_populate_function_pointers(&contactglove->base, contactglove_get_tracked_pose, contactglove_destroy);
-	contactglove->base.get_battery_status = contactglove_get_battery_status;
-	contactglove->base.get_hand_tracking = contactglove_get_hand_tracking;
-	contactglove->base.update_inputs = contactglove_update_inputs;
+	u_device_populate_function_pointers(&glove->base, contactglove_get_tracked_pose, contactglove_destroy);
+	glove->base.get_battery_status = contactglove_get_battery_status;
+	glove->base.get_hand_tracking = contactglove_get_hand_tracking;
+	glove->base.update_inputs = contactglove_update_inputs;
 
-	contactglove->base.supported.orientation_tracking = true;
-	contactglove->base.supported.hand_tracking = true;
-	contactglove->base.supported.battery_status = true;
+	glove->base.supported.orientation_tracking = true;
+	glove->base.supported.hand_tracking = true;
+	glove->base.supported.battery_status = true;
 
 #define SET_INPUT(input_name)                                                                                          \
-	contactglove->base.inputs[CONTACTGLOVE_DEVICE_INPUT_##input_name].name = XRT_INPUT_MAGNETRA2_##input_name;
+	glove->base.inputs[CONTACTGLOVE_DEVICE_INPUT_##input_name].name = XRT_INPUT_MAGNETRA2_##input_name;
 	SET_INPUT(A_CLICK)
 	SET_INPUT(B_CLICK)
 	SET_INPUT(X_CLICK)
@@ -1015,69 +986,55 @@ contactglove_create_glove(struct contactglove_dongle *dongle,
 	// Hold a reference to the dongle while the glove exists
 	xrt_reference_inc(&dongle->base);
 
-	*out_glove = contactglove;
+	*out_glove = glove;
 
-	u_var_add_root(contactglove,
-	               hand == XRT_HAND_RIGHT ? "ContactGlove2 Glove (Right)" : "ContactGlove2 Glove (Left)", true);
-	u_var_add_u8(contactglove, &contactglove->version.major, "Version (Major)");
-	u_var_add_u8(contactglove, &contactglove->version.minor, "Version (Minor)");
-	u_var_add_u8(contactglove, &contactglove->raw_battery.battery_raw, "Raw Battery");
-	u_var_add_u8(contactglove, &contactglove->raw_battery.charge_status, "Charge Status");
-	u_var_add_u8(contactglove, &contactglove->last_received_ping_nonce, "Last Received Ping Nonce");
-	u_var_add_u16(contactglove, &contactglove->glove_to_dongle_ms, "Glove to Dongle (ms)");
-	u_var_add_ro_i64_ns(contactglove, &contactglove->avg_glove_to_dongle_offset_ns,
-	                    "Avg Glove to Dongle Offset (ns)");
-	u_var_add_ro_i64_ns(contactglove, &contactglove->last_ping_receive, "Last Ping Receive (ns)");
-	u_var_add_ro_quat_f32(contactglove, &contactglove->latest_orientation, "Latest Orientation");
-	u_var_add_bool(contactglove, &contactglove->connected, "Connected");
+	u_var_add_root(glove, hand == XRT_HAND_RIGHT ? "ContactGlove2 Glove (Right)" : "ContactGlove2 Glove (Left)",
+	               true);
+	u_var_add_u8(glove, &glove->version.major, "Version (Major)");
+	u_var_add_u8(glove, &glove->version.minor, "Version (Minor)");
+	u_var_add_u8(glove, &glove->raw_battery.battery_raw, "Raw Battery");
+	u_var_add_u8(glove, &glove->raw_battery.charge_status, "Charge Status");
+	u_var_add_u8(glove, &glove->last_received_ping_nonce, "Last Received Ping Nonce");
+	u_var_add_u16(glove, &glove->glove_to_dongle_ms, "Glove to Dongle (ms)");
+	u_var_add_ro_i64_ns(glove, &glove->avg_glove_to_dongle_offset_ns, "Avg Glove to Dongle Offset (ns)");
+	u_var_add_ro_i64_ns(glove, &glove->last_ping_receive, "Last Ping Receive (ns)");
+	u_var_add_ro_quat_f32(glove, &glove->latest_orientation, "Latest Orientation");
+	u_var_add_bool(glove, &glove->connected, "Connected");
 	{
-		u_var_add_gui_header(contactglove, NULL, "Magnetra2 State");
-		u_var_add_bool(contactglove, &contactglove->module_state_valid[CONTACTGLOVE_MODULE_MAGNETRA2],
+		u_var_add_gui_header(glove, NULL, "Magnetra2 State");
+		u_var_add_bool(glove, &glove->module_state_valid[CONTACTGLOVE_MODULE_MAGNETRA2],
 		               "Magnetra2 State Valid");
-		u_var_add_u8(contactglove, &contactglove->module_state_magnetra2.enabled, "Magnetra2 Enabled");
+		u_var_add_u8(glove, &glove->module_state_magnetra2.enabled, "Magnetra2 Enabled");
 	}
 	{
-		u_var_add_gui_header(contactglove, NULL, "Sleep Manager State");
-		u_var_add_bool(contactglove, &contactglove->module_state_valid[CONTACTGLOVE_MODULE_SLEEP_MANAGER],
+		u_var_add_gui_header(glove, NULL, "Sleep Manager State");
+		u_var_add_bool(glove, &glove->module_state_valid[CONTACTGLOVE_MODULE_SLEEP_MANAGER],
 		               "Sleep Manager State Valid");
-		u_var_add_u8(contactglove, &contactglove->module_state_sleep_manager.duration_minutes,
-		             "Sleep Duration Minutes");
-		u_var_add_u8(contactglove, &contactglove->module_state_sleep_manager.duration_sec,
-		             "Sleep Duration Seconds (Unused)");
+		u_var_add_u8(glove, &glove->module_state_sleep_manager.duration_minutes, "Sleep Duration Minutes");
+		u_var_add_u8(glove, &glove->module_state_sleep_manager.duration_sec, "Sleep Duration Seconds (Unused)");
 	}
 	{
-		u_var_add_gui_header(contactglove, NULL, "LED Manager State");
-		u_var_add_bool(contactglove, &contactglove->module_state_valid[CONTACTGLOVE_MODULE_LED_MANAGER],
+		u_var_add_gui_header(glove, NULL, "LED Manager State");
+		u_var_add_bool(glove, &glove->module_state_valid[CONTACTGLOVE_MODULE_LED_MANAGER],
 		               "LED Manager State Valid");
-		u_var_add_u8(contactglove, &contactglove->module_state_led_manager.r, "R");
-		u_var_add_u8(contactglove, &contactglove->module_state_led_manager.g, "G");
-		u_var_add_u8(contactglove, &contactglove->module_state_led_manager.b, "B");
+		u_var_add_u8(glove, &glove->module_state_led_manager.r, "R");
+		u_var_add_u8(glove, &glove->module_state_led_manager.g, "G");
+		u_var_add_u8(glove, &glove->module_state_led_manager.b, "B");
 	}
 	{
-		u_var_add_gui_header(contactglove, NULL, "Input State");
-		u_var_add_u8(contactglove, &contactglove->raw_input.button_bits, "Button Bits");
-		u_var_add_u8(contactglove, &contactglove->raw_input.joystick_x, "Joystick X");
-		u_var_add_u8(contactglove, &contactglove->raw_input.joystick_y, "Joystick Y");
-		u_var_add_u8(contactglove, &contactglove->raw_input.trigger, "Trigger");
-		u_var_add_u8(contactglove, &contactglove->raw_input.multi_ch_value, "Multi Channel Value");
+		u_var_add_gui_header(glove, NULL, "Input State");
+		u_var_add_u8(glove, &glove->raw_input.button_bits, "Button Bits");
+		u_var_add_u8(glove, &glove->raw_input.joystick_x, "Joystick X");
+		u_var_add_u8(glove, &glove->raw_input.joystick_y, "Joystick Y");
+		u_var_add_u8(glove, &glove->raw_input.trigger, "Trigger");
+		u_var_add_u8(glove, &glove->raw_input.multi_ch_value, "Multi Channel Value");
 	}
 
-	contactglove->u_var_flex_adc_values = (struct u_var_u16_arr){
-	    .data = contactglove->raw_flex_adc_values,
+	glove->u_var_flex_adc_values = (struct u_var_u16_arr){
+	    .data = glove->raw_flex_adc_values,
 	    .length = CONTACTGLOVE2_SENSOR_COUNT,
 	};
-	u_var_add_u16_arr(contactglove, &contactglove->u_var_flex_adc_values, "Raw Flex ADC Values");
-
-	contactglove->u_var_no_curl_cal_button = (struct u_var_button){
-	    .cb = contactglove_none_curl_cal_callback,
-	    .ptr = contactglove,
-	};
-	u_var_add_button(contactglove, &contactglove->u_var_no_curl_cal_button, "No Curl Calibration");
-	contactglove->u_var_full_curl_cal_button = (struct u_var_button){
-	    .cb = contactglove_full_curl_cal_callback,
-	    .ptr = contactglove,
-	};
-	u_var_add_button(contactglove, &contactglove->u_var_full_curl_cal_button, "Full Curl Calibration");
+	u_var_add_u16_arr(glove, &glove->u_var_flex_adc_values, "Raw Flex ADC Values");
 
 	return 0;
 }

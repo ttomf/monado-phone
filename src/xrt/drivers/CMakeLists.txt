@@ -35,10 +35,12 @@ if(XRT_BUILD_DRIVER_CONTACTGLOVE)
 	add_library(
 		drv_contactglove STATIC
 		contactglove/contactglove.c
-		contactglove/contactglove.h
+		contactglove/contactglove_calibration.c
+		contactglove/contactglove_calibration.h
 		contactglove/contactglove_interface.h
-		contactglove/contactglove_protocol.h
+		contactglove/contactglove_internal.h
 		contactglove/contactglove_prober.c
+		contactglove/contactglove_protocol.h
 		)
 	target_link_libraries(drv_contactglove PRIVATE xrt-interfaces aux_util aux_os)
 	list(APPEND ENABLED_DRIVERS contactglove)
