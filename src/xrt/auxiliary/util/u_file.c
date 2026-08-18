@@ -269,8 +269,9 @@ u_file_read_content(FILE *file, size_t *out_file_size)
 		return NULL;
 	}
 
-	if (out_file_size)
+	if (out_file_size) {
 		*out_file_size = file_size;
+	}
 
 	return buffer;
 }
