@@ -142,7 +142,7 @@ b_system_devices_static_allocate(void);
  *
  * @ingroup base
  */
-void
+xrt_result_t
 b_system_devices_static_finalize(struct b_system_devices_static *bsysds,
                                  struct xrt_device *left,
                                  struct xrt_device *right,

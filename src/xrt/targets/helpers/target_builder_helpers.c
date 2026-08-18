@@ -133,11 +133,15 @@ t_builder_roles_helper_open_system(struct xrt_builder *xb,
 #undef U_SET_HT_ROLE
 
 
-	b_system_devices_static_finalize( //
-	    bsysds,                       // bsysds
-	    tbrh.left,                    // left
-	    tbrh.right,                   // right
-	    tbrh.gamepad);                // gamepad
+	xret = b_system_devices_static_finalize( //
+	    bsysds,                              // bsysds
+	    tbrh.left,                           // left
+	    tbrh.right,                          // right
+	    tbrh.gamepad);                       // gamepad
+	if (xret != XRT_SUCCESS) {
+		xrt_system_devices_destroy(&xsysd);
+		return xret;
+	}
 
 
 	/*
