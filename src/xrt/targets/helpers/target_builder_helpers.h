@@ -19,7 +19,7 @@
 extern "C" {
 #endif
 
-struct t_builder_roles_helper;
+struct t_builder_options;
 
 
 /*!
@@ -31,6 +31,8 @@ struct t_builder_roles_helper;
  * of the @ref xrt_system_devices and @ref xrt_space_overseer is taken care of
  * by the caller of this function.
  *
+ * @todo `tbo` should be a true `out` parameter, rather than being a structure with defaults filled in.
+ *
  * @ingroup xrt_iface
  */
 typedef xrt_result_t (*t_builder_open_system_fn)(struct xrt_builder *xb,
@@ -39,7 +41,7 @@ typedef xrt_result_t (*t_builder_open_system_fn)(struct xrt_builder *xb,
                                                  struct xrt_tracking_origin *origin,
                                                  struct xrt_system_devices *xsysd,
                                                  struct xrt_frame_context *xfctx,
-                                                 struct t_builder_roles_helper *tbrh);
+                                                 struct t_builder_options *tbo);
 
 /*!
  * This small helper struct is for @ref t_builder_roles_helper_open_system,
@@ -48,8 +50,11 @@ typedef xrt_result_t (*t_builder_open_system_fn)(struct xrt_builder *xb,
  *
  * @ingroup xrt_iface
  */
-struct t_builder_roles_helper
+struct t_builder_options
 {
+	//! The offset from stage -> local space, defaulting to a 1.6m height adjustment.
+	struct xrt_pose T_stage_local;
+
 	struct xrt_device *head;
 	struct xrt_device *eyes;
 	struct xrt_device *face;
@@ -119,6 +124,7 @@ t_builder_create_space_overseer_legacy(struct xrt_session_event_sink *broadcast,
                                        struct xrt_device **xdevs,
                                        uint32_t xdev_count,
                                        bool root_is_unbounded,
+                                       const struct xrt_pose *T_stage_local,
                                        bool per_app_local_spaces,
                                        struct xrt_space_overseer **out_xso);
 

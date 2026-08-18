@@ -183,7 +183,7 @@ wmr_open_system_impl(struct xrt_builder *xb,
                      struct xrt_tracking_origin *origin,
                      struct xrt_system_devices *xsysd,
                      struct xrt_frame_context *xfctx,
-                     struct t_builder_roles_helper *tbrh)
+                     struct t_builder_options *tbo)
 {
 	enum u_logging_level log_level = debug_get_log_option_wmr_log();
 	struct wmr_bt_controllers_search_results ctrls = {0};
@@ -298,11 +298,11 @@ wmr_open_system_impl(struct xrt_builder *xb,
 
 
 	// Assign to role(s).
-	tbrh->head = head;
-	tbrh->left = left;
-	tbrh->right = right;
-	tbrh->hand_tracking.unobstructed.left = ht_left;
-	tbrh->hand_tracking.unobstructed.right = ht_right;
+	tbo->head = head;
+	tbo->left = left;
+	tbo->right = right;
+	tbo->hand_tracking.unobstructed.left = ht_left;
+	tbo->hand_tracking.unobstructed.right = ht_right;
 
 	return XRT_SUCCESS;
 

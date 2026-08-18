@@ -102,7 +102,7 @@ rift_s_open_system_impl(struct xrt_builder *xb,
                         struct xrt_tracking_origin *origin,
                         struct xrt_system_devices *xsysd,
                         struct xrt_frame_context *xfctx,
-                        struct t_builder_roles_helper *tbrh)
+                        struct t_builder_options *tbo)
 {
 	struct xrt_prober_device **xpdevs = NULL;
 	size_t xpdev_count = 0;
@@ -204,11 +204,11 @@ rift_s_open_system_impl(struct xrt_builder *xb,
 #endif
 
 	// Assign to role(s).
-	tbrh->head = hmd_xdev;
-	tbrh->left = left_xdev;
-	tbrh->right = right_xdev;
-	tbrh->hand_tracking.unobstructed.left = left_ht;
-	tbrh->hand_tracking.unobstructed.right = right_ht;
+	tbo->head = hmd_xdev;
+	tbo->left = left_xdev;
+	tbo->right = right_xdev;
+	tbo->hand_tracking.unobstructed.left = left_ht;
+	tbo->hand_tracking.unobstructed.right = right_ht;
 
 	return XRT_SUCCESS;
 

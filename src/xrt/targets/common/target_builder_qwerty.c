@@ -75,7 +75,7 @@ qwerty_open_system_impl(struct xrt_builder *xb,
                         struct xrt_tracking_origin *origin,
                         struct xrt_system_devices *xsysd,
                         struct xrt_frame_context *xfctx,
-                        struct t_builder_roles_helper *tbrh)
+                        struct t_builder_options *tbo)
 {
 	struct xrt_device *head = NULL;
 	struct xrt_device *left = NULL;
@@ -97,9 +97,9 @@ qwerty_open_system_impl(struct xrt_builder *xb,
 	}
 
 	// Assign to role(s).
-	tbrh->head = head;
-	tbrh->left = left;
-	tbrh->right = right;
+	tbo->head = head;
+	tbo->left = left;
+	tbo->right = right;
 
 	return XRT_SUCCESS;
 }

@@ -98,7 +98,7 @@ simulated_open_system_impl(struct xrt_builder *xb,
                            struct xrt_tracking_origin *origin,
                            struct xrt_system_devices *xsysd,
                            struct xrt_frame_context *xfctx,
-                           struct t_builder_roles_helper *tbrh)
+                           struct t_builder_options *tbo)
 {
 	const struct xrt_pose head_center = {XRT_QUAT_IDENTITY, {0.0f, 1.6f, 0.0f}}; // "nominal height" 1.6m
 	const struct xrt_pose left_center = {XRT_QUAT_IDENTITY, {-0.2f, 1.3f, -0.5f}};
@@ -130,9 +130,9 @@ simulated_open_system_impl(struct xrt_builder *xb,
 	}
 
 	// Assign to role(s).
-	tbrh->head = head;
-	tbrh->left = left;
-	tbrh->right = right;
+	tbo->head = head;
+	tbo->left = left;
+	tbo->right = right;
 
 	return XRT_SUCCESS;
 }

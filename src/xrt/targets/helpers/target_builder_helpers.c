@@ -43,6 +43,7 @@ t_builder_create_space_overseer_legacy(struct xrt_session_event_sink *broadcast,
                                        struct xrt_device **xdevs,
                                        uint32_t xdev_count,
                                        bool root_is_unbounded,
+                                       const struct xrt_pose *T_stage_local,
                                        bool per_app_local_spaces,
                                        struct xrt_space_overseer **out_xso)
 {
@@ -71,15 +72,12 @@ t_builder_create_space_overseer_legacy(struct xrt_session_event_sink *broadcast,
 
 	struct b_space_overseer *uso = b_space_overseer_create(broadcast);
 
-	struct xrt_pose T_stage_local = XRT_POSE_IDENTITY;
-	T_stage_local.position.y = 1.6;
-
 	b_space_overseer_legacy_setup( //
 	    uso,                       // uso
 	    xdevs,                     // xdevs
 	    xdev_count,                // xdev_count
 	    head,                      // head
-	    &T_stage_local,            // local_offset
+	    T_stage_local,             // local_offset
 	    root_is_unbounded,         // root_is_unbounded
 	    per_app_local_spaces       // per_app_local_spaces
 	);
@@ -96,7 +94,13 @@ t_builder_roles_helper_open_system(struct xrt_builder *xb,
                                    struct xrt_space_overseer **out_xso,
                                    t_builder_open_system_fn fn)
 {
-	struct t_builder_roles_helper tbrh = XRT_STRUCT_INIT;
+	struct t_builder_options tbo = {
+	    .T_stage_local =
+	        {
+	            .orientation = XRT_QUAT_IDENTITY,
+	            .position = {.x = 0, .y = 1.6, .z = 0},
+	        },
+	};
 	xrt_result_t xret;
 
 	// Use the static system devices helper, no dynamic roles.
@@ -112,7 +116,7 @@ t_builder_roles_helper_open_system(struct xrt_builder *xb,
 	    origin, // origin
 	    xsysd,  // xsysd
 	    xfctx,  // xfctx
-	    &tbrh); // tbrh
+	    &tbo);  // tbo
 	if (xret != XRT_SUCCESS) {
 		xrt_system_devices_destroy(&xsysd);
 		return xret;
@@ -122,12 +126,12 @@ t_builder_roles_helper_open_system(struct xrt_builder *xb,
 	 * Assign to role(s).
 	 */
 
-	xsysd->static_roles.head = tbrh.head;
-	xsysd->static_roles.eyes = tbrh.eyes;
-	xsysd->static_roles.face = tbrh.face;
+	xsysd->static_roles.head = tbo.head;
+	xsysd->static_roles.eyes = tbo.eyes;
+	xsysd->static_roles.face = tbo.face;
 #define U_SET_HT_ROLE(SRC)                                                                                             \
-	xsysd->static_roles.hand_tracking.SRC.left = tbrh.hand_tracking.SRC.left;                                      \
-	xsysd->static_roles.hand_tracking.SRC.right = tbrh.hand_tracking.SRC.right;
+	xsysd->static_roles.hand_tracking.SRC.left = tbo.hand_tracking.SRC.left;                                       \
+	xsysd->static_roles.hand_tracking.SRC.right = tbo.hand_tracking.SRC.right;
 	U_SET_HT_ROLE(unobstructed)
 	U_SET_HT_ROLE(conforming)
 #undef U_SET_HT_ROLE
@@ -135,9 +139,9 @@ t_builder_roles_helper_open_system(struct xrt_builder *xb,
 
 	xret = b_system_devices_static_finalize( //
 	    bsysds,                              // bsysds
-	    tbrh.left,                           // left
-	    tbrh.right,                          // right
-	    tbrh.gamepad);                       // gamepad
+	    tbo.left,                            // left
+	    tbo.right,                           // right
+	    tbo.gamepad);                        // gamepad
 	if (xret != XRT_SUCCESS) {
 		xrt_system_devices_destroy(&xsysd);
 		return xret;
@@ -151,14 +155,15 @@ t_builder_roles_helper_open_system(struct xrt_builder *xb,
 	*out_xsysd = xsysd;
 	t_builder_create_space_overseer_legacy( //
 	    broadcast,                          // broadcast
-	    tbrh.head,                          // head
-	    tbrh.eyes,                          // eyes
-	    tbrh.left,                          // left
-	    tbrh.right,                         // right
-	    tbrh.gamepad,                       // gamepad
+	    tbo.head,                           // head
+	    tbo.eyes,                           // eyes
+	    tbo.left,                           // left
+	    tbo.right,                          // right
+	    tbo.gamepad,                        // gamepad
 	    xsysd->static_xdevs,                // xdevs
 	    xsysd->static_xdev_count,           // xdev_count
 	    false,                              // root_is_unbounded
+	    &tbo.T_stage_local,                 // T_stage_local
 	    true,                               // per_app_local_spaces
 	    out_xso);                           // out_xso
 

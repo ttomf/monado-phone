@@ -219,7 +219,7 @@ rift_open_pssense(struct rift_builder *rb,
                   struct xrt_prober *xp,
                   struct xrt_prober_device **xpdevs,
                   size_t xpdev_count,
-                  struct t_builder_roles_helper *tbrh)
+                  struct t_builder_options *tbo)
 {
 #ifdef XRT_BUILD_DRIVER_PSSENSE
 	struct xrt_prober_device *left_xpdev = u_builder_find_prober_device( //
@@ -236,7 +236,7 @@ rift_open_pssense(struct rift_builder *rb,
 			RIFT_ERROR(rb, "PS Sense left controller device creation failed.");
 		} else {
 			xsysd->static_xdevs[xsysd->static_xdev_count++] = left_xdev;
-			tbrh->left = left_xdev;
+			tbo->left = left_xdev;
 
 			if (rb->timing_event_source != NULL) {
 				t_timing_event_source_add_sink(rb->timing_event_source, timing_sink);
@@ -260,7 +260,7 @@ rift_open_pssense(struct rift_builder *rb,
 			RIFT_ERROR(rb, "PS Sense right controller device creation failed.");
 		} else {
 			xsysd->static_xdevs[xsysd->static_xdev_count++] = right_xdev;
-			tbrh->right = right_xdev;
+			tbo->right = right_xdev;
 
 			if (rb->timing_event_source != NULL) {
 				t_timing_event_source_add_sink(rb->timing_event_source, timing_sink);
@@ -278,7 +278,7 @@ rift_open_contactglove(struct rift_builder *rb,
                        struct xrt_prober *xp,
                        struct xrt_prober_device **xpdevs,
                        size_t xpdev_count,
-                       struct t_builder_roles_helper *tbrh)
+                       struct t_builder_options *tbo)
 {
 #ifdef XRT_BUILD_DRIVER_CONTACTGLOVE
 	xrt_result_t ret;
@@ -316,12 +316,12 @@ rift_open_contactglove(struct rift_builder *rb,
 			xsysd->static_xdev_count += ret;
 
 			// Fill in the devices into the static xdev array.
-			tbrh->left = xsysd->static_xdevs[xsysd->static_xdev_count - 2];
-			tbrh->right = xsysd->static_xdevs[xsysd->static_xdev_count - 1];
+			tbo->left = xsysd->static_xdevs[xsysd->static_xdev_count - 2];
+			tbo->right = xsysd->static_xdevs[xsysd->static_xdev_count - 1];
 
 			// Set the hand tracking roles to the gloves
-			tbrh->hand_tracking.unobstructed.left = tbrh->left;
-			tbrh->hand_tracking.unobstructed.right = tbrh->right;
+			tbo->hand_tracking.unobstructed.left = tbo->left;
+			tbo->hand_tracking.unobstructed.right = tbo->right;
 			RIFT_DEBUG(rb, "Created ContactGlove devices for serial number %s", serial_number);
 		} else {
 			RIFT_ERROR(rb, "Failed to create ContactGlove devices with code %d.", ret);
@@ -367,7 +367,7 @@ rift_open_system_impl(struct xrt_builder *xb,
                       struct xrt_tracking_origin *origin,
                       struct xrt_system_devices *xsysd,
                       struct xrt_frame_context *xfctx,
-                      struct t_builder_roles_helper *tbrh)
+                      struct t_builder_options *tbo)
 {
 	struct rift_builder *rb = rift_builder(xb);
 
@@ -454,17 +454,17 @@ rift_open_system_impl(struct xrt_builder *xb,
 		for (int i = 0; i < created_devices; i++) {
 			struct xrt_device *xdev = xdevs[i];
 			switch (xdev->device_type) {
-			case XRT_DEVICE_TYPE_HMD: tbrh->head = xdev; break;
-			case XRT_DEVICE_TYPE_LEFT_HAND_CONTROLLER: tbrh->left = xdev; break;
-			case XRT_DEVICE_TYPE_RIGHT_HAND_CONTROLLER: tbrh->right = xdev; break;
-			case XRT_DEVICE_TYPE_GAMEPAD: tbrh->gamepad = xdev; break;
+			case XRT_DEVICE_TYPE_HMD: tbo->head = xdev; break;
+			case XRT_DEVICE_TYPE_LEFT_HAND_CONTROLLER: tbo->left = xdev; break;
+			case XRT_DEVICE_TYPE_RIGHT_HAND_CONTROLLER: tbo->right = xdev; break;
+			case XRT_DEVICE_TYPE_GAMEPAD: tbo->gamepad = xdev; break;
 			default: break;
 			}
 		}
 	}
 
-	rift_open_pssense(rb, xfctx, xsysd, xp, xpdevs, xpdev_count, tbrh);
-	rift_open_contactglove(rb, xsysd, xp, xpdevs, xpdev_count, tbrh);
+	rift_open_pssense(rb, xfctx, xsysd, xp, xpdevs, xpdev_count, tbo);
+	rift_open_contactglove(rb, xsysd, xp, xpdevs, xpdev_count, tbo);
 
 	xret = xrt_prober_unlock_list(xp, &xpdevs);
 	if (xret != XRT_SUCCESS) {

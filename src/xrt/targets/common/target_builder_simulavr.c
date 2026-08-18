@@ -201,7 +201,7 @@ svr_open_system_impl(struct xrt_builder *xb,
                      struct xrt_tracking_origin *origin,
                      struct xrt_system_devices *xsysd,
                      struct xrt_frame_context *xfctx,
-                     struct t_builder_roles_helper *tbrh)
+                     struct t_builder_options *tbo)
 {
 	struct simula_builder *sb = (struct simula_builder *)xb;
 	xrt_result_t result = XRT_SUCCESS;
@@ -225,7 +225,7 @@ svr_open_system_impl(struct xrt_builder *xb,
 	xsysd->static_xdevs[xsysd->static_xdev_count++] = head_device;
 
 	// Assign to role(s).
-	tbrh->head = head_device;
+	tbo->head = head_device;
 
 end:
 	return result;

@@ -454,7 +454,7 @@ ns_open_system_impl(struct xrt_builder *xb,
                     struct xrt_tracking_origin *origin,
                     struct xrt_system_devices *xsysd,
                     struct xrt_frame_context *xfctx,
-                    struct t_builder_roles_helper *tbrh)
+                    struct t_builder_options *tbo)
 {
 	struct ns_builder *nsb = (struct ns_builder *)xb;
 	xrt_result_t result = XRT_SUCCESS;
@@ -587,11 +587,11 @@ ns_open_system_impl(struct xrt_builder *xb,
 	}
 
 	// Assign to role(s).
-	tbrh->head = head_wrap;
-	tbrh->left = left;
-	tbrh->right = right;
-	tbrh->hand_tracking.unobstructed.left = left_ht;
-	tbrh->hand_tracking.unobstructed.right = right_ht;
+	tbo->head = head_wrap;
+	tbo->left = left;
+	tbo->right = right;
+	tbo->hand_tracking.unobstructed.left = left_ht;
+	tbo->hand_tracking.unobstructed.right = right_ht;
 
 end:
 	if (nsb->config_json != NULL) {
