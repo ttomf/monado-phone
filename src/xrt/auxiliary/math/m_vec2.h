@@ -14,6 +14,7 @@
 #include "xrt/xrt_defines.h"
 
 #include "m_mathinclude.h"
+#include "m_api.h"
 
 
 #ifdef __cplusplus
@@ -113,6 +114,15 @@ m_vec2_lerp(struct xrt_vec2 from, struct xrt_vec2 to, float amount)
 {
 	// Recommend amount being in [0,1]
 	return m_vec2_add(m_vec2_mul_scalar(from, 1.0f - amount), m_vec2_mul_scalar(to, amount));
+}
+
+static inline struct xrt_vec2
+m_vec2_clamp_scalar(struct xrt_vec2 in, float min, float max)
+{
+	return XRT_C11_COMPOUND(struct xrt_vec2){
+	    .x = CLAMP(in.x, min, max),
+	    .y = CLAMP(in.y, min, max),
+	};
 }
 
 typedef float m_vec2_float_arr[2];
