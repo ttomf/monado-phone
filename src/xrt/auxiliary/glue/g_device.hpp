@@ -92,6 +92,11 @@ struct DeviceFunctions
 	 * @ref xrt_device::end_feature
 	 */
 	bool features{false};
+
+	/*!
+	 * @ref xrt_device::notify_chirality
+	 */
+	bool notify_chirality{false};
 };
 
 /*!
@@ -197,6 +202,10 @@ public: // Members
 		if constexpr (functions.features) {
 			xdev.begin_feature = beginFeatureWrap;
 			xdev.end_feature = endFeatureWrap;
+		}
+
+		if constexpr (functions.notify_chirality) {
+			xdev.notify_chirality = notifyChiralityWrap;
 		}
 	}
 
@@ -479,6 +488,13 @@ private: // Functions
 	endFeatureWrap(struct xrt_device *xdev, enum xrt_device_feature_type type) noexcept
 	try {
 		return GET(xdev).endFeature(type);
+	}
+	G_CATCH_GUARDS
+
+	static xrt_result_t
+	notifyChiralityWrap(struct xrt_device *xdev, bool has_chirality, enum xrt_hand chirality) noexcept
+	try {
+		return GET(xdev).notifyChirality(has_chirality, chirality);
 	}
 	G_CATCH_GUARDS
 

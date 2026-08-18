@@ -317,6 +317,7 @@ struct xrt_device_supported
 	bool battery_status;
 	bool brightness_control;
 	bool compositor_info;
+	bool notify_chirality;
 
 	bool planes;
 	enum xrt_plane_detection_capability_flags_ext plane_capability_flags;
@@ -772,6 +773,17 @@ struct xrt_device
 	xrt_result_t (*end_feature)(struct xrt_device *xdev, enum xrt_device_feature_type type);
 
 	/*!
+	 * Notify the device of it's new chirality, or that it no longer has a set chirality.
+	 *
+	 * Devices are assumed to have no set chirality by default.
+	 *
+	 * @param[in] xdev          The device.
+	 * @param[in] has_chirality Whether or not the device has a set chirality.
+	 * @param[in] chirality     The device's current chirality (unset if `has_chirality` is false).
+	 */
+	xrt_result_t (*notify_chirality)(struct xrt_device *xdev, bool has_chirality, enum xrt_hand chirality);
+
+	/*!
 	 * Destroy device.
 	 */
 	void (*destroy)(struct xrt_device *xdev);
@@ -1170,6 +1182,19 @@ XRT_NONNULL_ALL static inline xrt_result_t
 xrt_device_end_feature(struct xrt_device *xdev, enum xrt_device_feature_type type)
 {
 	return xdev->end_feature(xdev, type);
+}
+
+/*!
+ * Helper function for @ref xrt_device::notify_chirality.
+ *
+ * @copydoc xrt_device::notify_chirality
+ *
+ * @public @memberof xrt_device
+ */
+XRT_NONNULL_ALL static inline xrt_result_t
+xrt_device_notify_chirality(struct xrt_device *xdev, bool has_chirality, enum xrt_hand chirality)
+{
+	return xdev->notify_chirality(xdev, has_chirality, chirality);
 }
 
 /*!

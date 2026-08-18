@@ -650,6 +650,7 @@ u_device_populate_function_pointers(struct xrt_device *xdev,
 	xdev->get_compositor_info = u_device_ni_get_compositor_info;
 	xdev->begin_feature = u_device_ni_begin_feature;
 	xdev->end_feature = u_device_ni_end_feature;
+	xdev->notify_chirality = u_device_ni_notify_chirality;
 
 	/*
 	 * Same as above, but have default implementation that must available.
