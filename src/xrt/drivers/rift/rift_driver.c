@@ -75,6 +75,11 @@ DEBUG_GET_ONCE_BOOL_OPTION(rift_enable_back_strap_leds, "RIFT_ENABLE_BACK_STRAP_
 // The headset doesn't like it when you give a sequence of length 1 for some reason, so let's give it what it wants.
 #define RIFT_CUSTOM_PATTERN_SEQUENCE_LENGTH 10
 
+//! Set to 1 to dump IMU data to @ref RIFT_IMU_DUMP_PATH
+#define RIFT_IMU_DUMP 0
+//! The path where IMU data is dumped to.
+#define RIFT_IMU_DUMP_PATH "/tmp/cv1_imu_dump.csv"
+
 /*
  *
  * Headset functions
@@ -293,6 +298,19 @@ rift_sensor_thread_tick(struct rift_hmd *hmd)
 				                      .gyro_rad_secs = {gyro.x, gyro.y, gyro.z},
 				                  });
 			}
+
+#if RIFT_IMU_DUMP
+			static FILE *imu_dump_file = NULL;
+			if (imu_dump_file == NULL) {
+				imu_dump_file = fopen(RIFT_IMU_DUMP_PATH, "wb");
+				assert(imu_dump_file != NULL);
+				fprintf(imu_dump_file, "ts,ax,ay,az,gx,gy,gz\n");
+			}
+
+			fprintf(imu_dump_file, "%" PRIi64 ",%f,%f,%f,%f,%f,%f\n", sample_local_timestamp_ns, accel.x,
+			        accel.y, accel.z, gyro.x, gyro.y, gyro.z);
+			fflush(imu_dump_file);
+#endif
 
 			hmd->last_sample_local_timestamp_ns = sample_local_timestamp_ns;
 
