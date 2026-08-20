@@ -300,6 +300,10 @@ img_xfer_cb(struct libusb_transfer *xfer)
 
 	struct wmr_camera *cam = xfer->user_data;
 
+	if (!cam->running) {
+		return;
+	}
+
 	if (xfer->status != LIBUSB_TRANSFER_COMPLETED) {
 		WMR_CAM_DEBUG(cam, "Camera transfer completed with status: %s (%u)", libusb_error_name(xfer->status),
 		              xfer->status);

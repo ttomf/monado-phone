@@ -93,7 +93,6 @@ euroc_recorder_mkfiles(struct euroc_recorder *er)
 	string path = er->path;
 
 	for (int i = 0; i < er->imu_count; i++) {
-
 		string data_path = path + "/mav0/imu" + to_string(i);
 		create_directories(data_path);
 		er->imus_csv[i] = new ofstream{data_path + "/data.csv"};
@@ -120,7 +119,6 @@ static void
 euroc_recorder_flush(struct euroc_recorder *er)
 {
 	for (int i = 0; i < er->imu_count; i++) {
-
 		// Flush IMU samples
 		vector<xrt_imu_sample> imu_samples;
 
