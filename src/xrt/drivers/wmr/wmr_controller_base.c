@@ -29,6 +29,7 @@
 #include "wmr_common.h"
 #include "wmr_controller_base.h"
 #include "wmr_config_key.h"
+#include "wmr_source.h"
 
 #include <ctype.h>
 #include <stdio.h>
@@ -488,6 +489,31 @@ wmr_controller_base_get_tracked_pose(struct xrt_device *xdev,
 	m_predict_relation(&relation, prediction_s, out_relation);
 
 	return XRT_SUCCESS;
+}
+
+void
+wmr_controller_base_handle_imu_sample(struct wmr_controller_base *wcb,
+                                      uint64_t time_ns,
+                                      uint64_t timestamp_ticks,
+                                      const struct xrt_vec3 *acc,
+                                      const struct xrt_vec3 *gyro)
+{
+	uint64_t sample_time_ns = timestamp_ticks * WMR_MOTION_CONTROLLER_NS_PER_TICK;
+
+	m_imu_3dof_update(&wcb->fusion, sample_time_ns, acc, gyro);
+
+	wcb->last_imu_timestamp_ns = time_ns;
+	wcb->last_angular_velocity = *gyro;
+
+	if (wcb->source) { // Redirect IMU sample to WMR data source
+		assert(wcb->base.device_type == XRT_DEVICE_TYPE_LEFT_HAND_CONTROLLER ||
+		       wcb->base.device_type == XRT_DEVICE_TYPE_RIGHT_HAND_CONTROLLER);
+		wmr_source_push_imu_packet(wcb->source,
+		                           wcb->base.device_type == XRT_DEVICE_TYPE_LEFT_HAND_CONTROLLER
+		                               ? WMR_LEFT_CTRL_IMU_INDEX
+		                               : WMR_RIGHT_CTRL_IMU_INDEX,
+		                           sample_time_ns, *acc, *gyro);
+	}
 }
 
 void

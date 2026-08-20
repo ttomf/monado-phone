@@ -140,6 +140,14 @@ wmr_controller_base_init(struct wmr_controller_base *wcb,
 void
 wmr_controller_base_deinit(struct wmr_controller_base *wcb);
 
+//! Handle IMU sample after packet parsing
+void
+wmr_controller_base_handle_imu_sample(struct wmr_controller_base *wcb,
+                                      uint64_t time_ns,
+                                      uint64_t timestamp_ticks,
+                                      const struct xrt_vec3 *acc,
+                                      const struct xrt_vec3 *gyro);
+
 static inline void
 wmr_controller_connection_receive_bytes(struct wmr_controller_connection *wcc,
                                         uint64_t time_ns,

@@ -21,7 +21,6 @@
 #include <errno.h>
 
 #include "wmr_controller.h"
-#include "wmr_source.h"
 
 #define WMR_TRACE(ctrl, ...) U_LOG_XDEV_IFL_T(&ctrl->base.base, ctrl->base.log_level, __VA_ARGS__)
 #define WMR_TRACE_HEX(ctrl, ...) U_LOG_XDEV_IFL_T_HEX(&ctrl->base.base, ctrl->base.log_level, __VA_ARGS__)
@@ -301,23 +300,8 @@ handle_input_packet(struct wmr_controller_base *wcb, uint64_t time_ns, uint8_t *
 
 	bool b = wmr_controller_hp_packet_parse(ctrl, buffer, buf_size);
 	if (b) {
-		m_imu_3dof_update(&wcb->fusion,
-		                  ctrl->last_inputs.imu.timestamp_ticks * WMR_MOTION_CONTROLLER_NS_PER_TICK,
-		                  &ctrl->last_inputs.imu.acc, &ctrl->last_inputs.imu.gyro);
-
-		wcb->last_imu_timestamp_ns = time_ns;
-		wcb->last_angular_velocity = ctrl->last_inputs.imu.gyro;
-
-		if (wcb->source) { // Redirect IMU sample to WMR data source
-			assert(wcb->base.device_type == XRT_DEVICE_TYPE_LEFT_HAND_CONTROLLER ||
-			       wcb->base.device_type == XRT_DEVICE_TYPE_RIGHT_HAND_CONTROLLER);
-			wmr_source_push_imu_packet(
-			    wcb->source,
-			    wcb->base.device_type == XRT_DEVICE_TYPE_LEFT_HAND_CONTROLLER ? WMR_LEFT_CTRL_IMU_INDEX
-			                                                                  : WMR_RIGHT_CTRL_IMU_INDEX,
-			    ctrl->last_inputs.imu.timestamp_ticks * WMR_MOTION_CONTROLLER_NS_PER_TICK,
-			    ctrl->last_inputs.imu.acc, ctrl->last_inputs.imu.gyro);
-		}
+		wmr_controller_base_handle_imu_sample(wcb, time_ns, ctrl->last_inputs.imu.timestamp_ticks,
+		                                      &ctrl->last_inputs.imu.acc, &ctrl->last_inputs.imu.gyro);
 	}
 
 	return b;
