@@ -30,7 +30,6 @@ struct rift_hmd;
 
 enum rift_variant
 {
-	RIFT_VARIANT_DK1,
 	RIFT_VARIANT_DK2,
 	RIFT_VARIANT_CV1,
 };

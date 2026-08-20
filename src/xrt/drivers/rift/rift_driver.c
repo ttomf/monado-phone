@@ -6,7 +6,7 @@
  * @file
  * @brief  Driver for the Oculus Rift.
  *
- * Based largely on simulated_hmd.c, with reference to the DK1/DK2 firmware and OpenHMD's rift driver.
+ * Based largely on simulated_hmd.c, with reference to the DK2 firmware and OpenHMD's rift driver.
  *
  * @author Jakob Bornecrantz <jakob@collabora.com>
  * @author Rylie Pavlik <rylie.pavlik@collabora.com>
@@ -297,10 +297,6 @@ rift_sensor_thread_tick(struct rift_hmd *hmd)
 		}
 
 		break;
-	}
-	case RIFT_VARIANT_DK1: {
-		HMD_ERROR(hmd, "DK1 support not implemented yet");
-		return -1;
 	}
 	}
 
@@ -803,6 +799,17 @@ rift_frame_node_destroy(struct xrt_frame_node *node)
 	u_device_free(&hmd->base);
 }
 
+static const char *
+variant_name(enum rift_variant variant)
+{
+	switch (variant) {
+	case RIFT_VARIANT_DK2: return RIFT_DK2_PRODUCT_STRING;
+	case RIFT_VARIANT_CV1: return RIFT_CV1_PRODUCT_STRING;
+	}
+
+	return "UNKNOWN";
+}
+
 /*
  *
  * Exported functions
@@ -1042,7 +1049,6 @@ rift_devices_create(struct os_hid_device *hmd_dev,
 		hmd->extra_display_info.lens_diameter_meters = 0.04f;
 		hmd->extra_display_info.screen_gap_meters = 0.0f;
 		break;
-	default: break;
 	}
 
 	// hardcode left eye, probably not ideal, but sure, why not
@@ -1070,15 +1076,8 @@ rift_devices_create(struct os_hid_device *hmd_dev,
 
 	hmd->log_level = debug_get_log_option_rift_log();
 
-	const char *device_name = "Rift";
-	switch (variant) {
-	case RIFT_VARIANT_DK2: device_name = RIFT_DK2_PRODUCT_STRING; break;
-	case RIFT_VARIANT_CV1: device_name = RIFT_CV1_PRODUCT_STRING; break;
-	default: assert(!"unreachable, invalid rift variant"); break;
-	}
-
 	// Print name.
-	u_truncate_snprintf(hmd->base.str, XRT_DEVICE_NAME_LEN, "%s", device_name);
+	u_truncate_snprintf(hmd->base.str, XRT_DEVICE_NAME_LEN, "%s", variant_name(hmd->variant));
 	u_truncate_snprintf(hmd->base.serial, XRT_DEVICE_NAME_LEN, "%s", serial_number);
 
 	m_relation_history_create(&hmd->relation_hist);
@@ -1097,7 +1096,6 @@ rift_devices_create(struct os_hid_device *hmd_dev,
 
 	// Set up display details
 	switch (hmd->variant) {
-	case RIFT_VARIANT_DK1: hmd->base.hmd->screens[0].nominal_frame_interval_ns = time_s_to_ns(1.0f / 60.0f); break;
 	case RIFT_VARIANT_DK2: hmd->base.hmd->screens[0].nominal_frame_interval_ns = time_s_to_ns(1.0f / 75.0f); break;
 	case RIFT_VARIANT_CV1: hmd->base.hmd->screens[0].nominal_frame_interval_ns = time_s_to_ns(1.0f / 90.0f); break;
 	}
@@ -1147,7 +1145,6 @@ rift_devices_create(struct os_hid_device *hmd_dev,
 
 		break;
 	}
-	case RIFT_VARIANT_DK1: // TODO: actually figure out if this is correct for DK1
 	case RIFT_VARIANT_DK2: {
 		// screen is rotated, so we need to undo that here
 		hmd->base.hmd->screens[0].h_pixels = hmd->display_info.resolution_x;
