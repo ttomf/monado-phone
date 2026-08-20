@@ -184,19 +184,13 @@ euroc_recorder_save_imu_sample(struct euroc_recorder *er, struct xrt_imu_sample 
 		euroc_recorder_save_imu_sample(er, sample, imu_id);                                                    \
 	}
 
-DEFINE_SAVE_IMU(0)
-DEFINE_SAVE_IMU(1)
-DEFINE_SAVE_IMU(2)
+XRT_TRACKING_FOR_EACH_IMU(DEFINE_SAVE_IMU)
 
+#define USE_SAVE_IMU(imu_id) euroc_recorder_save_imu##imu_id,
 
-//! Be sure to define the same number of defined functions as
-//! XRT_TRACKING_MAX_IMUS and to add them to to euroc_recorder_save_imu
 static void (*euroc_recorder_save_imu[XRT_TRACKING_MAX_IMUS])(struct xrt_imu_sink *sink,
                                                               struct xrt_imu_sample *sample) = {
-    euroc_recorder_save_imu0, //
-    euroc_recorder_save_imu1, //
-    euroc_recorder_save_imu2, //
-};
+    XRT_TRACKING_FOR_EACH_IMU(USE_SAVE_IMU)};
 
 extern "C" void
 euroc_recorder_save_gt(xrt_pose_sink *sink, struct xrt_pose_sample *sample)
@@ -244,28 +238,12 @@ euroc_recorder_save_frame(euroc_recorder *er, struct xrt_frame *frame, int cam_i
 		euroc_recorder_save_frame(er, frame, cam_id);                                                          \
 	}
 
-DEFINE_SAVE_CAM(0)
-DEFINE_SAVE_CAM(1)
-DEFINE_SAVE_CAM(2)
-DEFINE_SAVE_CAM(3)
-DEFINE_SAVE_CAM(4)
-DEFINE_SAVE_CAM(5)
-DEFINE_SAVE_CAM(6)
-DEFINE_SAVE_CAM(7)
+XRT_TRACKING_FOR_EACH_CAM(DEFINE_SAVE_CAM)
 
-//! Be sure to define the same number of defined functions as
-//! XRT_TRACKING_MAX_CAMS and to add them to to euroc_recorder_save_cam
-static void (*euroc_recorder_save_cam[XRT_TRACKING_MAX_CAMS])(struct xrt_frame_sink *sink,
-                                                              struct xrt_frame *frame) = {
-    euroc_recorder_save_cam0, //
-    euroc_recorder_save_cam1, //
-    euroc_recorder_save_cam2, //
-    euroc_recorder_save_cam3, //
-    euroc_recorder_save_cam4, //
-    euroc_recorder_save_cam5, //
-    euroc_recorder_save_cam6, //
-    euroc_recorder_save_cam7, //
-};
+#define USE_SAVE_CAM(cam_id) euroc_recorder_save_cam##cam_id,
+
+static void (*euroc_recorder_save_cam[XRT_TRACKING_MAX_CAMS])(struct xrt_frame_sink *sink, struct xrt_frame *frame) = {
+    XRT_TRACKING_FOR_EACH_CAM(USE_SAVE_CAM)};
 
 
 /*
@@ -351,28 +329,12 @@ euroc_recorder_receive_frame(euroc_recorder *er, struct xrt_frame *src_frame, in
 		euroc_recorder_receive_frame(er, frame, cam_id);                                                       \
 	}
 
-DEFINE_RECEIVE_CAM(0)
-DEFINE_RECEIVE_CAM(1)
-DEFINE_RECEIVE_CAM(2)
-DEFINE_RECEIVE_CAM(3)
-DEFINE_RECEIVE_CAM(4)
-DEFINE_RECEIVE_CAM(5)
-DEFINE_RECEIVE_CAM(6)
-DEFINE_RECEIVE_CAM(7)
+XRT_TRACKING_FOR_EACH_CAM(DEFINE_RECEIVE_CAM)
 
-//! Be sure to define the same number of defined functions as
-//! XRT_TRACKING_MAX_CAMS and to add them to to euroc_recorder_receive_cam
-static void (*euroc_recorder_receive_cam[XRT_TRACKING_MAX_CAMS])(struct xrt_frame_sink *,
-                                                                 struct xrt_frame *) = {
-    euroc_recorder_receive_cam0, //
-    euroc_recorder_receive_cam1, //
-    euroc_recorder_receive_cam2, //
-    euroc_recorder_receive_cam3, //
-    euroc_recorder_receive_cam4, //
-    euroc_recorder_receive_cam5, //
-    euroc_recorder_receive_cam6, //
-    euroc_recorder_receive_cam7, //
-};
+#define USE_RECEIVE_CAM(cam_id) euroc_recorder_receive_cam##cam_id,
+
+static void (*euroc_recorder_receive_cam[XRT_TRACKING_MAX_CAMS])(struct xrt_frame_sink *, struct xrt_frame *) = {
+    XRT_TRACKING_FOR_EACH_CAM(USE_RECEIVE_CAM)};
 
 
 /*

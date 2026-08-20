@@ -1345,26 +1345,12 @@ receive_frame(TrackerSlam &t, struct xrt_frame *frame, uint32_t cam_index)
 		xrt_sink_push_frame(t.euroc_recorder->cams[cam_id], frame);                                            \
 	}
 
-DEFINE_RECEIVE_CAM(0)
-DEFINE_RECEIVE_CAM(1)
-DEFINE_RECEIVE_CAM(2)
-DEFINE_RECEIVE_CAM(3)
-DEFINE_RECEIVE_CAM(4)
-DEFINE_RECEIVE_CAM(5)
-DEFINE_RECEIVE_CAM(6)
-DEFINE_RECEIVE_CAM(7)
+XRT_TRACKING_FOR_EACH_CAM(DEFINE_RECEIVE_CAM)
 
-//! Define a function for each XRT_TRACKING_MAX_CAMS and reference it in this array
-void (*t_slam_receive_cam[XRT_TRACKING_MAX_CAMS])(xrt_frame_sink *, xrt_frame *) = {
-    t_slam_receive_cam0, //
-    t_slam_receive_cam1, //
-    t_slam_receive_cam2, //
-    t_slam_receive_cam3, //
-    t_slam_receive_cam4, //
-    t_slam_receive_cam5, //
-    t_slam_receive_cam6, //
-    t_slam_receive_cam7, //
-};
+#define USE_RECEIVE_CAM(cam_id) t_slam_receive_cam##cam_id,
+
+void (*t_slam_receive_cam[XRT_TRACKING_MAX_CAMS])(xrt_frame_sink *,
+                                                  xrt_frame *) = {XRT_TRACKING_FOR_EACH_CAM(USE_RECEIVE_CAM)};
 
 
 extern "C" void

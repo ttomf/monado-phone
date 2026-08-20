@@ -103,26 +103,12 @@ struct wmr_source
 		xrt_sink_push_frame(ws->euroc_recorder->cams[cam_id], xf);                                             \
 	}
 
-DEFINE_RECEIVE_CAM(0)
-DEFINE_RECEIVE_CAM(1)
-DEFINE_RECEIVE_CAM(2)
-DEFINE_RECEIVE_CAM(3)
-DEFINE_RECEIVE_CAM(4)
-DEFINE_RECEIVE_CAM(5)
-DEFINE_RECEIVE_CAM(6)
-DEFINE_RECEIVE_CAM(7)
+XRT_TRACKING_FOR_EACH_CAM(DEFINE_RECEIVE_CAM)
 
-//! Define a function for each WMR_MAX_CAMERAS and reference it in this array
-void (*receive_cam[WMR_MAX_CAMERAS])(struct xrt_frame_sink *, struct xrt_frame *) = {
-    receive_cam0, //
-    receive_cam1, //
-    receive_cam2, //
-    receive_cam3, //
-    receive_cam4, //
-    receive_cam5, //
-    receive_cam6, //
-    receive_cam7, //
-};
+#define USE_RECEIVE_CAM(cam_id) receive_cam##cam_id,
+
+void (*receive_cam[WMR_MAX_CAMERAS])(struct xrt_frame_sink *,
+                                     struct xrt_frame *) = {XRT_TRACKING_FOR_EACH_CAM(USE_RECEIVE_CAM)};
 
 #define DEFINE_RECEIVE_IMU(imu_id)                                                                                     \
 	static void receive_imu##imu_id(struct xrt_imu_sink *sink, struct xrt_imu_sample *s)                           \
@@ -171,17 +157,12 @@ void (*receive_cam[WMR_MAX_CAMERAS])(struct xrt_frame_sink *, struct xrt_frame *
 		xrt_sink_push_imu(ws->euroc_recorder->imus[imu_id], s);                                                \
 	}
 
-DEFINE_RECEIVE_IMU(0)
-DEFINE_RECEIVE_IMU(1)
-DEFINE_RECEIVE_IMU(2)
+XRT_TRACKING_FOR_EACH_IMU(DEFINE_RECEIVE_IMU)
 
-//! Define a function for each WMR_MAX_IMUS and reference it in this array
-void (*receive_imu[WMR_MAX_IMUS])(struct xrt_imu_sink *, struct xrt_imu_sample *) = {
-    receive_imu0, //
-    receive_imu1, //
-    receive_imu2, //
-};
+#define USE_RECEIVE_IMU(imu_id) receive_imu##imu_id,
 
+void (*receive_imu[WMR_MAX_IMUS])(struct xrt_imu_sink *,
+                                  struct xrt_imu_sample *) = {XRT_TRACKING_FOR_EACH_IMU(USE_RECEIVE_IMU)};
 
 /*
  *
