@@ -17,12 +17,32 @@ Currently, it implements **UDP HEVC streaming** to phone and **6DOF tracking** w
 
 1. Download `MonadoPhone.apk`, `libopenxr_monado.so`, `monado-service` and `openxr_monado-dev.json` from [Releases](https://github.com/ttomf/monado-phone/releases)
 2. Install `MonadoPhone.apk` on your phone (via `adb` or your preferred method) and run it (Monado driver on PC has 5s timeout, so it's better to start the app first)
-3. Run `monado-service` on your Linux PC and wait for the phone to connect (phone app will tell you)
-4. Open another terminal and run your OpenXR application with **environment variable** set (make sure `libopenxr_monado.so` is in same directory as `openxr_monado-dev.json`, or path in `openxr_monado-dev.json` is correct):
-   ```sh
-   export XR_RUNTIME_JSON=openxr_monado-dev.json
-   xrgears # demo, you can run any other OpenXR application
-   ```
+3. Install these packages on your Linux PC:
+  ```sh
+  sudo pacman -Sy --needed \
+  dbus \
+  glibc \
+  glib2 \
+  gst-plugins-base-libs \
+  gstreamer \
+  libbsd \
+  libgcc \
+  libjpeg-turbo \
+  libstdc++ \
+  libusb \
+  libxcb \
+  libx11 \
+  sdl2-compat \
+  systemd-libs \
+  vulkan-icd-loader \
+  zlib
+  ```
+4. Run `monado-service` on your Linux PC and wait for the phone to connect (phone app will tell you)
+5. Open another terminal and run your OpenXR application with **environment variable** set (make sure `libopenxr_monado.so` is in same directory as `openxr_monado-dev.json`, or path in `openxr_monado-dev.json` is correct):
+  ```sh
+  export XR_RUNTIME_JSON=openxr_monado-dev.json
+  xrgears # demo, you can run any other OpenXR application
+  ```
 
 ### Steam
 
