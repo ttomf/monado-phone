@@ -63,15 +63,15 @@ struct wmr_source
 	struct xrt_slam_sinks *euroc_recorder; //!< EuRoC dataset recorder
 
 	// Sinks (head tracking)
-	struct xrt_frame_sink cam_sinks[WMR_MAX_CAMERAS]; //!< Intermediate sinks for camera frames
-	struct xrt_imu_sink imu_sinks[WMR_MAX_IMUS];      //!< Intermediate sink for IMU samples
-	struct xrt_slam_sinks in_sinks;                   //!< Pointers to intermediate sinks (SLAM and controller)
-	struct xrt_slam_sinks out_sinks;                  //!< Pointers to downstream sinks (only SLAM)
+	struct xrt_frame_sink cam_sinks[XRT_TRACKING_MAX_CAMS]; //!< Intermediate sinks for camera frames
+	struct xrt_imu_sink imu_sinks[XRT_TRACKING_MAX_IMUS];   //!< Intermediate sink for IMU samples
+	struct xrt_slam_sinks in_sinks;  //!< Pointers to intermediate sinks (SLAM and controller)
+	struct xrt_slam_sinks out_sinks; //!< Pointers to downstream sinks (only SLAM)
 
 	// UI Sinks (head tracking)
-	struct u_sink_debug ui_cam_sinks[WMR_MAX_CAMERAS]; //!< Sink to display camera frames in UI
-	struct m_ff_vec3_f32 *gyro_ffs[WMR_MAX_IMUS];      //!< Queue of gyroscope data to display in UI
-	struct m_ff_vec3_f32 *accel_ffs[WMR_MAX_IMUS];     //!< Queue of accelerometer data to display in UI
+	struct u_sink_debug ui_cam_sinks[XRT_TRACKING_MAX_CAMS]; //!< Sink to display camera frames in UI
+	struct m_ff_vec3_f32 *gyro_ffs[XRT_TRACKING_MAX_IMUS];   //!< Queue of gyroscope data to display in UI
+	struct m_ff_vec3_f32 *accel_ffs[XRT_TRACKING_MAX_IMUS];  //!< Queue of accelerometer data to display in UI
 
 	bool is_running;              //!< Whether the device is streaming
 	bool first_imu_received;      //!< Don't send frames until first IMU sample
@@ -107,8 +107,8 @@ XRT_TRACKING_FOR_EACH_CAM(DEFINE_RECEIVE_CAM)
 
 #define USE_RECEIVE_CAM(cam_id) receive_cam##cam_id,
 
-void (*receive_cam[WMR_MAX_CAMERAS])(struct xrt_frame_sink *,
-                                     struct xrt_frame *) = {XRT_TRACKING_FOR_EACH_CAM(USE_RECEIVE_CAM)};
+void (*receive_cam[XRT_TRACKING_MAX_CAMS])(struct xrt_frame_sink *,
+                                           struct xrt_frame *) = {XRT_TRACKING_FOR_EACH_CAM(USE_RECEIVE_CAM)};
 
 #define DEFINE_RECEIVE_IMU(imu_id)                                                                                     \
 	static void receive_imu##imu_id(struct xrt_imu_sink *sink, struct xrt_imu_sample *s)                           \
@@ -161,8 +161,8 @@ XRT_TRACKING_FOR_EACH_IMU(DEFINE_RECEIVE_IMU)
 
 #define USE_RECEIVE_IMU(imu_id) receive_imu##imu_id,
 
-void (*receive_imu[WMR_MAX_IMUS])(struct xrt_imu_sink *,
-                                  struct xrt_imu_sample *) = {XRT_TRACKING_FOR_EACH_IMU(USE_RECEIVE_IMU)};
+void (*receive_imu[XRT_TRACKING_MAX_IMUS])(struct xrt_imu_sink *,
+                                           struct xrt_imu_sample *) = {XRT_TRACKING_FOR_EACH_IMU(USE_RECEIVE_IMU)};
 
 /*
  *
@@ -285,7 +285,7 @@ wmr_source_node_destroy(struct xrt_frame_node *node)
 	for (int i = 0; i < ws->config.sinks_count; i++) {
 		u_sink_debug_destroy(&ws->ui_cam_sinks[i]);
 	}
-	for (int i = 0; i < WMR_MAX_IMUS; i++) {
+	for (int i = 0; i < XRT_TRACKING_MAX_IMUS; i++) {
 		m_ff_vec3_f32_free(&ws->gyro_ffs[i]);
 		m_ff_vec3_f32_free(&ws->accel_ffs[i]);
 	}
@@ -327,10 +327,10 @@ wmr_source_create(struct xrt_frame_context *xfctx, struct xrt_prober_device *dev
 	xfs->source_id = *((uint64_t *)"WMR_SRC\0");
 
 	// Setup sinks
-	for (int i = 0; i < WMR_MAX_CAMERAS; i++) {
+	for (int i = 0; i < XRT_TRACKING_MAX_CAMS; i++) {
 		ws->cam_sinks[i].push_frame = receive_cam[i];
 	}
-	for (int i = 0; i < WMR_MAX_IMUS; i++) {
+	for (int i = 0; i < XRT_TRACKING_MAX_IMUS; i++) {
 		ws->imu_sinks[i].push_imu = receive_imu[i];
 	}
 
@@ -338,8 +338,8 @@ wmr_source_create(struct xrt_frame_context *xfctx, struct xrt_prober_device *dev
 	for (int i = 0; i < cfg.sinks_count; i++) {
 		ws->in_sinks.cams[i] = &ws->cam_sinks[i];
 	}
-	ws->in_sinks.imu_count = WMR_MAX_IMUS;
-	for (int i = 0; i < WMR_MAX_IMUS; i++) {
+	ws->in_sinks.imu_count = XRT_TRACKING_MAX_IMUS;
+	for (int i = 0; i < XRT_TRACKING_MAX_IMUS; i++) {
 		ws->in_sinks.imus[i] = &ws->imu_sinks[i];
 	}
 
@@ -354,20 +354,20 @@ wmr_source_create(struct xrt_frame_context *xfctx, struct xrt_prober_device *dev
 
 	ws->camera = wmr_camera_open(&options);
 	ws->config = cfg;
-	ws->euroc_recorder = euroc_recorder_create(xfctx, NULL, cfg.sinks_count, WMR_MAX_IMUS, false);
+	ws->euroc_recorder = euroc_recorder_create(xfctx, NULL, cfg.sinks_count, XRT_TRACKING_MAX_IMUS, false);
 
 	// Setup UI
 	for (int i = 0; i < cfg.sinks_count; i++) {
 		u_sink_debug_init(&ws->ui_cam_sinks[i]);
 	}
-	for (int i = 0; i < WMR_MAX_IMUS; i++) {
+	for (int i = 0; i < XRT_TRACKING_MAX_IMUS; i++) {
 		m_ff_vec3_f32_alloc(&ws->gyro_ffs[i], 1000);
 		m_ff_vec3_f32_alloc(&ws->accel_ffs[i], 1000);
 	}
 	u_var_add_root(ws, WMR_SOURCE_STR, false);
 	euroc_recorder_add_ui(ws->euroc_recorder, ws, "");
 	u_var_add_log_level(ws, &ws->log_level, "Log Level");
-	for (int i = 0; i < WMR_MAX_IMUS; i++) {
+	for (int i = 0; i < XRT_TRACKING_MAX_IMUS; i++) {
 		char glabel[] = "Gyroscope NNNNNNNNNNN";
 		char alabel[] = "Accelerometer NNNNNNNNNNN";
 		(void)snprintf(glabel, sizeof(glabel), "Gyroscope %d", i);

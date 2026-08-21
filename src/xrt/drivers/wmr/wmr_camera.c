@@ -124,7 +124,7 @@ struct wmr_camera
 
 	struct u_sink_debug debug_sinks[2];
 
-	struct xrt_frame_sink *cam_sinks[WMR_MAX_CAMERAS]; //!< Downstream sinks to push tracking frames to
+	struct xrt_frame_sink *cam_sinks[XRT_TRACKING_MAX_CAMS]; //!< Downstream sinks to push tracking frames to
 
 	enum u_logging_level log_level;
 };
