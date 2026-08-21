@@ -494,7 +494,7 @@ struct xrt_normalized_rect
 /*!
  * A pose composed of a position and orientation.
  *
- * @see xrt_qaut
+ * @see xrt_quat
  * @see xrt_vec3
  * @ingroup xrt_iface math
  */
