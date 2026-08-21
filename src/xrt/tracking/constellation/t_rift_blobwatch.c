@@ -236,7 +236,12 @@ compute_greysum(
 		x_pos = e->left + 1;
 
 		for (x = 0; x < width; x++) {
-			uint32_t pix = pixels[x];
+			// Subtract by the pixel threshold, clamping at 0 if it's below the threshold.
+			// @note The reason we do this is so that the greysum is weighted by the values above our noise
+			//       floor, as we know all values passed into this function are going to be above it, which
+			//       means without this we would naturally be weighted towards the geometric center rather
+			//       than the true greysum of the observable values.
+			uint32_t pix = (pixels[x] - MIN(pixels[x], bw->params.pixel_threshold));
 
 			greysum_total += pix;
 			greysum_x += x_pos * pix;
@@ -254,10 +259,14 @@ compute_greysum(
 		return;
 	}
 
-	// Add half a pixel to the result to get the center of the pixel,
-	// and subtract 1 to convert from 1-based to 0-based coordinates
-	*led_x = ((float)(greysum_x) / greysum_total - 1) + 0.5f;
-	*led_y = ((float)(greysum_y) / greysum_total - 1) + 0.5f;
+	// @note We don't try to "center" onto the pixel because in OpenCV distortion parameters integer
+	//       coordinates already refer to the correct real-world ray.
+	//       It's hard to measure this real-world (it's like well under 1% of the measurements), but it seems likely
+	//       that this is the case for Rift as well since it uses OpenCV distortion algorithms.
+
+	// Subtract 1 to convert from 1-based to 0-based coordinates
+	*led_x = ((float)(greysum_x) / greysum_total - 1);
+	*led_y = ((float)(greysum_y) / greysum_total - 1);
 }
 
 /*
