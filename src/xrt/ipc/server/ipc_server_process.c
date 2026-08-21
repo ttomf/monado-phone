@@ -377,6 +377,49 @@ error:
 	return xret;
 }
 
+static void
+shutdown_clients(struct ipc_server *s)
+{
+	os_mutex_lock(&s->global_state.lock);
+	for (uint32_t i = 0; i < IPC_MAX_CLIENTS; i++) {
+		struct ipc_thread *it = &s->threads[i];
+		volatile struct ipc_client_state *ics = &it->ics;
+		if (it->state == IPC_THREAD_READY || it->state == IPC_THREAD_STOPPING || ics->xs == NULL)
+			continue;
+
+		U_LOG_I("Requesting application %s exit", ics->client_state.info.application_name);
+		xrt_result_t xret = xrt_session_request_exit(ics->xs);
+		if (xret != XRT_SUCCESS) {
+			U_LOG_E("Failed to request exit for %s!", ics->client_state.info.application_name);
+		}
+	}
+	os_mutex_unlock(&s->global_state.lock);
+
+	uint32_t connected_client_count = 0;
+	int64_t end = os_monotonic_get_ns() + (int64_t)3 * U_TIME_1S_IN_NS;
+	while (os_monotonic_get_ns() < end) {
+		os_mutex_lock(&s->global_state.lock);
+		connected_client_count = s->global_state.connected_client_count;
+		os_mutex_unlock(&s->global_state.lock);
+
+		if (connected_client_count == 0)
+			break;
+		os_nanosleep((int64_t)10 * U_TIME_1MS_IN_NS);
+	}
+
+	if (connected_client_count != 0) {
+		U_LOG_W("%" PRIx32 " clients still connected after shutdown timeout!", connected_client_count);
+		for (uint32_t i = 0; i < IPC_MAX_CLIENTS; i++) {
+			struct ipc_thread *it = &s->threads[i];
+			if (it->state == IPC_THREAD_READY)
+				continue;
+			it->state = IPC_THREAD_STOPPING;
+			os_thread_join(&it->thread);
+			os_thread_destroy(&it->thread);
+		}
+	}
+}
+
 static int
 main_loop(struct ipc_server *s)
 {
@@ -386,6 +429,8 @@ main_loop(struct ipc_server *s)
 		// Check polling.
 		ipc_server_mainloop_poll(s, &s->ml);
 	}
+
+	shutdown_clients(s);
 
 	return 0;
 }
