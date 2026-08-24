@@ -341,7 +341,7 @@ RerunContext::logSample(const ConstellationTracker &tracker, const CameraSample 
 	std::optional<xrt_pose> Tcv_world_cam = std::nullopt;
 	if (camera_sample.Txr_world_cam.has_value()) {
 		xrt_pose Tcv_world_cam_value;
-		math_pose_convert_opencv(&camera_sample.Txr_world_cam.value(), &Tcv_world_cam_value);
+		math_pose_convert_from_opencv(&camera_sample.Txr_world_cam.value(), &Tcv_world_cam_value);
 		Tcv_world_cam = Tcv_world_cam_value;
 
 		this->stream->log(camera_entity, ToRerunTransform(Tcv_world_cam_value));
@@ -393,7 +393,7 @@ RerunContext::logSample(const ConstellationTracker &tracker, const CameraSample 
 			                    &Txr_cam_device_prior);                       //
 
 			xrt_pose Tcv_cam_device_prior;
-			math_pose_convert_opencv(&Txr_cam_device_prior, &Tcv_cam_device_prior);
+			math_pose_convert_from_opencv(&Txr_cam_device_prior, &Tcv_cam_device_prior);
 
 			this->stream->log(camera_device_prior_entity, ToRerunTransform(Tcv_cam_device_prior));
 			this->logLedModel(camera_device_prior_entity, device_id, device->params.led_model, true);

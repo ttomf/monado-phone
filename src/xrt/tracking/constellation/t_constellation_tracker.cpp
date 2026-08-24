@@ -449,7 +449,7 @@ Camera::processSampleSlow(CameraSample &sample)
 				math_pose_transform(&Txr_cam_world, &device_state->Txr_world_device_prior.value(),
 				                    &Txr_cam_device);
 
-				math_pose_convert_opencv(&Txr_cam_device, &Tcv_cam_device);
+				math_pose_convert_from_opencv(&Txr_cam_device, &Tcv_cam_device);
 
 				search_flags = (correspondence_search_flags)(search_flags | CS_FLAG_HAVE_POSE_PRIOR);
 			}
@@ -465,7 +465,7 @@ Camera::processSampleSlow(CameraSample &sample)
 				// (required by correspondence for search gravity matching)
 				if (Txr_world_cam.has_value()) {
 					xrt_pose Tcv_world_cam;
-					math_pose_convert_opencv(&Txr_world_cam.value(), &Tcv_world_cam);
+					math_pose_convert_from_opencv(&Txr_world_cam.value(), &Tcv_world_cam);
 
 					// Acquire the camera's gravity vector under the processing lock
 					get_pose_gravity_vector(Tcv_world_cam, cv_camera_gravity_vector);
@@ -534,7 +534,7 @@ Camera::processSampleFast(CameraSample &sample)
 	}
 
 	xrt_pose Tcv_world_cam;
-	math_pose_convert_opencv(&Txr_world_cam.value(), &Tcv_world_cam);
+	math_pose_convert_from_opencv(&Txr_world_cam.value(), &Tcv_world_cam);
 
 	xrt_pose Tcv_cam_world;
 	math_pose_invert(&Tcv_world_cam, &Tcv_cam_world);
@@ -555,7 +555,8 @@ Camera::processSampleFast(CameraSample &sample)
 		     (XRT_SPACE_RELATION_POSITION_VALID_BIT | XRT_SPACE_RELATION_ORIENTATION_VALID_BIT)) ==
 		    (XRT_SPACE_RELATION_POSITION_VALID_BIT | XRT_SPACE_RELATION_ORIENTATION_VALID_BIT)) {
 			Tcv_world_device_predicted.emplace(xrt_pose{}); // initialize it to a value
-			math_pose_convert_opencv(&device_predicted_relation.pose, &Tcv_world_device_predicted.value());
+			math_pose_convert_from_opencv(&device_predicted_relation.pose,
+			                              &Tcv_world_device_predicted.value());
 		}
 
 		auto &device_state = sample.putDeviceState(device->id);
@@ -587,8 +588,8 @@ Camera::processSampleFast(CameraSample &sample)
 			std::unique_lock<os::Mutex> lock(device->data_lock);
 
 			if (auto last_known_pose = device->locked_data.last_known_pose) {
-				math_pose_convert_opencv(&last_known_pose->Txr_world_device,
-				                         &Tcv_world_device_last_known);
+				math_pose_convert_from_opencv(&last_known_pose->Txr_world_device,
+				                              &Tcv_world_device_last_known);
 				has_last_known = true;
 			}
 		}
@@ -686,7 +687,7 @@ Camera::pushPose(CameraSample &camera_sample,
 
 	// Move to OpenXR space
 	xrt_pose Txr_cam_device;
-	math_pose_convert_opencv(&Tcv_cam_device, &Txr_cam_device);
+	math_pose_convert_from_opencv(&Tcv_cam_device, &Txr_cam_device);
 
 	CT_DEBUG(tracker, "Pose: orient %f %f %f %f pos %f %f %f", Txr_cam_device.orientation.x,
 	         Txr_cam_device.orientation.y, Txr_cam_device.orientation.z, Txr_cam_device.orientation.w,

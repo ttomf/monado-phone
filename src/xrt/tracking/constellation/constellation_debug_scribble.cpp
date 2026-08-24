@@ -189,7 +189,7 @@ Camera::debugScribbleSample(CameraSample &sample, bool fast)
 				                    &Txr_cam_device_prior);
 
 				xrt_pose Tcv_cam_device_prior;
-				math_pose_convert_opencv(&Txr_cam_device_prior, &Tcv_cam_device_prior);
+				math_pose_convert_from_opencv(&Txr_cam_device_prior, &Tcv_cam_device_prior);
 
 				scribble_led_model(frame,                           //
 				                   *this,                           //
