@@ -235,6 +235,7 @@ client_loop(volatile struct ipc_client_state *ics)
 		return;
 	}
 
+	ics->server->threads[ics->server_thread_index].state = IPC_THREAD_RUNNING;
 	while (ics->server->running) {
 		const int half_a_second_ms = 500;
 		struct epoll_event event = XRT_STRUCT_INIT;
@@ -341,6 +342,7 @@ client_loop(volatile struct ipc_client_state *ics)
 	    ics->client_state.id,                 //
 	    ics->server->callback_data);          //
 
+	ics->server->threads[ics->server_thread_index].state = IPC_THREAD_RUNNING;
 	while (ics->server->running) {
 		uint8_t buf[IPC_BUF_SIZE] = {0};
 		DWORD len = 0;
