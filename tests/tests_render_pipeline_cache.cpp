@@ -21,6 +21,7 @@
 #include "distortion.comp.h"
 #include "layer.comp.h"
 #include "blit.comp.h"
+#include "blit_ms.comp.h"
 
 #include <cstddef>
 #include <cstring>
@@ -49,6 +50,12 @@ static render_blit_spec
 make_test_blit_spec(int32_t color_transform_mode = 0)
 {
 	return render_make_blit_spec((uint32_t)color_transform_mode);
+}
+
+static render_blit_ms_spec
+make_test_blit_ms_spec(int32_t color_transform_mode = 0)
+{
+	return render_make_blit_ms_spec((uint32_t)color_transform_mode);
 }
 
 struct MinimalVulkanContext
@@ -461,6 +468,65 @@ struct BlitPipelineCacheFixture
 	}
 };
 
+VkShaderModule
+create_blit_ms_shader_module(vk_bundle *vk)
+{
+	VkShaderModuleCreateInfo info = {
+	    .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+	    .pNext = nullptr,
+	    .flags = 0,
+	    .codeSize = sizeof(blit_ms_comp),
+	    .pCode = blit_ms_comp,
+	};
+
+	VkShaderModule shader = VK_NULL_HANDLE;
+	VkResult ret = vk->vkCreateShaderModule(vk->device, &info, nullptr, &shader);
+	REQUIRE(ret == VK_SUCCESS);
+	return shader;
+}
+
+struct BlitMsPipelineCacheFixture
+{
+	MinimalVulkanContext ctx{};
+	VkShaderModule shader{VK_NULL_HANDLE};
+	VkDescriptorSetLayout descriptor_set_layout{VK_NULL_HANDLE};
+	VkPipelineLayout layout{VK_NULL_HANDLE};
+	VkPipelineCache pipeline_cache{VK_NULL_HANDLE};
+	ComputePipelineCache<render_blit_ms_spec> cache{"BlitMsTest"};
+
+	void
+	require_vulkan()
+	{
+		if (!ctx.init()) {
+			SKIP("Vulkan device unavailable on this runner");
+		}
+
+		shader = create_blit_ms_shader_module(&ctx.vk);
+		descriptor_set_layout = create_blit_descriptor_set_layout(&ctx.vk);
+		layout = create_blit_pipeline_layout(&ctx.vk, descriptor_set_layout);
+		REQUIRE(vk_create_pipeline_cache(&ctx.vk, &pipeline_cache) == VK_SUCCESS);
+		cache.init(shader, layout, pipeline_cache);
+	}
+
+	~BlitMsPipelineCacheFixture()
+	{
+		cache.destroy(&ctx.vk);
+
+		if (pipeline_cache != VK_NULL_HANDLE) {
+			ctx.vk.vkDestroyPipelineCache(ctx.vk.device, pipeline_cache, nullptr);
+		}
+		if (layout != VK_NULL_HANDLE) {
+			ctx.vk.vkDestroyPipelineLayout(ctx.vk.device, layout, nullptr);
+		}
+		if (descriptor_set_layout != VK_NULL_HANDLE) {
+			ctx.vk.vkDestroyDescriptorSetLayout(ctx.vk.device, descriptor_set_layout, nullptr);
+		}
+		if (shader != VK_NULL_HANDLE) {
+			ctx.vk.vkDestroyShaderModule(ctx.vk.device, shader, nullptr);
+		}
+	}
+};
+
 } // namespace
 
 TEST_CASE("render_distortion_spec is a padding-free specialization key", "[aux_render][pipeline_cache]")
@@ -620,5 +686,55 @@ TEST_CASE("render_blit C pipeline cache wrapper", "[aux_render][pipeline_cache][
 	CHECK(pipeline != VK_NULL_HANDLE);
 
 	render_blit_pipeline_cache_destroy(&cache, &fixture.ctx.vk);
+	CHECK(cache == nullptr);
+}
+
+TEST_CASE("render_blit_ms_spec is a padding-free specialization key", "[aux_render][pipeline_cache]")
+{
+	STATIC_REQUIRE(std::is_trivially_copyable_v<render_blit_ms_spec>);
+	STATIC_REQUIRE(sizeof(render_blit_ms_spec) == sizeof(int32_t));
+
+	const render_blit_ms_spec key = make_test_blit_ms_spec();
+	CHECK(key.color_transform_mode == 0);
+}
+
+TEST_CASE("ComputePipelineCache<render_blit_ms_spec> caches by key", "[aux_render][pipeline_cache][gpu]")
+{
+	BlitMsPipelineCacheFixture fixture{};
+	fixture.require_vulkan();
+
+	const render_blit_ms_spec none = make_test_blit_ms_spec();
+	const render_blit_ms_spec gamma = make_test_blit_ms_spec(1);
+
+	VkPipeline first = VK_NULL_HANDLE;
+	VkPipeline second = VK_NULL_HANDLE;
+	VkPipeline gamma_pipeline = VK_NULL_HANDLE;
+
+	REQUIRE(fixture.cache.get(&fixture.ctx.vk, none, first) == VK_SUCCESS);
+	REQUIRE(fixture.cache.get(&fixture.ctx.vk, none, second) == VK_SUCCESS);
+	REQUIRE(fixture.cache.get(&fixture.ctx.vk, gamma, gamma_pipeline) == VK_SUCCESS);
+
+	CHECK(first == second);
+	CHECK(first != gamma_pipeline);
+}
+
+TEST_CASE("render_blit_ms C pipeline cache wrapper", "[aux_render][pipeline_cache][gpu]")
+{
+	BlitMsPipelineCacheFixture fixture{};
+	fixture.require_vulkan();
+
+	struct render_blit_ms_pipeline_cache *cache = NULL;
+	REQUIRE(render_blit_ms_pipeline_cache_create("BlitMsCTest", &cache) == XRT_SUCCESS);
+	REQUIRE(cache != nullptr);
+
+	REQUIRE(render_blit_ms_pipeline_cache_init(cache, fixture.shader, fixture.layout, fixture.pipeline_cache) ==
+	        XRT_SUCCESS);
+
+	const render_blit_ms_spec key = make_test_blit_ms_spec();
+	VkPipeline pipeline = VK_NULL_HANDLE;
+	REQUIRE(render_blit_ms_pipeline_cache_get(cache, &fixture.ctx.vk, &key, &pipeline) == XRT_SUCCESS);
+	CHECK(pipeline != VK_NULL_HANDLE);
+
+	render_blit_ms_pipeline_cache_destroy(&cache, &fixture.ctx.vk);
 	CHECK(cache == nullptr);
 }

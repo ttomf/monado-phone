@@ -54,6 +54,16 @@ render_make_blit_spec(uint32_t color_transform_mode)
 	return spec;
 }
 
+static inline struct render_blit_ms_spec
+render_make_blit_ms_spec(uint32_t color_transform_mode)
+{
+	struct render_blit_ms_spec spec = {
+	    .color_transform_mode = (int32_t)color_transform_mode,
+	};
+
+	return spec;
+}
+
 #ifdef __cplusplus
 }
 #endif

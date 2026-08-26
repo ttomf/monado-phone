@@ -1,4 +1,5 @@
 // Copyright 2026, Beyley Cardellio
+// Copyright 2026, NVIDIA CORPORATION.
 // SPDX-License-Identifier: BSL-1.0
 /*!
  * @file
@@ -155,8 +156,11 @@ private: // Fields
 		//! The sampler to use during the blit operation
 		VkSampler sampler{VK_NULL_HANDLE};
 
-		//! Private here for now.
-		VkPipelineCache pipeline_cache{VK_NULL_HANDLE};
+		//! Vulkan pipeline cache object passed to vkCreateComputePipelines.
+		VkPipelineCache driver_pipeline_cache{VK_NULL_HANDLE};
+
+		//! Get-or-create cache for blit_ms.comp specialization variants.
+		struct render_blit_ms_pipeline_cache *pipeline_cache{nullptr};
 
 		//! Pipeline layout for blit pipelines.
 		VkPipelineLayout pipeline_layout{VK_NULL_HANDLE};

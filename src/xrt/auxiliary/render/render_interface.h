@@ -22,6 +22,7 @@
 
 struct render_distortion_pipeline_cache;
 struct render_layer_pipeline_cache;
+struct render_blit_ms_pipeline_cache;
 
 
 #ifdef __cplusplus
@@ -1223,18 +1224,6 @@ enum render_compute_blit_resolve_color_mode
 	//! Source is sRGB but the submitted bytes are already linear.
 	RENDER_BLIT_RESOLVE_COLOR_MODE_LINEAR_IN_SRGB_FORMAT = 2,
 	RENDER_BLIT_RESOLVE_COLOR_MODE_COUNT = 2,
-};
-
-/*!
- * Specialization constants for the blit shader, used to select the correct shader variant for the source and target
- * image formats.
- *
- * @relates render_compute
- */
-struct render_compute_blit_specialization_constants
-{
-	//! See @ref render_compute_blit_resolve_color_mode.
-	uint32_t color_transform_mode;
 };
 
 /*!
