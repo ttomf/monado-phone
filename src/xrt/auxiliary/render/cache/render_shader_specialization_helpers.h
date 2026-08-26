@@ -28,6 +28,22 @@ render_make_distortion_spec(uint32_t distortion_texel_count, VkBool32 do_timewar
 	return spec;
 }
 
+static inline struct render_layer_spec
+render_make_layer_spec(VkBool32 do_timewarp,
+                       VkBool32 do_color_correction,
+                       uint32_t sampler_array_size,
+                       float inset_blend_edge)
+{
+	struct render_layer_spec spec = {
+	    .do_timewarp = do_timewarp,
+	    .do_color_correction = do_color_correction,
+	    .sampler_array_size = (int32_t)sampler_array_size,
+	    .inset_blend_edge = inset_blend_edge,
+	};
+
+	return spec;
+}
+
 #ifdef __cplusplus
 }
 #endif

@@ -51,18 +51,19 @@ struct chroma_key_info
 const float PI = acos(-1);
 
 // Should we do timewarp.
-layout(constant_id = 1) const bool do_timewarp = false;
-layout(constant_id = 2) const bool do_color_correction = true;
+layout(constant_id = 1) const bool k_do_timewarp = false;
+layout(constant_id = 2) const bool k_do_color_correction = true;
 
 //! This is always set by the render_resource pipeline creation code to the actual limit.
-layout(constant_id = 3) const int SAMPLER_ARRAY_SIZE = 16;
+layout(constant_id = 3) const int k_sampler_array_size = 16;
 
-layout(constant_id = 5) const float INSET_BLEND_EDGE = 0.05;
+//! See RENDER_LAYER_DEFAULT_INSET_BLEND_EDGE in render_interface.h for default value.
+layout(constant_id = 4) const float k_inset_blend_edge = 0.0;
 
 layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
 
 // layer 0 color, [optional: layer 0 depth], layer 1, ...
-layout(set = 0, binding = 0) uniform sampler2D source[SAMPLER_ARRAY_SIZE];
+layout(set = 0, binding = 0) uniform sampler2D source[k_sampler_array_size];
 layout(set = 0, binding = 2) uniform writeonly restrict image2D target;
 struct Layer {
 	vec4 post_transform;
@@ -134,7 +135,7 @@ vec4 apply_chroma_key(vec4 color, uint layer)
 	vec3 hsv_max = vec3(hsv_b.x, max(hsv_a.y, hsv_b.y), max(hsv_a.z, hsv_b.z));
 
 	// Convert to sRGB then to HSV for color matching
-	vec3 srgb = do_color_correction ? from_linear_to_srgb(color.rgb) : color.rgb;
+	vec3 srgb = k_do_color_correction ? from_linear_to_srgb(color.rgb) : color.rgb;
 	vec3 hsv = rgb_to_hsv(srgb);
 
 	// Compute distance from the HSV range (0 = inside, >0 = outside)
@@ -150,7 +151,7 @@ vec4 apply_chroma_key(vec4 color, uint layer)
 	float despill_strength = despill * (1.0 - chroma_alpha);
 	hsv.y *= (1.0 - despill_strength);
 	vec3 rgb_despill = hsv_to_rgb(hsv);
-	color.rgb = do_color_correction ? from_srgb_to_linear(rgb_despill) : rgb_despill;
+	color.rgb = k_do_color_correction ? from_srgb_to_linear(rgb_despill) : rgb_despill;
 
 	// Pre-multiply RGB by the chroma alpha
 	return vec4(color.rgb * chroma_alpha, color.a * chroma_alpha);
@@ -217,7 +218,7 @@ vec2 transform_uv_timewarp(vec2 uv, uint layer)
 
 vec2 transform_uv(vec2 uv, uint layer)
 {
-	if (do_timewarp) {
+	if (k_do_timewarp) {
 		return transform_uv_timewarp(uv, layer);
 	} else {
 		return transform_uv_subimage(uv, layer);
@@ -448,8 +449,8 @@ vec4 do_projection_inset(vec2 view_uv, uint layer, out float out_inset_blend_fac
 	vec2 uv = vec2(0.0, 0.0);
 	vec4 colour = do_projection_uv(view_uv, layer, uv);
 
-	vec2 negative_edges = smoothstep(0, INSET_BLEND_EDGE, uv);
-	vec2 positive_edges = smoothstep(1.0, 1.0 - INSET_BLEND_EDGE, uv);
+	vec2 negative_edges = smoothstep(0, k_inset_blend_edge, uv);
+	vec2 positive_edges = smoothstep(1.0, 1.0 - k_inset_blend_edge, uv);
 	vec2 inset_blend_factor = min(negative_edges, positive_edges);
 	out_inset_blend_factor = min(inset_blend_factor.x, inset_blend_factor.y);
 
@@ -643,7 +644,7 @@ void main()
 
 	vec4 colour = do_layers(view_uv);
 
-	if (do_color_correction) {
+	if (k_do_color_correction) {
 		// Do colour correction here since there are no automatic conversion in hardware available.
 		colour.rgb = from_linear_to_srgb(colour.rgb);
 	}

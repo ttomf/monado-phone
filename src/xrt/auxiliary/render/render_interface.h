@@ -21,6 +21,7 @@
 
 
 struct render_distortion_pipeline_cache;
+struct render_layer_pipeline_cache;
 
 
 #ifdef __cplusplus
@@ -98,6 +99,12 @@ extern "C" {
 
 //! The binding that the shared layer fragment shader has its source on.
 #define RENDER_BINDING_LAYER_SHARED_SRC 1
+
+/*!
+ * Default inset blend edge width for layer projection edge blending.
+ * Must match the default in layer.comp (k_inset_blend_edge).
+ */
+#define RENDER_LAYER_DEFAULT_INSET_BLEND_EDGE (0.05f)
 
 /*!
  * The maximum number samplers per view that can be used by the compute shader
@@ -487,6 +494,9 @@ struct render_resources
 
 			//! Doesn't depend on target so is static.
 			VkPipeline timewarp_pipeline;
+
+			//! Get-or-create cache for layer.comp specialization variants.
+			struct render_layer_pipeline_cache *pipeline_cache;
 
 			//! Size of combined image sampler array
 			uint32_t image_array_size;

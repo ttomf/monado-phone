@@ -42,6 +42,7 @@ shader_specializations(
 	NAME_STYLE_SNAKE_CASE
 	SOURCES
 	distortion.comp
+	layer.comp
 	INCLUDE_DIRS
 	${CMAKE_CURRENT_SOURCE_DIR}
 	DEPENDS

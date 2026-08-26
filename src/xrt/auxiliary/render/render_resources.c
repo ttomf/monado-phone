@@ -292,51 +292,6 @@ create_compute_distortion_descriptor_set_layout(struct vk_bundle *vk,
 	return VK_SUCCESS;
 }
 
-struct compute_layer_params
-{
-	VkBool32 do_timewarp;
-	VkBool32 do_color_correction;
-	uint32_t image_array_size;
-};
-
-XRT_CHECK_RESULT static VkResult
-create_compute_layer_pipeline(struct vk_bundle *vk,
-                              VkPipelineCache pipeline_cache,
-                              VkShaderModule shader,
-                              VkPipelineLayout pipeline_layout,
-                              const struct compute_layer_params *params,
-                              VkPipeline *out_compute_pipeline)
-{
-#define ENTRY(ID, FIELD)                                                                                               \
-	{                                                                                                              \
-	    .constantID = ID,                                                                                          \
-	    .offset = offsetof(struct compute_layer_params, FIELD),                                                    \
-	    sizeof(params->FIELD),                                                                                     \
-	}
-
-	VkSpecializationMapEntry entries[] = {
-	    ENTRY(1, do_timewarp),         //
-	    ENTRY(2, do_color_correction), //
-	    ENTRY(3, image_array_size),    //
-	};
-#undef ENTRY
-
-	VkSpecializationInfo specialization_info = {
-	    .mapEntryCount = ARRAY_SIZE(entries),
-	    .pMapEntries = entries,
-	    .dataSize = sizeof(*params),
-	    .pData = params,
-	};
-
-	return vk_create_compute_pipeline( //
-	    vk,                            // vk_bundle
-	    pipeline_cache,                // pipeline_cache
-	    shader,                        // shader
-	    pipeline_layout,               // pipeline_layout
-	    &specialization_info,          // specialization_info
-	    out_compute_pipeline);         // out_compute_pipeline
-}
-
 /*
  *
  * Mock image.
@@ -833,38 +788,46 @@ render_resources_init(struct render_resources *r,
 
 	VK_NAME_PIPELINE_LAYOUT(vk, r->compute.layer.pipeline_layout, "render_resources compute layer pipeline layout");
 
-	struct compute_layer_params layer_params = {
-	    .do_timewarp = false,
-	    .do_color_correction = true,
-	    .image_array_size = r->compute.layer.image_array_size,
+	xret = render_layer_pipeline_cache_create("render_resources compute layer", &r->compute.layer.pipeline_cache);
+	XVK_CHK_WITH_RET(xret, "render_layer_pipeline_cache_create", false);
+
+	xret = render_layer_pipeline_cache_init( //
+	    r->compute.layer.pipeline_cache,     //
+	    r->shaders->layer_comp,              //
+	    r->compute.layer.pipeline_layout,    //
+	    r->pipeline_cache);                  //
+	XVK_CHK_WITH_RET(xret, "render_layer_pipeline_cache_init", false);
+
+	const struct render_layer_spec layer_variants[] = {
+	    render_make_layer_spec(VK_FALSE, VK_TRUE, r->compute.layer.image_array_size,
+	                           RENDER_LAYER_DEFAULT_INSET_BLEND_EDGE),
+	    render_make_layer_spec(VK_TRUE, VK_TRUE, r->compute.layer.image_array_size,
+	                           RENDER_LAYER_DEFAULT_INSET_BLEND_EDGE),
 	};
 
-	ret = create_compute_layer_pipeline(          //
-	    vk,                                       // vk_bundle
-	    r->pipeline_cache,                        // pipeline_cache
-	    r->shaders->layer_comp,                   // shader
-	    r->compute.layer.pipeline_layout,         // pipeline_layout
-	    &layer_params,                            // params
-	    &r->compute.layer.non_timewarp_pipeline); // out_compute_pipeline
-	VK_CHK_WITH_RET(ret, "create_compute_layer_pipeline", false);
+	xret = render_layer_pipeline_cache_prewarm( //
+	    r->compute.layer.pipeline_cache,        //
+	    vk,                                     //
+	    layer_variants,                         //
+	    ARRAY_SIZE(layer_variants));            //
+	XVK_CHK_WITH_RET(xret, "render_layer_pipeline_cache_prewarm", false);
+
+	xret = render_layer_pipeline_cache_get(       //
+	    r->compute.layer.pipeline_cache,          //
+	    vk,                                       //
+	    &layer_variants[0],                       //
+	    &r->compute.layer.non_timewarp_pipeline); //
+	XVK_CHK_WITH_RET(xret, "render_layer_pipeline_cache_get", false);
 
 	VK_NAME_PIPELINE(vk, r->compute.layer.non_timewarp_pipeline,
 	                 "render_resources compute layer non timewarp pipeline");
 
-	struct compute_layer_params layer_timewarp_params = {
-	    .do_timewarp = true,
-	    .do_color_correction = true,
-	    .image_array_size = r->compute.layer.image_array_size,
-	};
-
-	ret = create_compute_layer_pipeline(      //
-	    vk,                                   // vk_bundle
-	    r->pipeline_cache,                    // pipeline_cache
-	    r->shaders->layer_comp,               // shader
-	    r->compute.layer.pipeline_layout,     // pipeline_layout
-	    &layer_timewarp_params,               // params
-	    &r->compute.layer.timewarp_pipeline); // out_compute_pipeline
-	VK_CHK_WITH_RET(ret, "create_compute_layer_pipeline", false);
+	xret = render_layer_pipeline_cache_get(   //
+	    r->compute.layer.pipeline_cache,      //
+	    vk,                                   //
+	    &layer_variants[1],                   //
+	    &r->compute.layer.timewarp_pipeline); //
+	XVK_CHK_WITH_RET(xret, "render_layer_pipeline_cache_get", false);
 
 	VK_NAME_PIPELINE(vk, r->compute.layer.timewarp_pipeline, "render_resources compute layer timewarp pipeline");
 
@@ -1086,8 +1049,11 @@ render_resources_fini(struct render_resources *r)
 	D(DescriptorPool, r->compute.descriptor_pool);
 
 	D(DescriptorSetLayout, r->compute.layer.descriptor_set_layout);
-	D(Pipeline, r->compute.layer.non_timewarp_pipeline);
-	D(Pipeline, r->compute.layer.timewarp_pipeline);
+	if (r->compute.layer.pipeline_cache != NULL) {
+		r->compute.layer.non_timewarp_pipeline = VK_NULL_HANDLE;
+		r->compute.layer.timewarp_pipeline = VK_NULL_HANDLE;
+		render_layer_pipeline_cache_destroy(&r->compute.layer.pipeline_cache, vk);
+	}
 	D(PipelineLayout, r->compute.layer.pipeline_layout);
 
 	D(DescriptorSetLayout, r->compute.distortion.descriptor_set_layout);
