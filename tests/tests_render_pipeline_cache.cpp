@@ -20,6 +20,7 @@
 
 #include "distortion.comp.h"
 #include "layer.comp.h"
+#include "blit.comp.h"
 
 #include <cstddef>
 #include <cstring>
@@ -42,6 +43,12 @@ make_test_layer_spec(VkBool32 do_timewarp, int32_t sampler_array_size = 16)
 {
 	return render_make_layer_spec(do_timewarp, VK_TRUE, (uint32_t)sampler_array_size,
 	                              RENDER_LAYER_DEFAULT_INSET_BLEND_EDGE);
+}
+
+static render_blit_spec
+make_test_blit_spec(int32_t color_transform_mode = 0)
+{
+	return render_make_blit_spec((uint32_t)color_transform_mode);
 }
 
 struct MinimalVulkanContext
@@ -195,6 +202,30 @@ create_distortion_pipeline_layout(vk_bundle *vk, VkDescriptorSetLayout descripto
 	return layout;
 }
 
+VkPipelineLayout
+create_blit_pipeline_layout(vk_bundle *vk, VkDescriptorSetLayout descriptor_set_layout)
+{
+	VkPushConstantRange push_constant_range = {
+	    .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+	    .offset = 0,
+	    .size = sizeof(render_compute_blit_push_data),
+	};
+	VkPipelineLayoutCreateInfo create_info = {
+	    .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+	    .pNext = nullptr,
+	    .flags = 0,
+	    .setLayoutCount = 1,
+	    .pSetLayouts = &descriptor_set_layout,
+	    .pushConstantRangeCount = 1,
+	    .pPushConstantRanges = &push_constant_range,
+	};
+
+	VkPipelineLayout layout = VK_NULL_HANDLE;
+	VkResult ret = vk->vkCreatePipelineLayout(vk->device, &create_info, nullptr, &layout);
+	REQUIRE(ret == VK_SUCCESS);
+	return layout;
+}
+
 struct DistortionPipelineCacheFixture
 {
 	MinimalVulkanContext ctx{};
@@ -337,6 +368,99 @@ struct LayerPipelineCacheFixture
 	}
 };
 
+VkShaderModule
+create_blit_shader_module(vk_bundle *vk)
+{
+	VkShaderModuleCreateInfo info = {
+	    .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+	    .pNext = nullptr,
+	    .flags = 0,
+	    .codeSize = sizeof(blit_comp),
+	    .pCode = blit_comp,
+	};
+
+	VkShaderModule shader = VK_NULL_HANDLE;
+	VkResult ret = vk->vkCreateShaderModule(vk->device, &info, nullptr, &shader);
+	REQUIRE(ret == VK_SUCCESS);
+	return shader;
+}
+
+VkDescriptorSetLayout
+create_blit_descriptor_set_layout(vk_bundle *vk)
+{
+	VkDescriptorSetLayoutBinding bindings[2] = {
+	    {
+	        .binding = 0,
+	        .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+	        .descriptorCount = 1,
+	        .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+	        .pImmutableSamplers = nullptr,
+	    },
+	    {
+	        .binding = 1,
+	        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+	        .descriptorCount = 1,
+	        .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+	        .pImmutableSamplers = nullptr,
+	    },
+	};
+
+	VkDescriptorSetLayoutCreateInfo create_info = {
+	    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+	    .pNext = nullptr,
+	    .flags = 0,
+	    .bindingCount = ARRAY_SIZE(bindings),
+	    .pBindings = bindings,
+	};
+
+	VkDescriptorSetLayout layout = VK_NULL_HANDLE;
+	VkResult ret = vk->vkCreateDescriptorSetLayout(vk->device, &create_info, nullptr, &layout);
+	REQUIRE(ret == VK_SUCCESS);
+	return layout;
+}
+
+struct BlitPipelineCacheFixture
+{
+	MinimalVulkanContext ctx{};
+	VkShaderModule shader{VK_NULL_HANDLE};
+	VkDescriptorSetLayout descriptor_set_layout{VK_NULL_HANDLE};
+	VkPipelineLayout layout{VK_NULL_HANDLE};
+	VkPipelineCache pipeline_cache{VK_NULL_HANDLE};
+	ComputePipelineCache<render_blit_spec> cache{"BlitTest"};
+
+	void
+	require_vulkan()
+	{
+		if (!ctx.init()) {
+			SKIP("Vulkan device unavailable on this runner");
+		}
+
+		shader = create_blit_shader_module(&ctx.vk);
+		descriptor_set_layout = create_blit_descriptor_set_layout(&ctx.vk);
+		layout = create_blit_pipeline_layout(&ctx.vk, descriptor_set_layout);
+		REQUIRE(vk_create_pipeline_cache(&ctx.vk, &pipeline_cache) == VK_SUCCESS);
+		cache.init(shader, layout, pipeline_cache);
+	}
+
+	~BlitPipelineCacheFixture()
+	{
+		cache.destroy(&ctx.vk);
+
+		if (pipeline_cache != VK_NULL_HANDLE) {
+			ctx.vk.vkDestroyPipelineCache(ctx.vk.device, pipeline_cache, nullptr);
+		}
+		if (layout != VK_NULL_HANDLE) {
+			ctx.vk.vkDestroyPipelineLayout(ctx.vk.device, layout, nullptr);
+		}
+		if (descriptor_set_layout != VK_NULL_HANDLE) {
+			ctx.vk.vkDestroyDescriptorSetLayout(ctx.vk.device, descriptor_set_layout, nullptr);
+		}
+		if (shader != VK_NULL_HANDLE) {
+			ctx.vk.vkDestroyShaderModule(ctx.vk.device, shader, nullptr);
+		}
+	}
+};
+
 } // namespace
 
 TEST_CASE("render_distortion_spec is a padding-free specialization key", "[aux_render][pipeline_cache]")
@@ -446,5 +570,55 @@ TEST_CASE("render_layer C pipeline cache wrapper", "[aux_render][pipeline_cache]
 	CHECK(pipeline != VK_NULL_HANDLE);
 
 	render_layer_pipeline_cache_destroy(&cache, &fixture.ctx.vk);
+	CHECK(cache == nullptr);
+}
+
+TEST_CASE("render_blit_spec is a padding-free specialization key", "[aux_render][pipeline_cache]")
+{
+	STATIC_REQUIRE(std::is_trivially_copyable_v<render_blit_spec>);
+	STATIC_REQUIRE(sizeof(render_blit_spec) == sizeof(int32_t));
+
+	const render_blit_spec key = make_test_blit_spec();
+	CHECK(key.color_transform_mode == 0);
+}
+
+TEST_CASE("ComputePipelineCache<render_blit_spec> caches by key", "[aux_render][pipeline_cache][gpu]")
+{
+	BlitPipelineCacheFixture fixture{};
+	fixture.require_vulkan();
+
+	const render_blit_spec none = make_test_blit_spec();
+	const render_blit_spec gamma = make_test_blit_spec(1);
+
+	VkPipeline first = VK_NULL_HANDLE;
+	VkPipeline second = VK_NULL_HANDLE;
+	VkPipeline gamma_pipeline = VK_NULL_HANDLE;
+
+	REQUIRE(fixture.cache.get(&fixture.ctx.vk, none, first) == VK_SUCCESS);
+	REQUIRE(fixture.cache.get(&fixture.ctx.vk, none, second) == VK_SUCCESS);
+	REQUIRE(fixture.cache.get(&fixture.ctx.vk, gamma, gamma_pipeline) == VK_SUCCESS);
+
+	CHECK(first == second);
+	CHECK(first != gamma_pipeline);
+}
+
+TEST_CASE("render_blit C pipeline cache wrapper", "[aux_render][pipeline_cache][gpu]")
+{
+	BlitPipelineCacheFixture fixture{};
+	fixture.require_vulkan();
+
+	struct render_blit_pipeline_cache *cache = NULL;
+	REQUIRE(render_blit_pipeline_cache_create("BlitCTest", &cache) == XRT_SUCCESS);
+	REQUIRE(cache != nullptr);
+
+	REQUIRE(render_blit_pipeline_cache_init(cache, fixture.shader, fixture.layout, fixture.pipeline_cache) ==
+	        XRT_SUCCESS);
+
+	const render_blit_spec key = make_test_blit_spec();
+	VkPipeline pipeline = VK_NULL_HANDLE;
+	REQUIRE(render_blit_pipeline_cache_get(cache, &fixture.ctx.vk, &key, &pipeline) == XRT_SUCCESS);
+	CHECK(pipeline != VK_NULL_HANDLE);
+
+	render_blit_pipeline_cache_destroy(&cache, &fixture.ctx.vk);
 	CHECK(cache == nullptr);
 }

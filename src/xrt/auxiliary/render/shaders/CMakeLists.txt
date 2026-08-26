@@ -43,6 +43,7 @@ shader_specializations(
 	SOURCES
 	distortion.comp
 	layer.comp
+	blit.comp
 	INCLUDE_DIRS
 	${CMAKE_CURRENT_SOURCE_DIR}
 	DEPENDS

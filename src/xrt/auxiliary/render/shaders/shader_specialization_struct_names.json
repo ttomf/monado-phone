@@ -6,5 +6,9 @@
 	"layer": {
 		"struct": "render_layer_spec",
 		"short_name": "render_layer"
+	},
+	"blit": {
+		"struct": "render_blit_spec",
+		"short_name": "render_blit"
 	}
 }
