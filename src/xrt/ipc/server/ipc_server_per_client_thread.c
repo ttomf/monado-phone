@@ -76,8 +76,12 @@ handle_exit_on_disconnect(struct ipc_server *s)
 		s->running = false;
 	}
 
+	os_mutex_lock(&s->global_state.lock);
+	bool do_delayed_exit = s->exit_when_idle && s->global_state.connected_client_count == 0;
+	os_mutex_unlock(&s->global_state.lock);
+
 	// Should we stop when all clients disconnect?
-	if (s->exit_when_idle && s->global_state.connected_client_count == 0) {
+	if (do_delayed_exit) {
 		s->last_client_disconnect_ns = os_monotonic_get_ns();
 
 		struct os_thread thread;
