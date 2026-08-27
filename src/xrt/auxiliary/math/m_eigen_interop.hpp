@@ -21,6 +21,15 @@
 
 namespace xrt::auxiliary::math {
 
+/*
+ * This file uses an Eigen::Map to directly reference the memory of our own internal math types as Eigen types.
+ * This means that our own internal math types *must* be memory-layout compatible with the types laid out here. If they
+ * are not, memory corruption or other nastiness will occur when attempting to read/mutate these maps. This is why we
+ * are passing a pointer to the *first* element into the Map constructors, so that when Eigen interprets that raw data
+ * pointer as it's math type, it is reading from the start of the data type.
+ */
+
+
 /*!
  * @brief Wrap an internal quaternion struct in an Eigen type, const overload.
  *
