@@ -11,6 +11,8 @@
 
 #include "t_constellation_tracker_internal.hpp"
 
+#include <mutex>
+
 
 namespace xrt::tracking::constellation {
 
@@ -122,6 +124,13 @@ struct DataRecorder
 {
 private: // Fields
 	DataSerializer serializer;
+
+	/*!
+	 * Serializes writes to @ref serializer. Every camera has a fast processing thread of its own and
+	 * records from it, so without this two cameras' packets interleave and the file is unreadable
+	 * from the first race onwards.
+	 */
+	std::mutex lock;
 
 public: // Methods
 	DataRecorder(ConstellationTracker *tracker, std::string out_file);

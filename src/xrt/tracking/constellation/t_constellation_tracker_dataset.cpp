@@ -482,6 +482,8 @@ DataRecorder::DataRecorder(ConstellationTracker *tracker, std::string out_file) 
 void
 DataRecorder::recordSample(const CameraSample &sample)
 {
+	std::lock_guard<std::mutex> guard(this->lock);
+
 	this->serializer.write(static_cast<uint8_t>(PACKET_TYPE_CAMERA_SAMPLE));
 	this->serializer.write(sample);
 	this->serializer.flush();
@@ -490,6 +492,8 @@ DataRecorder::recordSample(const CameraSample &sample)
 void
 DataRecorder::recordDeviceInfo(const Device &device)
 {
+	std::lock_guard<std::mutex> guard(this->lock);
+
 	this->serializer.write(static_cast<uint8_t>(PACKET_TYPE_DEVICE_INFO));
 	this->serializer.write(static_cast<uint8_t>(device.id));
 	this->serializer.write(device.params.led_model);
