@@ -15,6 +15,9 @@ Currently, it implements **UDP HEVC streaming** to phone and **6DOF tracking** w
 
 ## Getting Started
 
+> !NOTE
+> This is full replacement of Monado, so you don't need to have installed anyting except depencies listed below.
+
 1. Download `MonadoPhone.apk`, `libopenxr_monado.so`, `monado-service` and `openxr_monado-dev.json` from [Releases](https://github.com/ttomf/monado-phone/releases)
 2. Install `MonadoPhone.apk` on your phone (via `adb` or your preferred method) and run it (Monado driver on PC has 5s timeout, so it's better to start the app first)
 3. Install these packages on your Linux PC:

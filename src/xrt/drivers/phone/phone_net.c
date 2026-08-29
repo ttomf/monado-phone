@@ -161,16 +161,13 @@ net_stream_destroy(void)
 
 struct pose_receiver
 {
-	// UDP socket the phone sends poses to.
+	// UDP socket the phone sends poses to
 	int sock;
-
-	// Receiver thread.
+	// Receiver thread
 	struct os_thread_helper thread;
-
-	// History the received poses are pushed into, owned by the HMD device.
+	// History the received poses are pushed into, owned by the HMD device
 	struct m_relation_history *rh;
-
-	// Thread stop flag, also checked after an unexpected recvfrom() error.
+	// Thread stop flag
 	volatile bool running;
 };
 

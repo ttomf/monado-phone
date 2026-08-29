@@ -156,12 +156,11 @@ class MonadoDriver(
             Log.w(TAG, "sendPose: no pose source")
             return
         }
-        val socket = withContext(Dispatchers.IO) {
+        poseSocket = withContext(Dispatchers.IO) {
             DatagramSocket()
         }
-        poseSocket = socket
         try {
-            socket.use { s ->
+            poseSocket?.use { s ->
                 Log.d(TAG, "sending pose to ${runtimeAddr.hostAddress}:$POSE_PORT")
                 var sent = 0L
                 var lastLog = 0L
