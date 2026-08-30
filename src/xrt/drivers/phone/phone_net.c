@@ -43,7 +43,7 @@ phone_discover(struct sockaddr_in *out_addr)
 	struct sockaddr_in bind_addr = {0};
 	bind_addr.sin_family = AF_INET;
 	bind_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	bind_addr.sin_port = htons(get_port());
+	bind_addr.sin_port = htons(atoi(config_get("port")));
 
 	if (bind(sock, (struct sockaddr *)&bind_addr, sizeof(bind_addr)) < 0) {
 		U_LOG_W("phone: bind() failed: %d", errno);
@@ -53,7 +53,7 @@ phone_discover(struct sockaddr_in *out_addr)
 
 	// Join the multicast group.
 	struct ip_mreq mreq = {0};
-	mreq.imr_multiaddr.s_addr = inet_addr(get_multicast_addr());
+	mreq.imr_multiaddr.s_addr = inet_addr(config_get("multicast_addr"));
 	mreq.imr_interface.s_addr = htonl(INADDR_ANY);
 
 	if (setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0) {
@@ -91,6 +91,112 @@ phone_discover(struct sockaddr_in *out_addr)
 }
 
 
+struct net_config
+{
+	// TCP socket the phone sends config to
+	int sock;
+	// Thread
+	struct os_thread_helper thread;
+	// Thread stop flag
+	volatile bool running;
+};
+
+static struct net_config *g_net_config = NULL;
+
+static void *
+net_config_thread(void *ptr)
+{
+	struct net_config *nc = (struct net_config *)ptr;
+	char buf[256];
+	while (nc->running) {
+		// ssize_t n = recv(nc->sock, buf, sizeof(buf), 0);
+		U_LOG_D("phone: received config: %s", buf);
+		switch (buf[0]) {
+			// set something in config file, Monado must be restarted
+			// case 'c': config_set() break;
+		}
+	}
+	return NULL;
+}
+
+bool
+net_config_create(const struct sockaddr_in *addr)
+{
+	if (g_net_config != NULL) {
+		return true;
+	}
+
+	struct net_config *nc = U_TYPED_CALLOC(struct net_config);
+	int server_sock = socket(AF_INET, SOCK_STREAM, 0);
+	if (server_sock < 0) {
+		U_LOG_W("phone: config socket() failed: %d", errno);
+		free(nc);
+		return false;
+	}
+	sock_opt(server_sock, SO_REUSEADDR, 1);
+
+	struct sockaddr_in bind_addr = {0};
+	bind_addr.sin_family = AF_INET;
+	bind_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	bind_addr.sin_port = htons(atoi(config_get("config_port")));
+
+	if (bind(server_sock, (struct sockaddr *)&bind_addr, sizeof(bind_addr)) < 0) {
+		U_LOG_W("phone: config bind() failed: %d", errno);
+		close(server_sock);
+		free(nc);
+		return false;
+	}
+
+	if (listen(server_sock, 10) < 0) {
+		U_LOG_W("phone: config listen() failed: %d", errno);
+		close(server_sock);
+		free(nc);
+		return false;
+	}
+
+	nc->sock = accept(server_sock, NULL, NULL);
+	if (nc->sock < 0) {
+		U_LOG_W("phone: config accept() failed: %d", errno);
+		close(server_sock);
+		free(nc);
+		return false;
+	}
+
+	close(server_sock);
+
+	os_thread_helper_init(&nc->thread);
+	if (os_thread_helper_start(&nc->thread, net_config_thread, nc) != 0) {
+		U_LOG_E("phone: failed to start config thread");
+		nc->running = false;
+		close(nc->sock);
+		os_thread_helper_destroy(&nc->thread);
+		free(nc);
+		return false;
+	}
+
+	g_net_config = nc;
+
+	U_LOG_I("phone: config handler started on port %s", config_get("config_port"));
+	return true;
+}
+
+void
+net_config_destroy(void)
+{
+	struct net_config *nc = g_net_config;
+	if (nc == NULL) {
+		return;
+	}
+	g_net_config = NULL;
+
+	nc->running = false;
+	close(nc->sock);
+	os_thread_helper_stop_and_wait(&nc->thread);
+	os_thread_helper_destroy(&nc->thread);
+
+	free(nc);
+}
+
 struct net_stream
 {
 	struct xrt_frame_context xfctx;
@@ -118,7 +224,7 @@ net_stream_create(const struct sockaddr_in *addr, struct xrt_frame_sink **out_xf
 	         "appsrc name=xr_src format=time is-live=true do-timestamp=true ! "
 	         "videoconvert ! "
 	         "videoscale ! "
-	         "video/x-raw,format=I420,width=%u,height=%u ! "
+	         "video/x-raw,format=I420,width=%s,height=%s ! "
 	         "videorate ! "
 	         "video/x-raw,framerate=60/1 ! "
 	         "queue max-size-buffers=1 max-size-bytes=0 max-size-time=0 leaky=downstream ! "
@@ -127,13 +233,13 @@ net_stream_create(const struct sockaddr_in *addr, struct xrt_frame_sink **out_xf
 	         "h265parse config-interval=1 ! "
 	         "video/x-h265,stream-format=byte-stream,alignment=nal ! "
 	         "rtph265pay config-interval=1 ! "
-	         "udpsink host=%s port=%d sync=false async=false",
-	         PHONE_STREAM_WIDTH, PHONE_STREAM_HEIGHT, ip_str, get_port());
+	         "udpsink host=%s port=%s sync=false async=false",
+	         config_get("stream_w"), config_get("stream_h"), ip_str, config_get("stream_port"));
 	U_LOG_I("phone: stream pipeline: %s", pipeline);
 
 	gstreamer_pipeline_create_from_string(&ns->xfctx, pipeline, &ns->gp);
-	gstreamer_sink_create_with_pipeline(ns->gp, PHONE_STREAM_WIDTH, PHONE_STREAM_HEIGHT, XRT_FORMAT_R8G8B8A8,
-	                                    "xr_src", &ns->gs, &ns->xfs);
+	gstreamer_sink_create_with_pipeline(ns->gp, atoi(config_get("stream_w")), atoi(config_get("stream_h")),
+	                                    XRT_FORMAT_R8G8B8A8, "xr_src", &ns->gs, &ns->xfs);
 	gstreamer_pipeline_play(ns->gp);
 	g_net_stream = ns;
 	*out_xfs = ns->xfs;
@@ -251,7 +357,7 @@ net_pose_create(struct m_relation_history *rh)
 	struct sockaddr_in bind_addr = {0};
 	bind_addr.sin_family = AF_INET;
 	bind_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	bind_addr.sin_port = htons(get_pose_port());
+	bind_addr.sin_port = htons(atoi(config_get("pose_port")));
 
 	if (bind(pr->sock, (struct sockaddr *)&bind_addr, sizeof(bind_addr)) < 0) {
 		U_LOG_W("phone: pose bind() failed: %d", errno);
@@ -275,7 +381,7 @@ net_pose_create(struct m_relation_history *rh)
 
 	g_pose = pr;
 
-	U_LOG_I("phone: pose receiver started on port %d", get_pose_port());
+	U_LOG_I("phone: pose receiver started on port %s", config_get("pose_port"));
 
 	return true;
 }

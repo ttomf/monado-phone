@@ -51,7 +51,7 @@ struct phone_hmd
 	struct xrt_device base;
 	enum u_logging_level log_level;
 	struct xrt_hmd_parts parts;
-	// struct u_cardboard_distortion distortion;
+	struct u_cardboard_distortion distortion;
 	struct m_relation_history *relation_hist;
 	struct sockaddr_in phone_addr;
 };
@@ -67,6 +67,12 @@ stream_frame(struct comp_target_image *image, struct comp_frame *frame);
 
 void
 stream_destroy(void);
+
+bool
+net_config_create(const struct sockaddr_in *addr);
+
+void
+net_config_destroy(void);
 
 bool
 net_stream_create(const struct sockaddr_in *addr, struct xrt_frame_sink **out_xfs);

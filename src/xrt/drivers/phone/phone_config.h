@@ -12,17 +12,11 @@
 #define PHONE_DISCOVER_MSG "MONADO_PHONE_DISCOVER_PHONE"
 #define PC_DISCOVER_MSG "MONADO_PHONE_DISCOVER_PC"
 
-#define PHONE_STREAM_WIDTH 1920
-#define PHONE_STREAM_HEIGHT 1080
+void
+config_init(void);
 
 int
-get_port(void);
-
-int
-get_pose_port(void);
+config_set(const char *key, const char *value);
 
 char *
-get_multicast_addr(void);
-
-int *
-get_panel_size(void);
+config_get(const char *key);

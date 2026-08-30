@@ -18,9 +18,10 @@ target_destroy(struct comp_target *ct)
 	struct phone_target *pt = (struct phone_target *)ct;
 	struct vk_bundle *vk = &pt->base.c->base.vk;
 
-	// Stop and destroy stream
-	stream_destroy();
+	// Stop GStreamer first (releases all frames back to the pool),
+	// then destroy the stream and pool.
 	net_stream_destroy();
+	stream_destroy();
 
 
 	// Can only free if we have Vulkan.

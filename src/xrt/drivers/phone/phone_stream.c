@@ -9,7 +9,7 @@
 
 #include "phone_internals.h"
 
-#define PHONE_STREAM_QUEUE_SIZE 4
+#define PHONE_STREAM_QUEUE_SIZE 8
 
 // One frame waiting to be read
 struct phone_stream_entry
@@ -53,6 +53,10 @@ struct phone_stream
 
 	// Worker thread that waits for the readback to finish and pushes the frame
 	struct os_thread_helper thread;
+
+	// Cached config values
+	int32_t stream_w;
+	int32_t stream_h;
 
 	// Frame counter
 	uint64_t sequence;
@@ -119,7 +123,13 @@ stream_create(struct vk_bundle *vk, VkExtent2D extent, struct xrt_frame_sink *xf
 	ps->src_extent = extent;
 
 	// Host-visible pool that the GPU copies the rendered images into
-	VkExtent2D stream_extent = {.width = PHONE_STREAM_WIDTH, .height = PHONE_STREAM_HEIGHT};
+	char *sw = config_get("stream_w");
+	char *sh = config_get("stream_h");
+	ps->stream_w = atoi(sw);
+	ps->stream_h = atoi(sh);
+	free(sw);
+	free(sh);
+	VkExtent2D stream_extent = {.width = ps->stream_w, .height = ps->stream_h};
 	vk_image_readback_to_xf_pool_create(vk, stream_extent, &ps->pool, XRT_FORMAT_R8G8B8A8,
 	                                    VK_FORMAT_R8G8B8A8_UNORM);
 
@@ -240,7 +250,7 @@ stream_frame(struct comp_target_image *image, struct comp_frame *frame)
 	}
 
 	struct xrt_size src_size = {.w = ps->src_extent.width, .h = ps->src_extent.height};
-	struct xrt_size scale_size = {.w = PHONE_STREAM_WIDTH, .h = PHONE_STREAM_HEIGHT};
+	struct xrt_size scale_size = {.w = ps->stream_w, .h = ps->stream_h};
 
 	// Scale the rendered image down into an optimal-tiled intermediate image
 	struct vk_cmd_image_transfer_info blit_info = {

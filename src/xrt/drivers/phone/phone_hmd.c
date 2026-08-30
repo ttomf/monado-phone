@@ -9,6 +9,7 @@
 
 #include "phone_internals.h"
 #include "phone_interface.h"
+#include "util/u_distortion_mesh.h"
 #include "util/u_logging.h"
 
 
@@ -78,6 +79,15 @@ phone_hmd_get_visibility_mask(struct xrt_device *xdev,
 	return XRT_SUCCESS;
 }
 
+// Compute distortion from stored values
+static xrt_result_t
+phone_hmd_compute_distortion(struct xrt_device *xdev, uint32_t view, float u, float v, struct xrt_uv_triplet *result)
+{
+	struct phone_hmd *hmd = (struct phone_hmd *)xdev;
+	u_compute_distortion_cardboard(&hmd->distortion.values[view], u, v, result);
+	return XRT_SUCCESS;
+}
+
 // Destroy phone hmd and free resources
 static void
 phone_hmd_destroy(struct xrt_device *xdev)
@@ -86,6 +96,7 @@ phone_hmd_destroy(struct xrt_device *xdev)
 
 	// Stop the pose receiver thread before it can write to a freed history.
 	net_pose_destroy();
+	net_config_destroy();
 	m_relation_history_destroy(&hmd->relation_hist);
 	u_device_free(&hmd->base);
 }
@@ -107,6 +118,7 @@ phone_hmd_create(struct sockaddr_in *phone_addr)
 	hmd->base.get_tracked_pose = phone_hmd_get_tracked_pose;
 	hmd->base.get_view_poses = phone_hmd_get_view_poses;
 	hmd->base.get_visibility_mask = phone_hmd_get_visibility_mask;
+	hmd->base.compute_distortion = phone_hmd_compute_distortion;
 	hmd->base.destroy = phone_hmd_destroy;
 
 	hmd->phone_addr = *phone_addr;
@@ -117,9 +129,12 @@ phone_hmd_create(struct sockaddr_in *phone_addr)
 
 	m_relation_history_create(&hmd->relation_hist);
 
-
 	if (!net_pose_create(hmd->relation_hist)) {
 		U_LOG_W("phone: failed to start pose receiver, tracking will not work");
+	}
+
+	if (!net_config_create(&hmd->phone_addr)) {
+		U_LOG_W("phone: failed to start config receiver, config will use default values");
 	}
 
 	// Setup device properties
@@ -134,7 +149,7 @@ phone_hmd_create(struct sockaddr_in *phone_addr)
 
 	// Setup distortion model
 	const double hFOV = 90 * (M_PI / 180.0);
-	const double vFOV = 96.73 * (M_PI / 180.0);
+	const double vFOV = 90 * (M_PI / 180.0);
 	const double hCOP = 0.329;
 	const double vCOP = 0.5;
 	if (!math_compute_fovs(1, hCOP, hFOV, 1, vCOP, vFOV, &hmd->base.hmd->distortion.fov[1]) ||
@@ -144,8 +159,8 @@ phone_hmd_create(struct sockaddr_in *phone_addr)
 		return NULL;
 	}
 
-	const int panel_w = get_panel_size()[0];
-	const int panel_h = get_panel_size()[1];
+	const int panel_w = atoi(config_get("panel_w"));
+	const int panel_h = atoi(config_get("panel_h"));
 
 	// Screen has two eyes
 	hmd->base.hmd->screens[0].w_pixels = panel_w * 2;
@@ -166,37 +181,36 @@ phone_hmd_create(struct sockaddr_in *phone_addr)
 	hmd->parts.view_count = 2;
 
 	// Distortion information, fills in xdev->compute_distortion().
-	u_distortion_mesh_set_none(&hmd->base);
+	// u_distortion_mesh_set_none(&hmd->base);
 	// TODO: finish disortion and fovs
-
-	// const struct u_cardboard_distortion_arguments distortion = {
-	//     .distortion_k = {0.24, 0.24, 0.24, 0.24, 0.24},
-	//     .screen.w_pixels = panel_w,
-	//     .screen.h_pixels = panel_h,
-	//     .screen.w_meters = panel_w,
-	//     .screen.h_meters = panel_h,
-	//     .inter_lens_distance_meters = 0.060f,
-	//     .screen_to_lens_distance_meters = 0.042f,
-	//     .tray_to_lens_distance_meters = 0.035f,
-	//     .fov =
-	//         {
-	//             .angle_left = hFOV,
-	//             .angle_right = -hFOV,
-	//             .angle_up = vFOV,
-	//             .angle_down = -vFOV,
-	//         },
-	//     .vertical_alignment = U_CARDBOARD_VERTICAL_ALIGNMENT_CENTER,
-	// };
-	// u_distortion_cardboard_calculate(&distortion, &hmd->parts, &hmd->distortion);
-	// u_distortion_mesh_fill_in_compute(&hmd->base);
-
-
+	const struct u_cardboard_distortion_arguments distortion = {
+	    .distortion_k = {0.441, 0.156, 0, 0, 0},
+	    .screen.w_pixels = panel_w * 2,
+	    .screen.h_pixels = panel_h,
+	    .screen.w_meters = 0.1545f,
+	    .screen.h_meters = 0.0695f,
+	    .inter_lens_distance_meters = 0.080f,
+	    .screen_to_lens_distance_meters = 0.042f,
+	    .tray_to_lens_distance_meters = 0.035f,
+	    .fov =
+	        {
+	            .angle_left = -hFOV / 2,
+	            .angle_right = hFOV / 2,
+	            .angle_up = vFOV / 2,
+	            .angle_down = -vFOV / 2,
+	        },
+	    .vertical_alignment = U_CARDBOARD_VERTICAL_ALIGNMENT_CENTER,
+	};
+	u_distortion_cardboard_calculate(&distortion, &hmd->parts, &hmd->distortion);
+	u_distortion_mesh_fill_in_compute(&hmd->base);
 	// Push initial pose to history
 	struct xrt_space_relation identity = XRT_SPACE_RELATION_ZERO;
 	identity.relation_flags = (enum xrt_space_relation_flags)(XRT_SPACE_RELATION_ORIENTATION_TRACKED_BIT |
 	                                                          XRT_SPACE_RELATION_ORIENTATION_VALID_BIT);
 	uint64_t now = os_monotonic_get_ns();
 	m_relation_history_push(hmd->relation_hist, &identity, now);
+
+	U_LOG_I("phone: HMD created");
 
 	return &hmd->base;
 }

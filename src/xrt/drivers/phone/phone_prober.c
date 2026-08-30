@@ -35,6 +35,8 @@ phone_probe(struct xrt_auto_prober *xap,
 	struct phone_auto_prober *ap = (struct phone_auto_prober *)xap;
 	(void)ap;
 
+	config_init();
+
 	// If we don't need hmd, don't create it
 	if (no_hmds) {
 		return 0;

@@ -24,12 +24,16 @@ import java.net.DatagramSocket
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.MulticastSocket
+import java.net.Socket
+import java.net.SocketException
 import java.net.SocketTimeoutException
 import kotlin.time.Duration.Companion.milliseconds
 
 private const val MCAST_ADDR = "239.1.1.1"
 private const val PORT = 5500
-private const val POSE_PORT = 5501
+private const val CONFIG_PORT = 5501
+private const val STREAM_PORT = 5502
+private const val POSE_PORT = 5503
 private const val DISCOVER_MSG_PHONE = "MONADO_PHONE_DISCOVER_PHONE"
 private const val DISCOVER_MSG_PC = "MONADO_PHONE_DISCOVER_PC"
 private const val TAG = "MonadoDriver"
@@ -50,6 +54,10 @@ class MonadoDriver(
 
     @Volatile
     private var poseSocket: DatagramSocket? = null
+
+    @Volatile
+    private var configSocket: Socket? = null
+
     private var glSurfaceView: GLSurfaceView? = null
     private var poseSource: ArCorePose? = null
     private var shouldResume = false
@@ -131,9 +139,10 @@ class MonadoDriver(
             }
             if (currentCoroutineContext().isActive) {
                 Log.d(TAG, "paired with ${runtimeAddr.hostAddress}, opening stream")
-                toast("Opening stream ${runtimeAddr.hostAddress}")
+                toast("Connecting to ${runtimeAddr.hostAddress}")
                 coroutineScope {
                     launch { receiveVideo(surf) }
+                    launch { configHandler() }
                     launch { sendPose() }
                 }
             }
@@ -143,6 +152,30 @@ class MonadoDriver(
     private fun toast(msg: String) {
         Handler(Looper.getMainLooper()).post {
             Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun configHandler() {
+        try {
+            configSocket = Socket(runtimeAddr, CONFIG_PORT)
+            val input = configSocket!!.getInputStream()
+            val buffer = ByteArray(4096)
+
+            while (true) {
+                val n = input.read(buffer)
+                if (n == -1) {
+                    toast("PC Disconnected")
+                    restart()
+                    break
+                }
+                when (buffer[0].toInt().toChar()) {
+                    'r' -> restart()
+                }
+            }
+        } catch (e: SocketException) {
+            if (configSocket?.isClosed != true) {
+                throw e
+            }
         }
     }
 
@@ -195,7 +228,9 @@ class MonadoDriver(
     private suspend fun receiveVideo(surf: Surface) {
         val codec = try {
             MediaCodec.createDecoderByType("video/hevc").apply {
-                configure(MediaFormat.createVideoFormat("video/hevc", 1920, 1080), surf, null, 0)
+			configure(MediaFormat.createVideoFormat("video/hevc", 1920, 1080).apply {
+                    setInteger(MediaFormat.KEY_LOW_LATENCY, 1)
+                }, surf, null, 0)
                 start()
             }
         } catch (e: Exception) {
@@ -216,12 +251,12 @@ class MonadoDriver(
                     soTimeout = 500
                     // Large kernel receive buffer so bursty RTP traffic does not get dropped
                     receiveBufferSize = 4 * 1024 * 1024
-                    bind(InetSocketAddress(PORT))
+                    bind(InetSocketAddress(STREAM_PORT))
                 }
             }
             streamSocket = socket
             socket.use { socket ->
-                Log.d(TAG, "listening for stream on port $PORT")
+                Log.d(TAG, "listening for stream on port $STREAM_PORT")
                 var lastSeq = -1
                 var lostPackets = 0L
                 var lastLossLog = 0L
@@ -338,6 +373,8 @@ class MonadoDriver(
         streamSocket = null
         poseSocket?.close()
         poseSocket = null
+        configSocket?.close()
+        configSocket = null
         job = null
     }
 
@@ -349,7 +386,7 @@ class MonadoDriver(
     }
 
     fun restart() {
-        Toast.makeText(context, "Reloading...", Toast.LENGTH_SHORT).show()
+        toast("Reloading...")
         Log.d(TAG, "restart")
         stop()
         val s = surface

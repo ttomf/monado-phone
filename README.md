@@ -112,19 +112,19 @@ This will create these important files:
 
 ### Phone
 
-On startup, the phone requests camera permission, creates two **AndroidViews** (one for camera preview for ARCore and second for stream rendering) and starts to send **UDP multicast** on `239.1.1.1:5500`. When PC responds, the phone saves the PC's IP and starts to send pose (port `5501`) and receive H.265 (HEVC) stream (port `5500`).
+On startup, the phone requests camera permission, creates two **AndroidViews** (one for camera preview for ARCore and second for stream rendering) and starts to send **UDP multicast** on `239.1.1.1:5500`. When PC responds, the phone saves the PC's IP, connects to PC via TCP as config stream and starts to send pose and receive H.265 (HEVC) stream.
 
-The pose is taken from the ARCore session when frame is drawn. It is encoded as 40-byte buffer with **timestamp** (int64), **tracking state** (int32), **quaternion** (4x float) and **pose** (3x float), then sent over UDP on port `5501`.
+The pose is taken from the ARCore session when frame is drawn. It is encoded as 40-byte buffer with **timestamp** (int64), **tracking state** (int32), **quaternion** (4x float) and **pose** (3x float), then sent over UDP.
 
-The stream is received on port `5500`, RTP depacketized and decoded by **MediaCodec (video/hevc)**, which renders video directly on the AndroidView.
+The stream is received, RTP depacketized and decoded by **MediaCodec (video/hevc)**, which renders video directly on the AndroidView.
 
 ### Driver
 
-When the driver gets probed, it waits **5s** to receive a multicast response from the phone. If no response is received, it times out and lets Monado continue with software fallback. When the driver receives a response, it saves the phone's IP and starts to send H.265 (HEVC) stream on port `5500` and receive pose over UDP on port `5501`.
+When the driver gets probed, it waits **5s** to receive a multicast response from the phone. If no response is received, it times out and lets Monado continue with software fallback. When the driver receives a response, it saves the phone's IP, listens for TCP connection (config stream) and starts to send H.265 (HEVC) stream and receive pose over UDP.
 
 The stream is taken when Monado draws on Vulkan image owned by the driver. Then the image is encoded and send in one gstreamer pipeline.
 
-Pose receiving thread listens on UDP port `5501` decodes the pose and pushes it to the relation history.
+Pose receiving thread listens on UDP port, decodes the pose and pushes it to the relation history.
 
 ### Diagram
 
@@ -143,6 +143,8 @@ sequenceDiagram
   D->>P: Driver responds with its IP via unicast UDP
   D->>M: Driver responds with its properties
   M->>G: Monado sends driver properties to the game
+  Note over D: Driver listens for TCP connection
+  P->>D: Phone connects to TCP
   Note over P: Phone initializes ARCore and stream receiver
   Note over D: Driver initializes Vulkan compositor target with gstreamer and pose receiver
 
