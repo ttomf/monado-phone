@@ -147,51 +147,47 @@ phone_hmd_create(struct sockaddr_in *phone_addr)
 	// Set screen refresh rate to 60Hz
 	hmd->base.hmd->screens[0].nominal_frame_interval_ns = time_s_to_ns(1.0f / 60.0f);
 
-	// Setup distortion model
-	const double hFOV = 90 * (M_PI / 180.0);
-	const double vFOV = 90 * (M_PI / 180.0);
-	const double hCOP = 0.329;
-	const double vCOP = 0.5;
-	if (!math_compute_fovs(1, hCOP, hFOV, 1, vCOP, vFOV, &hmd->base.hmd->distortion.fov[1]) ||
-	    !math_compute_fovs(1, 1.0 - hCOP, hFOV, 1, vCOP, vFOV, &hmd->base.hmd->distortion.fov[0])) {
-		U_LOG_E("phone: failed to setup basic device info");
-		phone_hmd_destroy(&hmd->base);
-		return NULL;
-	}
+	const int screen_w = atoi(config_get("screen_w"));
+	const int screen_h = atoi(config_get("screen_h"));
 
-	const int panel_w = atoi(config_get("panel_w"));
-	const int panel_h = atoi(config_get("panel_h"));
+	hmd->base.hmd->screens[0].w_pixels = screen_w;
+	hmd->base.hmd->screens[0].h_pixels = screen_h;
 
-	// Screen has two eyes
-	hmd->base.hmd->screens[0].w_pixels = panel_w * 2;
-	hmd->base.hmd->screens[0].h_pixels = panel_h;
-
-	// Set every eye
+	// Set both eyes
 	for (uint8_t eye = 0; eye < 2; ++eye) {
-		hmd->base.hmd->views[eye].display.w_pixels = panel_w;
-		hmd->base.hmd->views[eye].display.h_pixels = panel_h;
+		hmd->base.hmd->views[eye].display.w_pixels = screen_w / 2;
+		hmd->base.hmd->views[eye].display.h_pixels = screen_h;
 		hmd->base.hmd->views[eye].viewport.y_pixels = 0;
-		hmd->base.hmd->views[eye].viewport.w_pixels = panel_w;
-		hmd->base.hmd->views[eye].viewport.h_pixels = panel_h;
+		hmd->base.hmd->views[eye].viewport.w_pixels = screen_w / 2;
+		hmd->base.hmd->views[eye].viewport.h_pixels = screen_h;
 		hmd->base.hmd->views[eye].rot = u_device_rotation_ident;
 	}
 	hmd->base.hmd->views[0].viewport.x_pixels = 0;
-	hmd->base.hmd->views[1].viewport.x_pixels = panel_w;
+	hmd->base.hmd->views[1].viewport.x_pixels = screen_w / 2;
 
 	hmd->parts.view_count = 2;
 
+	// Setup distortion model
+	const double hFOV = 100 * (M_PI / 180.0);
+	const double vFOV = 100 * (M_PI / 180.0);
+
 	// Distortion information, fills in xdev->compute_distortion().
-	// u_distortion_mesh_set_none(&hmd->base);
-	// TODO: finish disortion and fovs
 	const struct u_cardboard_distortion_arguments distortion = {
-	    .distortion_k = {0.441, 0.156, 0, 0, 0},
-	    .screen.w_pixels = panel_w * 2,
-	    .screen.h_pixels = panel_h,
-	    .screen.w_meters = 0.1545f,
-	    .screen.h_meters = 0.0695f,
-	    .inter_lens_distance_meters = 0.080f,
-	    .screen_to_lens_distance_meters = 0.042f,
-	    .tray_to_lens_distance_meters = 0.035f,
+	    .distortion_k =
+	        {
+	            atof(config_get("k1")),
+	            atof(config_get("k2")),
+	            0,
+	            0,
+	            0,
+	        },
+	    .screen.w_pixels = screen_w,
+	    .screen.h_pixels = screen_h,
+	    .screen.w_meters = atof(config_get("screen_w_m")),
+	    .screen.h_meters = atof(config_get("screen_h_m")),
+	    .inter_lens_distance_meters = atof(config_get("inter_lens")),
+	    .screen_to_lens_distance_meters = atof(config_get("screen_to_lens")),
+	    .tray_to_lens_distance_meters = atof(config_get("tray_to_lens")),
 	    .fov =
 	        {
 	            .angle_left = -hFOV / 2,
@@ -203,6 +199,14 @@ phone_hmd_create(struct sockaddr_in *phone_addr)
 	};
 	u_distortion_cardboard_calculate(&distortion, &hmd->parts, &hmd->distortion);
 	u_distortion_mesh_fill_in_compute(&hmd->base);
+
+	// Set fovs from cardboard parameters
+	hmd->base.hmd->distortion.fov[0] = distortion.fov;
+	hmd->base.hmd->distortion.fov[1] = distortion.fov;
+
+	hmd->base.supported.orientation_tracking = true;
+	hmd->base.supported.position_tracking = true;
+
 	// Push initial pose to history
 	struct xrt_space_relation identity = XRT_SPACE_RELATION_ZERO;
 	identity.relation_flags = (enum xrt_space_relation_flags)(XRT_SPACE_RELATION_ORIENTATION_TRACKED_BIT |

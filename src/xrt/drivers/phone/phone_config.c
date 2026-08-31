@@ -33,11 +33,17 @@ config_init(void)
 	        "config_port=5501\n"
 	        "stream_port=5502\n"
 	        "pose_port=5503\n"
-	        "panel_w=1200\n"
-	        "panel_h=1080\n"
 	        "stream_w=1280\n"
 	        "stream_h=720\n"
-	        "ipd=100\n");
+	        "screen_w=2400\n"
+	        "screen_h=1080\n"
+	        "screen_w_m=0.16\n"
+	        "screen_h_m=0.07\n"
+	        "k1=0.12\n"
+	        "k2=0.12\n"
+	        "inter_lens=0.060\n"
+	        "screen_to_lens=0.050\n"
+	        "tray_to_lens=0.035\n");
 	fclose(tmp);
 }
 
