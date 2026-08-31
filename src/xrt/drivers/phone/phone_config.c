@@ -8,16 +8,45 @@
  */
 
 #include "phone_config.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
-static const char *path = "/home/tom/config.cfg";
+static char *path;
 
-// Create config file if it doesn't exist
+// Create config file if it doesn't exist and set its path
 void
 config_init(void)
 {
+	const char *config_home = getenv("XDG_CONFIG_HOME");
+	const char *home = getenv("HOME");
+	char *config_dir;
+	if (!config_home || !*config_home) {
+		if (!home || !*home)
+			return;
+		size_t len = strlen(home) + strlen("/.config/monado-phone") + 1;
+		config_dir = malloc(len);
+		if (!config_dir)
+			return;
+		snprintf(config_dir, len, "%s/.config/monado-phone", home);
+	} else {
+		size_t len = strlen(config_home) + strlen("/monado-phone") + 1;
+		config_dir = malloc(len);
+		if (!config_dir)
+			return;
+
+		snprintf(config_dir, len, "%s/monado-phone", config_home);
+	}
+	if (mkdir(config_dir, 0700) == -1 && errno != EEXIST) {
+		free(config_dir);
+		return;
+	}
+	size_t len = strlen(config_dir) + strlen("/config.cfg") + 1;
+	path = malloc(len);
+	if (!path) {
+		free(config_dir);
+		return;
+	}
+	snprintf(path, len, "%s/config.cfg", config_dir);
+	free(config_dir);
+
 	FILE *file = fopen(path, "r");
 	if (file) {
 		fclose(file);

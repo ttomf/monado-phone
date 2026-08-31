@@ -8,6 +8,7 @@
  */
 
 #pragma once
+#include "phone_internals.h"
 
 #define PHONE_DISCOVER_MSG "MONADO_PHONE_DISCOVER_PHONE"
 #define PC_DISCOVER_MSG "MONADO_PHONE_DISCOVER_PC"

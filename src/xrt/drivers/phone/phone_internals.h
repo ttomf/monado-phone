@@ -16,6 +16,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <stdio.h>
+#include <sys/stat.h>
 
 #include "xrt/xrt_frame.h"
 
