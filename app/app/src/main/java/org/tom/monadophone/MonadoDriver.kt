@@ -4,11 +4,13 @@ import android.content.Context
 import android.media.MediaCodec
 import android.media.MediaFormat
 import android.opengl.GLSurfaceView
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.Surface
 import android.widget.Toast
+import com.google.mediapipe.tasks.vision.handlandmarker.HandLandmarkerResult
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -34,6 +36,7 @@ private const val PORT = 5500
 private const val CONFIG_PORT = 5501
 private const val STREAM_PORT = 5502
 private const val POSE_PORT = 5503
+private const val HANDS_PORT = 5504
 private const val DISCOVER_MSG_PHONE = "MONADO_PHONE_DISCOVER_PHONE"
 private const val DISCOVER_MSG_PC = "MONADO_PHONE_DISCOVER_PC"
 private const val TAG = "MonadoDriver"
@@ -41,7 +44,7 @@ private const val TAG = "MonadoDriver"
 /**
  * Orchestrates the phone side of the Monado Phone HMD driver: discovery,
  * video stream reception and pose sending. Mirrors the wire protocol defined
- * in the Monado phone driver (phone_internals.h).
+ * in the Monado phone driver.
  */
 class MonadoDriver(
     private val context: Context
@@ -56,10 +59,14 @@ class MonadoDriver(
     private var poseSocket: DatagramSocket? = null
 
     @Volatile
+    private var handsSocket: DatagramSocket? = null
+
+    @Volatile
     private var configSocket: Socket? = null
 
     private var glSurfaceView: GLSurfaceView? = null
     private var poseSource: ArCorePose? = null
+    private var handTracker: HandTracker = HandTracker(context, ::processHandsResult)
     private var shouldResume = false
     private var scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private lateinit var runtimeAddr: InetAddress
@@ -69,7 +76,7 @@ class MonadoDriver(
             poseSource?.close()
             poseSource = null
             glSurfaceView = view
-            poseSource = ArCorePose(context, view)
+            poseSource = ArCorePose(context, view, handTracker)
             if (shouldResume) {
                 poseSource?.resume()
             }
@@ -80,7 +87,7 @@ class MonadoDriver(
         shouldResume = true
         if (poseSource == null) {
             val view = glSurfaceView ?: return
-            poseSource = ArCorePose(context, view)
+            poseSource = ArCorePose(context, view, handTracker)
         }
         poseSource?.resume()
     }
@@ -101,6 +108,12 @@ class MonadoDriver(
         job?.cancel() // Replace any previous job
         streamSocket?.close() // Free the stream port synchronously
         streamSocket = null
+        poseSocket?.close()
+        poseSocket = null
+        handsSocket?.close()
+        handsSocket = null
+        configSocket?.close()
+        configSocket = null
 
         job = scope.launch {
             val discoverySocket = MulticastSocket()
@@ -125,7 +138,13 @@ class MonadoDriver(
                     try {
                         socket.receive(recvPacket)
                         Log.i(TAG, "beacon: received ${recvPacket.length} bytes")
-                        if (String(recvPacket.data, 0, recvPacket.length) == DISCOVER_MSG_PC) {
+                        if (String(
+                                recvPacket.data,
+                                0,
+                                recvPacket.length,
+                                Charsets.UTF_8
+                            ) == DISCOVER_MSG_PC
+                        ) {
                             // When paired, stop sending beacon packets
                             runtimeAddr = recvPacket.address
                             break
@@ -140,6 +159,8 @@ class MonadoDriver(
             if (currentCoroutineContext().isActive) {
                 Log.d(TAG, "paired with ${runtimeAddr.hostAddress}, opening stream")
                 toast("Connecting to ${runtimeAddr.hostAddress}")
+                handTracker.setup()
+                handsSocket = DatagramSocket()
                 coroutineScope {
                     launch { receiveVideo(surf) }
                     launch { configHandler() }
@@ -173,9 +194,12 @@ class MonadoDriver(
                 }
             }
         } catch (e: SocketException) {
-            if (configSocket?.isClosed != true) {
-                throw e
-            }
+            Log.d("MonadoDriver", "Config socket closed: ${e.message}")
+        } catch (e: Exception) {
+            Log.e("MonadoDriver", "Error in configHandler", e)
+        } finally {
+            toast("PC Disconnected")
+            restart()
         }
     }
 
@@ -184,8 +208,7 @@ class MonadoDriver(
      * The packet layout is defined in [PosePacket].
      */
     private suspend fun sendPose() {
-        val src = poseSource
-        if (src == null) {
+        if (poseSource == null) {
             Log.w(TAG, "sendPose: no pose source")
             return
         }
@@ -193,43 +216,65 @@ class MonadoDriver(
             DatagramSocket()
         }
         try {
-            poseSocket?.use { s ->
-                Log.d(TAG, "sending pose to ${runtimeAddr.hostAddress}:$POSE_PORT")
-                var sent = 0L
-                var lastLog = 0L
-                while (currentCoroutineContext().isActive) {
-                    val pose = src.latestPose()
-                    if (pose == null) {
-                        delay(10.milliseconds)
-                        continue
-                    }
-                    val data = PosePacket.encode(pose)
-                    val datagram = DatagramPacket(data, data.size, runtimeAddr, POSE_PORT)
-                    s.send(datagram)
-                    sent++
-                    val now = System.nanoTime()
-                    if (now - lastLog > 1_000_000_000L) {
-                        Log.d(
-                            TAG,
-                            "pose sent: $sent, ts=${pose.timestampNs}, state=${pose.trackingState}"
-                        )
-                        lastLog = now
-                    }
-                    delay(5.milliseconds)
+            Log.d(TAG, "sending pose to ${runtimeAddr.hostAddress}:$POSE_PORT")
+            while (currentCoroutineContext().isActive) {
+                val pose = poseSource!!.latestPose()
+                if (pose == null) {
+                    delay(10.milliseconds)
+                    continue
                 }
+                val data = PosePacket.encode(pose)
+                val datagram = DatagramPacket(data, data.size, runtimeAddr, POSE_PORT)
+                withContext(Dispatchers.IO) {
+                    poseSocket?.send(datagram)
+                }
+                delay(5.milliseconds)
             }
         } catch (e: Exception) {
             Log.e(TAG, "sendPose failed", e)
-        } finally {
-            poseSocket = null
         }
+    }
+
+    private fun processHandsResult(result: HandLandmarkerResult) {
+        val worldLandmarks = result.worldLandmarks()
+        val handedness = result.handedness()
+
+        val landmarks = HandLandmarks(result.timestampMs() * 1_000_000)
+
+        for ((handIdx, hand) in worldLandmarks.withIndex()) {
+            val label = handedness[handIdx][0].categoryName()
+            if (label == "Left") {
+                landmarks.leftHand = FloatArray(21 * 3)
+                for ((i, lm) in hand.withIndex()) {
+                    val offset = i * 3
+                    landmarks.leftHand!![offset] = lm.x()
+                    landmarks.leftHand!![offset + 1] = lm.y()
+                    landmarks.leftHand!![offset + 2] = lm.z()
+                }
+            }
+            if (label == "Right") {
+                landmarks.rightHand = FloatArray(21 * 3)
+                for ((i, lm) in hand.withIndex()) {
+                    val offset = i * 3
+                    landmarks.rightHand!![offset] = lm.x()
+                    landmarks.rightHand!![offset + 1] = lm.y()
+                    landmarks.rightHand!![offset + 2] = lm.z()
+                }
+            }
+        }
+
+        val data = HandsPacket.encode(landmarks)
+        val datagram = DatagramPacket(data, data.size, runtimeAddr, HANDS_PORT)
+        handsSocket?.send(datagram)
     }
 
     private suspend fun receiveVideo(surf: Surface) {
         val codec = try {
             MediaCodec.createDecoderByType("video/hevc").apply {
-			configure(MediaFormat.createVideoFormat("video/hevc", 1920, 1080).apply {
-                    setInteger(MediaFormat.KEY_LOW_LATENCY, 1)
+                configure(MediaFormat.createVideoFormat("video/hevc", 1920, 1080).apply {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                        setInteger(MediaFormat.KEY_LOW_LATENCY, 1)
+                    }
                 }, surf, null, 0)
                 start()
             }
@@ -373,6 +418,8 @@ class MonadoDriver(
         streamSocket = null
         poseSocket?.close()
         poseSocket = null
+        handsSocket?.close()
+        handsSocket = null
         configSocket?.close()
         configSocket = null
         job = null
@@ -382,6 +429,7 @@ class MonadoDriver(
         Log.d(TAG, "destroy")
         stop()
         poseSource?.pause()
+        handTracker.close()
         surface = null
     }
 

@@ -66,6 +66,7 @@ private const val TAG = "ArCorePose"
 class ArCorePose(
     private val context: Context,
     private val surfaceView: GLSurfaceView,
+    private val handTracker: HandTracker
 ) {
     private val latest = AtomicReference<ArPose?>(null)
 
@@ -90,6 +91,15 @@ class ArCorePose(
     private var baseTexCoords: FloatBuffer? = null
     private var displayTexCoords: FloatBuffer? = null
 
+    // Offscreen FBO for hand tracking (smaller than display to reduce glReadPixels cost).
+    private var handFbo = -1
+    private var handTex = -1
+    private val handW = 480
+    private val handH = 360
+    private var handPixelBuffer: ByteBuffer? = null
+    private var lastHandFrameNs = 0L
+    private val handIntervalNs = 33_333_333L // ~30 Hz
+
     init {
         surfaceView.setEGLContextClientVersion(2)
         surfaceView.setRenderer(object : GLSurfaceView.Renderer {
@@ -99,6 +109,7 @@ class ArCorePose(
                 textureId = textures[0]
                 textureSet = false
                 setupCameraPreview()
+                setupHandFbo()
             }
 
             override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
@@ -126,20 +137,24 @@ class ArCorePose(
                 try {
                     val frame: Frame = sess.update()
                     val camera = frame.camera
-                    val pose = camera.displayOrientedPose
-                    latest.set(
-                        ArPose(
-                            timestampNs = frame.timestamp,
-                            trackingState = camera.trackingState.ordinal,
-                            qx = pose.qx(),
-                            qy = pose.qy(),
-                            qz = pose.qz(),
-                            qw = pose.qw(),
-                            tx = pose.tx(),
-                            ty = pose.ty(),
-                            tz = pose.tz(),
+                    if (camera.trackingState == com.google.ar.core.TrackingState.TRACKING) {
+                        val pose = camera.displayOrientedPose
+                        latest.set(
+                            ArPose(
+                                timestampNs = frame.timestamp,
+                                trackingState = camera.trackingState.ordinal,
+                                qx = pose.qx(),
+                                qy = pose.qy(),
+                                qz = pose.qz(),
+                                qw = pose.qw(),
+                                tx = pose.tx(),
+                                ty = pose.ty(),
+                                tz = pose.tz(),
+                            )
                         )
-                    )
+                    } else {
+                        latest.set(null)
+                    }
                     drawCameraBackground(frame)
                 } catch (e: Exception) {
                     // The first frames are not yet available, this is normal.
@@ -163,7 +178,9 @@ class ArCorePose(
         if (session == null) {
             try {
                 session = Session(context).also {
-                    it.configure(Config(it))
+                    it.configure(Config(it).apply {
+                        updateMode = Config.UpdateMode.LATEST_CAMERA_IMAGE
+                    })
                     if (surfaceW > 0) {
                         it.setDisplayGeometry(surfaceRotation, surfaceW, surfaceH)
                     }
@@ -213,21 +230,10 @@ class ArCorePose(
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
     }
 
-    private fun drawCameraBackground(frame: Frame) {
-        if (!textureSet || textureId == -1 || program == 0) {
-            clear()
-            return
-        }
+    private fun drawQuad(width: Int, height: Int, display: FloatBuffer) {
         val posBuf = positionBuffer ?: return
-        val base = baseTexCoords ?: return
-        val display = displayTexCoords ?: return
 
-        // Correctly orient the camera image for the current display rotation.
-        base.position(0)
-        display.position(0)
-        frame.transformDisplayUvCoords(base, display)
-        display.position(0)
-
+        GLES20.glViewport(0, 0, width, height)
         GLES20.glUseProgram(program)
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureId)
@@ -237,6 +243,7 @@ class ArCorePose(
         GLES20.glEnableVertexAttribArray(positionAttrib)
         GLES20.glVertexAttribPointer(positionAttrib, 3, GLES20.GL_FLOAT, false, 12, posBuf)
 
+        display.position(0)
         GLES20.glEnableVertexAttribArray(texCoordAttrib)
         GLES20.glVertexAttribPointer(texCoordAttrib, 2, GLES20.GL_FLOAT, false, 8, display)
 
@@ -244,6 +251,35 @@ class ArCorePose(
 
         GLES20.glDisableVertexAttribArray(positionAttrib)
         GLES20.glDisableVertexAttribArray(texCoordAttrib)
+    }
+
+    private fun drawCameraBackground(frame: Frame) {
+        if (!textureSet || textureId == -1 || program == 0) {
+            clear()
+            return
+        }
+        val base = baseTexCoords ?: return
+        val display = displayTexCoords ?: return
+
+        base.position(0)
+        display.position(0)
+        frame.transformDisplayUvCoords(base, display)
+        display.position(0)
+
+        drawQuad(surfaceW, surfaceH, display)
+        if (handFbo != -1 && frame.timestamp - lastHandFrameNs >= handIntervalNs) {
+            lastHandFrameNs = frame.timestamp
+            val buf = handPixelBuffer ?: return
+            GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, handFbo)
+            display.position(0)
+            drawQuad(handW, handH, display)
+            buf.clear()
+            GLES20.glReadPixels(0, 0, handW, handH, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, buf)
+            GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)
+            GLES20.glViewport(0, 0, surfaceW, surfaceH)
+            buf.rewind()
+            handTracker.processImage(buf, handW, handH, frame.timestamp)
+        }
     }
 
     private fun setupCameraPreview() {
@@ -305,6 +341,37 @@ class ArCorePose(
         // Base texture coordinates, transformed per frame to match display.
         baseTexCoords = directFloatBuffer(floatArrayOf(0f, 1f, 0f, 0f, 1f, 1f, 1f, 0f))
         displayTexCoords = directFloatBuffer(FloatArray(8))
+    }
+
+    private fun setupHandFbo() {
+        val fbo = IntArray(1)
+        GLES20.glGenFramebuffers(1, fbo, 0)
+        handFbo = fbo[0]
+
+        val tex = IntArray(1)
+        GLES20.glGenTextures(1, tex, 0)
+        handTex = tex[0]
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, handTex)
+        GLES20.glTexImage2D(
+            GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, handW, handH, 0,
+            GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, null
+        )
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR)
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR)
+
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, handFbo)
+        GLES20.glFramebufferTexture2D(
+            GLES20.GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0, GLES20.GL_TEXTURE_2D, handTex, 0
+        )
+        val status = GLES20.glCheckFramebufferStatus(GLES20.GL_FRAMEBUFFER)
+        if (status != GLES20.GL_FRAMEBUFFER_COMPLETE) {
+            Log.e(TAG, "hand FBO incomplete: $status")
+        }
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
+
+        handPixelBuffer =
+            ByteBuffer.allocateDirect(handW * handH * 4).order(ByteOrder.nativeOrder())
     }
 
     private fun compileShader(type: Int, source: String): Int {

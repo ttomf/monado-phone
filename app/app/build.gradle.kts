@@ -52,4 +52,5 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
     implementation("com.google.ar:core:1.54.0")
+    implementation("com.google.mediapipe:tasks-vision:1.0.0")
 }
