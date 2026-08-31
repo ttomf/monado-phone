@@ -16,36 +16,39 @@ Currently, it implements **UDP HEVC streaming** to phone and **6DOF tracking** w
 ## Getting Started
 
 > [!NOTE]
-> This is full replacement of Monado, so you don't need to have installed anyting except depencies listed below.
+> This is full replacement of Monado, so you don't need to have installed anything except depencies listed below.
 
 1. Download `MonadoPhone.apk`, `libopenxr_monado.so`, `monado-service` and `openxr_monado-dev.json` from [Releases](https://github.com/ttomf/monado-phone/releases)
 2. Install `MonadoPhone.apk` on your phone (via `adb` or your preferred method) and run it (Monado driver on PC has 5s timeout, so it's better to start the app first)
-3. Install these packages on your Linux PC:
-  ```sh
-  sudo pacman -Sy --needed \
-  dbus \
-  glibc \
-  glib2 \
-  gst-plugins-base-libs \
-  gstreamer \
-  libbsd \
-  libgcc \
-  libjpeg-turbo \
-  libstdc++ \
-  libusb \
-  libxcb \
-  libx11 \
-  sdl2-compat \
-  systemd-libs \
-  vulkan-icd-loader \
-  zlib
-  ```
+3. Install these packages on your Linux PC (with package manager of your choice):
+
+```sh
+sudo pacman -Sy --needed \
+dbus \
+glibc \
+glib2 \
+gst-plugins-base-libs \
+gstreamer \
+libbsd \
+libgcc \
+libjpeg-turbo \
+libstdc++ \
+libusb \
+libxcb \
+libx11 \
+sdl2-compat \
+systemd-libs \
+vulkan-icd-loader \
+zlib
+```
+
 4. Run `monado-service` on your Linux PC and wait for the phone to connect (phone app will tell you)
 5. Open another terminal and run your OpenXR application with **environment variable** set (make sure `libopenxr_monado.so` is in same directory as `openxr_monado-dev.json`, or path in `openxr_monado-dev.json` is correct):
-  ```sh
-  export XR_RUNTIME_JSON=openxr_monado-dev.json
-  xrgears # demo, you can run any other OpenXR application
-  ```
+
+```sh
+export XR_RUNTIME_JSON=openxr_monado-dev.json
+xrgears # demo, you can run any other OpenXR application
+```
 
 ### Steam
 
@@ -57,13 +60,13 @@ XR_RUNTIME_JSON=openxr_monado-dev.json PRESSURE_VESSEL_FILESYSTEMS_RW=/run/user/
 
 If the game doesn't support OpenXR, I sugest using `opencomposite` with same environment variables as above.
 
-
 ## Building from source
 
 ### Prerequisites
 
 You will need **CMake 3.13 or newer** to generate build files, **make/ninja** to build Monado and **Android Studio** to build the app.
 You will also need these dependencies (from [original Monado README](https://gitlab.freedesktop.org/monado/monado/-/blob/main/README.md)):
+
 - Python 3.6 or newer
 - Vulkan headers and loader
 - OpenGL headers
@@ -120,7 +123,7 @@ The stream is received, RTP depacketized and decoded by **MediaCodec (video/hevc
 
 ### Driver
 
-When the driver gets probed, it waits **5s** to receive a multicast response from the phone. If no response is received, it times out and lets Monado continue with software fallback. When the driver receives a response, it saves the phone's IP, listens for TCP connection (config stream) and starts to send H.265 (HEVC) stream and receive pose over UDP.
+When the driver gets probed, it waits **5s** to receive a multicast response from the phone. If no response is received, it times out and lets Monado continue with software fallback. When the driver receives a response, it saves the phone's IP, listens for TCP connection (config stream) and starts to send H.265 (HEVC) stream and receive pose over UDP. It loads configuration file from `~/.config/monado-phone/config.cfg`.
 
 The stream is taken when Monado draws on Vulkan image owned by the driver. Then the image is encoded and send in one gstreamer pipeline.
 
