@@ -62,6 +62,7 @@ config_init(void)
 	        "config_port=5501\n"
 	        "stream_port=5502\n"
 	        "pose_port=5503\n"
+	        "hand_port=5504\n"
 	        "stream_w=1280\n"
 	        "stream_h=720\n"
 	        "screen_w=2400\n"

@@ -88,6 +88,76 @@ phone_hmd_compute_distortion(struct xrt_device *xdev, uint32_t view, float u, fl
 	return XRT_SUCCESS;
 }
 
+static const int8_t mp_idx[XRT_HAND_JOINT_COUNT] = {
+    [XRT_HAND_JOINT_PALM] = 0,
+    [XRT_HAND_JOINT_WRIST] = 0,
+    [XRT_HAND_JOINT_THUMB_METACARPAL] = 1,
+    [XRT_HAND_JOINT_THUMB_PROXIMAL] = 2,
+    [XRT_HAND_JOINT_THUMB_DISTAL] = 3,
+    [XRT_HAND_JOINT_THUMB_TIP] = 4,
+    [XRT_HAND_JOINT_INDEX_METACARPAL] = 5,
+    [XRT_HAND_JOINT_INDEX_PROXIMAL] = 5,
+    [XRT_HAND_JOINT_INDEX_INTERMEDIATE] = 6,
+    [XRT_HAND_JOINT_INDEX_DISTAL] = 7,
+    [XRT_HAND_JOINT_INDEX_TIP] = 8,
+    [XRT_HAND_JOINT_MIDDLE_METACARPAL] = 9,
+    [XRT_HAND_JOINT_MIDDLE_PROXIMAL] = 9,
+    [XRT_HAND_JOINT_MIDDLE_INTERMEDIATE] = 10,
+    [XRT_HAND_JOINT_MIDDLE_DISTAL] = 11,
+    [XRT_HAND_JOINT_MIDDLE_TIP] = 12,
+    [XRT_HAND_JOINT_RING_METACARPAL] = 13,
+    [XRT_HAND_JOINT_RING_PROXIMAL] = 13,
+    [XRT_HAND_JOINT_RING_INTERMEDIATE] = 14,
+    [XRT_HAND_JOINT_RING_DISTAL] = 15,
+    [XRT_HAND_JOINT_RING_TIP] = 16,
+    [XRT_HAND_JOINT_LITTLE_METACARPAL] = 17,
+    [XRT_HAND_JOINT_LITTLE_PROXIMAL] = 17,
+    [XRT_HAND_JOINT_LITTLE_INTERMEDIATE] = 18,
+    [XRT_HAND_JOINT_LITTLE_DISTAL] = 19,
+    [XRT_HAND_JOINT_LITTLE_TIP] = 20,
+};
+
+// Get hand tracking
+static xrt_result_t
+phone_hmd_get_hand_tracking(struct xrt_device *xdev,
+                            enum xrt_input_name name,
+                            int64_t desired_timestamp_ns,
+                            struct xrt_hand_joint_set *out_value,
+                            int64_t *out_timestamp_ns)
+{
+	struct phone_hmd *hmd = (struct phone_hmd *)(xdev);
+
+	if (name != XRT_INPUT_HT_UNOBSTRUCTED_LEFT && name != XRT_INPUT_HT_UNOBSTRUCTED_RIGHT) {
+		return XRT_ERROR_INPUT_UNSUPPORTED;
+	}
+
+	*out_value = (struct xrt_hand_joint_set){0};
+
+	const float *lm = (name == XRT_INPUT_HT_UNOBSTRUCTED_LEFT) ? hmd->hand_packet->left : hmd->hand_packet->right;
+
+	for (int i = 0; i < XRT_HAND_JOINT_COUNT; ++i) {
+		struct xrt_hand_joint_value *joint = &out_value->values.hand_joint_set_default[i];
+		int mi = mp_idx[i];
+		joint->relation.pose.position.x = lm[3 * mi + 0];
+		joint->relation.pose.position.y = lm[3 * mi + 1];
+		joint->relation.pose.position.z = lm[3 * mi + 2];
+		joint->relation.relation_flags = (enum xrt_space_relation_flags)(
+		    XRT_SPACE_RELATION_ORIENTATION_VALID_BIT | XRT_SPACE_RELATION_POSITION_VALID_BIT);
+	}
+
+	// Anatomic joints width
+	u_hand_joints_apply_joint_width(out_value);
+
+	// Root = wrist
+	out_value->hand_pose = out_value->values.hand_joint_set_default[XRT_HAND_JOINT_WRIST].relation;
+	out_value->is_active = true;
+
+	*out_timestamp_ns = hmd->hand_packet->timestamp_ns;
+
+	return XRT_SUCCESS;
+}
+
+
 // Destroy phone hmd and free resources
 static void
 phone_hmd_destroy(struct xrt_device *xdev)
@@ -96,6 +166,7 @@ phone_hmd_destroy(struct xrt_device *xdev)
 
 	// Stop the pose receiver thread before it can write to a freed history.
 	net_pose_destroy();
+	net_hand_destroy();
 	net_config_destroy();
 	m_relation_history_destroy(&hmd->relation_hist);
 	u_device_free(&hmd->base);
@@ -107,7 +178,7 @@ phone_hmd_create(struct sockaddr_in *phone_addr)
 {
 	// Create hmd
 	struct phone_hmd *hmd =
-	    U_DEVICE_ALLOCATE(struct phone_hmd, (U_DEVICE_ALLOC_HMD | U_DEVICE_ALLOC_TRACKING_NONE), 1, 0);
+	    U_DEVICE_ALLOCATE(struct phone_hmd, (U_DEVICE_ALLOC_HMD | U_DEVICE_ALLOC_TRACKING_NONE), 3, 0);
 
 	// Initialize blend modes
 	hmd->base.hmd->blend_modes[0] = XRT_BLEND_MODE_OPAQUE;
@@ -119,6 +190,7 @@ phone_hmd_create(struct sockaddr_in *phone_addr)
 	hmd->base.get_view_poses = phone_hmd_get_view_poses;
 	hmd->base.get_visibility_mask = phone_hmd_get_visibility_mask;
 	hmd->base.compute_distortion = phone_hmd_compute_distortion;
+	hmd->base.get_hand_tracking = phone_hmd_get_hand_tracking;
 	hmd->base.destroy = phone_hmd_destroy;
 
 	hmd->phone_addr = *phone_addr;
@@ -128,6 +200,7 @@ phone_hmd_create(struct sockaddr_in *phone_addr)
 	strcpy(hmd->base.serial, "Phone HMD");
 
 	m_relation_history_create(&hmd->relation_hist);
+	hmd->hand_packet = U_TYPED_CALLOC(struct hand_packet);
 
 	if (!net_pose_create(hmd->relation_hist)) {
 		U_LOG_W("phone: failed to start pose receiver, tracking will not work");
@@ -137,12 +210,21 @@ phone_hmd_create(struct sockaddr_in *phone_addr)
 		U_LOG_W("phone: failed to start config receiver, config will use default values");
 	}
 
+	if (!net_hand_create(hmd->hand_packet)) {
+		U_LOG_W("phone: failed to start hand receiver, hands will not be used");
+	}
+
+
 	// Setup device properties
+	hmd->base.supported.orientation_tracking = true;
+	hmd->base.supported.position_tracking = true;
+	hmd->base.supported.hand_tracking = true;
+
 	hmd->base.name = XRT_DEVICE_GENERIC_HMD;
 	hmd->base.device_type = XRT_DEVICE_TYPE_HMD;
 	hmd->base.inputs[0].name = XRT_INPUT_GENERIC_HEAD_POSE;
-	hmd->base.supported.orientation_tracking = true;
-	hmd->base.supported.position_tracking = true;
+	hmd->base.inputs[1].name = XRT_INPUT_HT_UNOBSTRUCTED_LEFT;
+	hmd->base.inputs[2].name = XRT_INPUT_HT_UNOBSTRUCTED_RIGHT;
 
 	// Set screen refresh rate to 60Hz
 	hmd->base.hmd->screens[0].nominal_frame_interval_ns = time_s_to_ns(1.0f / 60.0f);
@@ -203,9 +285,6 @@ phone_hmd_create(struct sockaddr_in *phone_addr)
 	// Set fovs from cardboard parameters
 	hmd->base.hmd->distortion.fov[0] = distortion.fov;
 	hmd->base.hmd->distortion.fov[1] = distortion.fov;
-
-	hmd->base.supported.orientation_tracking = true;
-	hmd->base.supported.position_tracking = true;
 
 	// Push initial pose to history
 	struct xrt_space_relation identity = XRT_SPACE_RELATION_ZERO;

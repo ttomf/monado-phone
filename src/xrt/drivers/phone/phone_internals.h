@@ -38,6 +38,7 @@
 #include "util/u_visibility_mask.h"
 #include "util/u_pacing.h"
 #include "util/u_debug.h"
+#include "util/u_hand_tracking.h"
 
 #include "os/os_time.h"
 #include "xrt/xrt_prober.h"
@@ -47,6 +48,14 @@
 #include "gstreamer/gst_sink.h"
 
 
+struct hand_packet
+{
+	int64_t timestamp_ns;
+	int8_t flags;
+	float left[63];
+	float right[63];
+};
+
 struct phone_hmd
 {
 	struct xrt_device base;
@@ -54,6 +63,7 @@ struct phone_hmd
 	struct xrt_hmd_parts parts;
 	struct u_cardboard_distortion distortion;
 	struct m_relation_history *relation_hist;
+	struct hand_packet *hand_packet;
 	struct sockaddr_in phone_addr;
 };
 
@@ -80,6 +90,12 @@ net_stream_create(const struct sockaddr_in *addr, struct xrt_frame_sink **out_xf
 
 void
 net_stream_destroy(void);
+
+bool
+net_hand_create(struct hand_packet *out_packet);
+
+void
+net_hand_destroy(void);
 
 bool
 net_pose_create(struct m_relation_history *rh);

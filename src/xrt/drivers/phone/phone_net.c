@@ -265,6 +265,146 @@ net_stream_destroy(void)
 }
 
 
+struct hand_tracker
+{
+	// UDP socket the phone sends hand data to
+	int sock;
+	// Thread
+	struct os_thread_helper thread;
+	// Thread stop flag
+	volatile bool running;
+	// Packed read by hmd
+	struct hand_packet *packet;
+};
+
+static struct hand_tracker *g_hand = NULL;
+
+static void *
+net_hand_thread(void *ptr)
+{
+	struct hand_tracker *ht = (struct hand_tracker *)ptr;
+
+	uint8_t buf[513];
+	while (ht->running) {
+		ssize_t n = recvfrom(ht->sock, buf, sizeof(buf), 0, NULL, NULL);
+		if (n < 0) {
+			if (errno == EAGAIN || errno == EWOULDBLOCK) {
+				continue;
+			}
+			if (!ht->running) {
+				break;
+			}
+			U_LOG_W("phone: hand recvfrom() failed: %d", errno);
+			continue;
+		}
+		struct hand_packet pp = {0};
+
+		if (n < (ssize_t)(sizeof(pp.timestamp_ns) + sizeof(pp.flags))) {
+			U_LOG_W("phone: hand packet size too small");
+			continue;
+		}
+
+		memcpy(&pp.timestamp_ns, &buf[0], sizeof(pp.timestamp_ns));
+		memcpy(&pp.flags, &buf[sizeof(pp.timestamp_ns)], sizeof(pp.flags));
+		if (pp.flags & (1 << 0) && pp.flags & (1 << 1)) { // both
+			if (n != sizeof(pp.timestamp_ns) + sizeof(pp.flags) + sizeof(pp.left) + sizeof(pp.right)) {
+				U_LOG_W("phone: hand packet size mismatch");
+				continue;
+			}
+			memcpy(&pp.left, &buf[sizeof(pp.timestamp_ns) + sizeof(pp.flags)], sizeof(pp.left));
+			memcpy(&pp.right, &buf[sizeof(pp.timestamp_ns) + sizeof(pp.flags) + sizeof(pp.left)],
+			       sizeof(pp.right));
+		} else if (pp.flags & (1 << 0)) { // left
+			if (n != sizeof(pp.timestamp_ns) + sizeof(pp.flags) + sizeof(pp.left)) {
+				U_LOG_W("phone: hand packet size mismatch");
+				continue;
+			}
+			memcpy(&pp.left, &buf[sizeof(pp.timestamp_ns) + sizeof(pp.flags)], sizeof(pp.left));
+		} else if (pp.flags & (1 << 1)) { // right
+			if (n != sizeof(pp.timestamp_ns) + sizeof(pp.flags) + sizeof(pp.right)) {
+				U_LOG_W("phone: hand packet size mismatch");
+				continue;
+			}
+			memcpy(&pp.right, &buf[sizeof(pp.timestamp_ns) + sizeof(pp.flags)], sizeof(pp.right));
+		}
+		memcpy(ht->packet, &pp, sizeof(pp));
+	}
+	return NULL;
+}
+
+bool
+net_hand_create(struct hand_packet *out_packet)
+{
+	if (g_hand != NULL) {
+		return true;
+	}
+
+	struct hand_tracker *ht = U_TYPED_CALLOC(struct hand_tracker);
+
+	ht->sock = socket(AF_INET, SOCK_DGRAM, 0);
+	if (ht->sock < 0) {
+		U_LOG_W("phone: hand socket() failed: %d", errno);
+		free(ht);
+		return false;
+	}
+	sock_opt(ht->sock, SO_REUSEADDR, 1);
+
+	struct timeval tv = {.tv_sec = 0, .tv_usec = 100000};
+	if (setsockopt(ht->sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
+		U_LOG_W("phone: pose SO_RCVTIMEO failed: %d", errno);
+	}
+
+	struct sockaddr_in bind_addr = {0};
+	bind_addr.sin_family = AF_INET;
+	bind_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	bind_addr.sin_port = htons(atoi(config_get("hand_port")));
+
+	if (bind(ht->sock, (struct sockaddr *)&bind_addr, sizeof(bind_addr)) < 0) {
+		U_LOG_W("phone: hand bind() failed: %d", errno);
+		close(ht->sock);
+		free(ht);
+		return false;
+	}
+
+	ht->packet = out_packet;
+	ht->running = true;
+
+	os_thread_helper_init(&ht->thread);
+	if (os_thread_helper_start(&ht->thread, net_hand_thread, ht) != 0) {
+		U_LOG_E("phone: failed to start config thread");
+		ht->running = false;
+		close(ht->sock);
+		os_thread_helper_destroy(&ht->thread);
+		free(ht);
+		return false;
+	}
+
+	g_hand = ht;
+
+	U_LOG_I("phone: hand tracker started on port %s", config_get("hand_port"));
+
+	return true;
+}
+
+void
+net_hand_destroy(void)
+{
+	struct hand_tracker *ht = g_hand;
+	if (ht == NULL) {
+		return;
+	}
+	g_hand = NULL;
+
+	// Wake up the thread blocked in recvfrom()
+	ht->running = false;
+	close(ht->sock);
+	os_thread_helper_stop_and_wait(&ht->thread);
+	os_thread_helper_destroy(&ht->thread);
+
+	free(ht);
+}
+
+
 struct pose_receiver
 {
 	// UDP socket the phone sends poses to
@@ -348,7 +488,6 @@ net_pose_create(struct m_relation_history *rh)
 	}
 	sock_opt(pr->sock, SO_REUSEADDR, 1);
 
-	// Wake up periodically so the thread can notice it should stop
 	struct timeval tv = {.tv_sec = 0, .tv_usec = 100000};
 	if (setsockopt(pr->sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
 		U_LOG_W("phone: pose SO_RCVTIMEO failed: %d", errno);
