@@ -115,9 +115,9 @@ if(XRT_HAVE_VULKAN)
 			aux_shaders
 			xrt-interfaces
 		)
+	get_target_property(_aux_shaders_binary_dir aux_shaders BINARY_DIR)
 	target_include_directories(
-		tests_render_pipeline_cache SYSTEM
-		PRIVATE ${CMAKE_BINARY_DIR}/src/xrt/auxiliary/render/shaders
+		tests_render_pipeline_cache SYSTEM PRIVATE ${_aux_shaders_binary_dir}
 		)
 	add_dependencies(tests_render_pipeline_cache aux_shaders render_shader_specialization)
 endif()
