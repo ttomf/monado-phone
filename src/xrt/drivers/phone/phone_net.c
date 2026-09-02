@@ -275,6 +275,8 @@ struct hand_tracker
 	volatile bool running;
 	// Packed read by hmd
 	struct hand_packet *packet;
+	// Protects packet, shared with the hmd
+	struct os_mutex *lock;
 };
 
 static struct hand_tracker *g_hand = NULL;
@@ -327,13 +329,17 @@ net_hand_thread(void *ptr)
 			}
 			memcpy(&pp.right, &buf[sizeof(pp.timestamp_ns) + sizeof(pp.flags)], sizeof(pp.right));
 		}
+
+		// Publish under the lock so the hmd never reads a torn packet
+		os_mutex_lock(ht->lock);
 		memcpy(ht->packet, &pp, sizeof(pp));
+		os_mutex_unlock(ht->lock);
 	}
 	return NULL;
 }
 
 bool
-net_hand_create(struct hand_packet *out_packet)
+net_hand_create(struct hand_packet *out_packet, struct os_mutex *hand_lock)
 {
 	if (g_hand != NULL) {
 		return true;
@@ -367,6 +373,7 @@ net_hand_create(struct hand_packet *out_packet)
 	}
 
 	ht->packet = out_packet;
+	ht->lock = hand_lock;
 	ht->running = true;
 
 	os_thread_helper_init(&ht->thread);

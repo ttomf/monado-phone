@@ -9,8 +9,6 @@
 
 #include "phone_internals.h"
 #include "phone_interface.h"
-#include "util/u_distortion_mesh.h"
-#include "util/u_logging.h"
 
 
 // Update inputs, no-op
@@ -133,7 +131,13 @@ phone_hmd_get_hand_tracking(struct xrt_device *xdev,
 
 	*out_value = (struct xrt_hand_joint_set){0};
 
-	const float *lm = (name == XRT_INPUT_HT_UNOBSTRUCTED_LEFT) ? hmd->hand_packet->left : hmd->hand_packet->right;
+	// Snapshot under lock so the network thread never mid-writes the packet
+	struct hand_packet packet;
+	os_mutex_lock(&hmd->hand_lock);
+	packet = *hmd->hand_packet;
+	os_mutex_unlock(&hmd->hand_lock);
+
+	const float *lm = (name == XRT_INPUT_HT_UNOBSTRUCTED_LEFT) ? packet.left : packet.right;
 
 	for (int i = 0; i < XRT_HAND_JOINT_COUNT; ++i) {
 		struct xrt_hand_joint_value *joint = &out_value->values.hand_joint_set_default[i];
@@ -164,9 +168,10 @@ phone_hmd_destroy(struct xrt_device *xdev)
 {
 	struct phone_hmd *hmd = (struct phone_hmd *)(xdev);
 
-	// Stop the pose receiver thread before it can write to a freed history.
+	// Stop the pose receiver thread before it can write to a freed history
 	net_pose_destroy();
 	net_hand_destroy();
+	os_mutex_destroy(&hmd->hand_lock);
 	net_config_destroy();
 	m_relation_history_destroy(&hmd->relation_hist);
 	u_device_free(&hmd->base);
@@ -201,6 +206,7 @@ phone_hmd_create(struct sockaddr_in *phone_addr)
 
 	m_relation_history_create(&hmd->relation_hist);
 	hmd->hand_packet = U_TYPED_CALLOC(struct hand_packet);
+	os_mutex_init(&hmd->hand_lock);
 
 	if (!net_pose_create(hmd->relation_hist)) {
 		U_LOG_W("phone: failed to start pose receiver, tracking will not work");
@@ -210,7 +216,7 @@ phone_hmd_create(struct sockaddr_in *phone_addr)
 		U_LOG_W("phone: failed to start config receiver, config will use default values");
 	}
 
-	if (!net_hand_create(hmd->hand_packet)) {
+	if (!net_hand_create(hmd->hand_packet, &hmd->hand_lock)) {
 		U_LOG_W("phone: failed to start hand receiver, hands will not be used");
 	}
 

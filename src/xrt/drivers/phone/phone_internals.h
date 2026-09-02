@@ -46,6 +46,7 @@
 #include "vk/vk_image_readback_to_xf_pool.h"
 #include "gstreamer/gst_pipeline.h"
 #include "gstreamer/gst_sink.h"
+#include "os/os_threading.h"
 
 
 struct hand_packet
@@ -64,6 +65,9 @@ struct phone_hmd
 	struct u_cardboard_distortion distortion;
 	struct m_relation_history *relation_hist;
 	struct hand_packet *hand_packet;
+	// Protects hand_packet between the network thread (writer)
+	// and phone_hmd_get_hand_tracking (reader)
+	struct os_mutex hand_lock;
 	struct sockaddr_in phone_addr;
 };
 
@@ -92,7 +96,7 @@ void
 net_stream_destroy(void);
 
 bool
-net_hand_create(struct hand_packet *out_packet);
+net_hand_create(struct hand_packet *out_packet, struct os_mutex *hand_lock);
 
 void
 net_hand_destroy(void);
