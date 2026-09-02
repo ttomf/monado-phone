@@ -30,6 +30,17 @@ def join_install_path(install_prefix: str, *parts: str) -> str:
     return str(path)
 
 
+def join_relative_manifest_path(relative_dir: str, filename: str) -> str:
+    # Keep a directory component even when relative_dir is ".".
+    # pathlib collapses Path(".") / "foo.dll" to "foo.dll", and a bare
+    # filename makes the OpenXR loader search PATH/CWD instead of the
+    # JSON directory. The previous CMake generator used
+    # "${dir}/${filename}" which produced "./foo.dll".
+    if relative_dir in ("", "."):
+        return f"./{filename}"
+    return str(Path(relative_dir) / filename)
+
+
 def write_manifest(
     out_path: Path,
     library_path: str,
@@ -104,14 +115,13 @@ def compute_installed_paths(args: argparse.Namespace) -> tuple[str, str | None]:
                 file=sys.stderr,
             )
             sys.exit(1)
-        library_path = str(
-            Path(args.runtime_dir_relative_to_manifest) / runtime_filename
+        library_path = join_relative_manifest_path(
+            args.runtime_dir_relative_to_manifest, runtime_filename
         )
         libmonado_path = None
         if args.libmonado_filename:
-            libmonado_path = str(
-                Path(args.runtime_dir_relative_to_manifest)
-                / args.libmonado_filename
+            libmonado_path = join_relative_manifest_path(
+                args.runtime_dir_relative_to_manifest, args.libmonado_filename
             )
     else:
         library_path = runtime_filename
