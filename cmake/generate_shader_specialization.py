@@ -175,11 +175,14 @@ def cpp_type_for_spirv(spirv_type: str) -> str:
 
 
 def run_glslang(glslang: Path, shader: Path, include_dirs: Sequence[Path]) -> str:
+    # Using SPIR-V 1.5 as external repos might use newer SPIR-V versions,
+    # this doesn't effect shaders built into the compositor and they are
+    # built elsewhere.
     cmd = [
         str(glslang),
         "-V",
         "--target-env",
-        "vulkan1.0",
+        "spirv1.5",
         "-S",
         "comp",
         "-H",
