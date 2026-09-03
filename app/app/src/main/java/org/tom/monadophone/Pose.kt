@@ -7,6 +7,7 @@ import android.opengl.GLSurfaceView
 import android.util.Log
 import com.google.ar.core.Config
 import com.google.ar.core.Frame
+import com.google.ar.core.Pose
 import com.google.ar.core.Session
 import com.google.ar.core.exceptions.NotYetAvailableException
 import java.nio.ByteBuffer
@@ -15,6 +16,9 @@ import java.nio.FloatBuffer
 import java.util.concurrent.atomic.AtomicReference
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sin
 
 /**
  * A single ARCore pose sample in display-oriented coordinates.
@@ -29,7 +33,34 @@ data class ArPose(
     val tx: Float,
     val ty: Float,
     val tz: Float,
-)
+) {
+    operator fun minus(other: ArPose): ArPose {
+        val yawOther = atan2(
+            2f * (other.qw * other.qy + other.qx * other.qz),
+            1f - 2f * (other.qy * other.qy + other.qz * other.qz)
+        )
+        val halfAngle = yawOther * 0.5f
+        val yawRotation =
+            Pose.makeRotation(0f, sin(halfAngle), 0f, cos(halfAngle))
+        val translation = Pose.makeTranslation(other.tx, other.ty, other.tz)
+        val originPose = translation.compose(yawRotation)
+
+        val thisPose = Pose(
+            floatArrayOf(tx, ty, tz),
+            floatArrayOf(qx, qy, qz, qw)
+        )
+
+        val relativePose = originPose.inverse().compose(thisPose)
+        val t = relativePose.translation
+        val q = relativePose.rotationQuaternion
+        return ArPose(
+            timestampNs = this.timestampNs,
+            trackingState = this.trackingState,
+            qx = q[0], qy = q[1], qz = q[2], qw = q[3],
+            tx = t[0], ty = t[1], tz = t[2]
+        )
+    }
+}
 
 
 /**
@@ -69,6 +100,9 @@ class ArCorePose(
     private val handTracker: HandTracker
 ) {
     private val latest = AtomicReference<ArPose?>(null)
+
+    // For recentering headset
+    private var offset = AtomicReference(ArPose(0, 0, 0f, 0f, 0f, 1f, 0f, 0f, 0f))
 
     @Volatile
     private var session: Session? = null
@@ -152,10 +186,10 @@ class ArCorePose(
                                 tz = pose.tz(),
                             )
                         )
+                        drawCameraBackground(frame)
                     } else {
                         latest.set(null)
                     }
-                    drawCameraBackground(frame)
                 } catch (e: Exception) {
                     // The first frames are not yet available, this is normal.
                     clear()
@@ -170,6 +204,11 @@ class ArCorePose(
         // activity relaunch can never race a later onResume() call.
         // GLSurfaceView crashes with a null GL thread in that case.
         surfaceView.onResume()
+    }
+
+    fun recenter() {
+        val pose = latest.get() ?: return
+        offset.set(pose)
     }
 
     fun resume() {
@@ -224,6 +263,7 @@ class ArCorePose(
     }
 
     fun latestPose(): ArPose? = latest.get()
+    fun offset(): ArPose = offset.get()
 
     private fun clear() {
         GLES20.glClearColor(0f, 0f, 0f, 1f)

@@ -42,7 +42,7 @@ private const val DISCOVER_MSG_PC = "MONADO_PHONE_DISCOVER_PC"
 private const val TAG = "MonadoDriver"
 
 /**
- * Orchestrates the phone side of the Monado Phone HMD driver: discovery,
+ * Manages the phone side of the Monado Phone HMD driver: discovery,
  * video stream reception and pose sending. Mirrors the wire protocol defined
  * in the Monado phone driver.
  */
@@ -219,11 +219,12 @@ class MonadoDriver(
             Log.d(TAG, "sending pose to ${runtimeAddr.hostAddress}:$POSE_PORT")
             while (currentCoroutineContext().isActive) {
                 val pose = poseSource!!.latestPose()
+                val offset = poseSource!!.offset()
                 if (pose == null) {
                     delay(10.milliseconds)
                     continue
                 }
-                val data = PosePacket.encode(pose)
+                val data = PosePacket.encode(pose - offset)
                 val datagram = DatagramPacket(data, data.size, runtimeAddr, POSE_PORT)
                 withContext(Dispatchers.IO) {
                     poseSocket?.send(datagram)
@@ -440,8 +441,14 @@ class MonadoDriver(
         val s = surface
         if (s != null && s.isValid) {
             start(s)
+            poseSource?.pause()
+            poseSource?.resume()
         } else {
             Log.w(TAG, "restart: no valid surface")
         }
+    }
+
+    fun recenter() {
+        poseSource!!.recenter()
     }
 }
