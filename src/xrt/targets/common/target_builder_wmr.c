@@ -1,4 +1,4 @@
-// Copyright 2022-2023, Collabora, Ltd.
+// Copyright 2022-2026, Collabora, Ltd.
 // Copyright 2026, NVIDIA CORPORATION.
 // SPDX-License-Identifier: BSL-1.0
 /*!
@@ -221,8 +221,10 @@ wmr_open_system_impl(struct xrt_builder *xb,
 		U_LOG_IFL_E(log_level, "Could not find headset devices! (holo %p, companion %p)",
 		            (void *)whsr.xpdev_holo, (void *)whsr.xpdev_companion);
 
-		xret = XRT_ERROR_DEVICE_CREATION_FAILED;
-		goto error;
+		xret_unlock = xrt_prober_unlock_list(xp, &xpdevs);
+		assert(xret_unlock == XRT_SUCCESS);
+
+		return XRT_ERROR_DEVICE_CREATION_FAILED;
 	}
 
 
