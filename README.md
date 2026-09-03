@@ -1,7 +1,7 @@
 # Monado Phone Driver
 
 This is a Monado driver and Android app that allows you to play advanced VR games just with your phone.
-Currently, it implements **UDP HEVC streaming** to phone and **6DOF tracking** with ARCore.
+Currently, it implements **UDP HEVC streaming** to phone, **6DOF tracking** with ARCore and **hand tracking** with MediaPipe.
 
 > [!WARNING]
 > This driver is still in development and may not work as expected.
@@ -11,7 +11,7 @@ Currently, it implements **UDP HEVC streaming** to phone and **6DOF tracking** w
 
 - Android phone with minimal API level 29 (Android 10)
 - Linux PC
-- HMD to put your phone in, something like [Google Cardboard](https://arvr.google.com/cardboard/)
+- HMD to put your phone in, something like [Google Cardboard](https://arvr.google.com/cardboard/). It needs to have hole for back camera.
 
 ## Getting Started
 

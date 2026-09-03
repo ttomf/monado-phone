@@ -65,7 +65,7 @@ class HandTracker(
             .setBaseOptions(baseOptions)
             .setNumHands(2)
             .setMinHandDetectionConfidence(0.5f)
-            .setMinTrackingConfidence(0.5f)
+            .setMinTrackingConfidence(0.3f)
             .setRunningMode(RunningMode.LIVE_STREAM)
             .setResultListener { result, _ ->
                 processResult(result)
@@ -77,7 +77,11 @@ class HandTracker(
     }
 
     fun processImage(rgba: ByteBuffer, width: Int, height: Int, timestampNs: Long) {
-        val mpImage = ByteBufferImageBuilder(rgba, width, height, MPImage.IMAGE_FORMAT_RGBA).build()
+        val copy = ByteBuffer.allocateDirect(rgba.capacity()).order(ByteOrder.nativeOrder())
+        rgba.position(0)
+        copy.put(rgba)
+        copy.position(0)
+        val mpImage = ByteBufferImageBuilder(copy, width, height, MPImage.IMAGE_FORMAT_RGBA).build()
         handLandmarker?.detectAsync(mpImage, timestampNs / 1_000_000)
     }
 
