@@ -1,4 +1,4 @@
-// Copyright 2019-2023, Collabora, Ltd.
+// Copyright 2019-2026, Collabora, Ltd.
 // SPDX-License-Identifier: BSL-1.0
 /*!
  * @file
@@ -722,10 +722,9 @@ add_device(struct survive_system *ss, const struct SurviveSimpleConfigEvent *e);
 static void
 _process_pose_event(struct survive_device *survive, const struct SurviveSimplePoseUpdatedEvent *e)
 {
-	struct xrt_space_relation rel;
-	timepoint_ns ts;
+	struct xrt_space_relation rel = {0};
 	pose_to_relation(&e->pose, &e->velocity, &rel);
-	ts = survive_timecode_to_monotonic(survive, e->time);
+	timepoint_ns ts = survive_timecode_to_monotonic(survive, e->time);
 	m_relation_history_push(survive->relation_hist, &rel, ts);
 
 	SURVIVE_TRACE(survive, "Process pose event for %s", survive->base.str);
