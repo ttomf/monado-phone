@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: CC0-1.0
-# SPDX-FileCopyrightText: 2018-2025, Collabora, Ltd. and the Monado contributors
+# SPDX-FileCopyrightText: 2018-2026, Collabora, Ltd. and the Monado contributors
 
 # The first block contains the enabled checks, the second block contains the disabled checks,
 # and the third block contains the temporarily disabled checks
@@ -74,7 +74,6 @@ Checks:       |
     -clang-analyzer-core.NonNullParamChecker,
     -clang-analyzer-core.NullDereference,
     -clang-analyzer-core.UndefinedBinaryOperatorResult,
-    -clang-analyzer-core.uninitialized.Assign,
     -clang-analyzer-core.uninitialized.Branch,
     -clang-analyzer-cplusplus.InnerPointer,
     -clang-analyzer-deadcode.DeadStores,
