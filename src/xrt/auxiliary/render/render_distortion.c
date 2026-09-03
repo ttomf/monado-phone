@@ -1,4 +1,4 @@
-// Copyright 2019-2023, Collabora, Ltd.
+// Copyright 2019-2026, Collabora, Ltd.
 // SPDX-License-Identifier: BSL-1.0
 /*!
  * @file
@@ -288,10 +288,10 @@ render_distortion_buffer_init(struct render_resources *r,
                               struct xrt_device *xdev,
                               bool pre_rotate)
 {
-	struct render_buffer bufs[RENDER_DISTORTION_IMAGES_SIZE];
-	VkDeviceMemory device_memories[RENDER_DISTORTION_IMAGES_SIZE];
-	VkImage images[RENDER_DISTORTION_IMAGES_SIZE];
-	VkImageView image_views[RENDER_DISTORTION_IMAGES_SIZE];
+	struct render_buffer bufs[RENDER_DISTORTION_IMAGES_SIZE] = {0};
+	VkDeviceMemory device_memories[RENDER_DISTORTION_IMAGES_SIZE] = {VK_NULL_HANDLE};
+	VkImage images[RENDER_DISTORTION_IMAGES_SIZE] = {VK_NULL_HANDLE};
+	VkImageView image_views[RENDER_DISTORTION_IMAGES_SIZE] = {VK_NULL_HANDLE};
 	VkCommandBuffer upload_buffer = VK_NULL_HANDLE;
 	VkResult ret;
 
