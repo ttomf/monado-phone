@@ -121,6 +121,8 @@ The pose is taken from the ARCore session when frame is drawn. It is encoded as 
 
 The stream is received, RTP depacketized and decoded by **MediaCodec (video/hevc)**, which renders video directly on the AndroidView.
 
+Hand tracking is done by MediaPipe Hand Landmarker. It shares the same camera as ARCore. MediaPipe provides hand landmarks in 2D relative to the camera. The landmarks are converted to 3D using distance between wrist and fingers. Hand landmarks are encoded as **9, 261 or 513-byte buffer** (depends on how many hands are visible) and sent over UDP, in space **relative to camera**.
+
 ### Driver
 
 When the driver gets probed, it waits **5s** to receive a multicast response from the phone. If no response is received, it times out and lets Monado continue with software fallback. When the driver receives a response, it saves the phone's IP, listens for TCP connection (config stream) and starts to send H.265 (HEVC) stream and receive pose over UDP. It loads configuration file from `~/.config/monado-phone/config.cfg`.
@@ -128,6 +130,8 @@ When the driver gets probed, it waits **5s** to receive a multicast response fro
 The stream is taken when Monado draws on Vulkan image owned by the driver. Then the image is encoded and send in one gstreamer pipeline.
 
 Pose receiving thread listens on UDP port, decodes the pose and pushes it to the relation history.
+
+Hand tracking thread listens on UDP port and decodes the hand landmarks. When Monado wants hand poses, it takes the landmarks and combines them with the pose to get world space hand poses, and pushes them into Monado.
 
 ### Diagram
 
@@ -160,11 +164,20 @@ sequenceDiagram
       Note over P: Phone renders the received frame on Surface
     end
     loop Pose Data
+      Note over P: Phone creates pose data from ARCore
       P->>D: Phone sends pose data
       Note over D: Driver decodes pose data
       D->>M: Driver sends pose data to Monado
       M->>G: Monado sends pose data to game
+    endd
+    loop Hand Data
+      Note over P: Phone creates hand data from MediaPipe landmarks
+      P->>D: Phone sends hand data
+      Note over D: Driver decodes hand data and combines them with pose
+      D->>M: Driver sends hand data to Monado
+      M->>G: Monado sends hand data to game
     end
+
   end
 ```
 
