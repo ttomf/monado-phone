@@ -14,6 +14,9 @@ import java.nio.ByteOrder
 
 private const val TAG = "HandTracker"
 
+const val HAND_WIDTH = 854
+const val HAND_HEIGHT = 480
+
 data class HandLandmarks(
     var timestampNs: Long,
     var leftHand: FloatArray? = null,
@@ -69,7 +72,7 @@ class HandTracker(
             }.setErrorListener { error ->
                 error.printStackTrace()
             }.build()
-
+        Log.d(TAG, "Initializing Hand Landmarker...")
         handLandmarker = HandLandmarker.createFromOptions(context, options)
     }
 

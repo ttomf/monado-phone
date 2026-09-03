@@ -27,6 +27,7 @@
 #include "math/m_relation_history.h"
 #include "math/m_api.h"
 #include "math/m_mathinclude.h"
+#include "math/m_vec3.h"
 
 #include "util/u_misc.h"
 #include "util/u_logging.h"

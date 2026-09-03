@@ -10,6 +10,7 @@ import android.os.Looper
 import android.util.Log
 import android.view.Surface
 import android.widget.Toast
+import com.google.common.math.Stats.meanOf
 import com.google.mediapipe.tasks.vision.handlandmarker.HandLandmarkerResult
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -29,6 +30,9 @@ import java.net.MulticastSocket
 import java.net.Socket
 import java.net.SocketException
 import java.net.SocketTimeoutException
+import java.util.concurrent.atomic.AtomicReference
+import kotlin.math.pow
+import kotlin.math.sqrt
 import kotlin.time.Duration.Companion.milliseconds
 
 private const val MCAST_ADDR = "239.1.1.1"
@@ -239,27 +243,51 @@ class MonadoDriver(
     private fun processHandsResult(result: HandLandmarkerResult) {
         val worldLandmarks = result.worldLandmarks()
         val handedness = result.handedness()
+        val localLandmarks = result.landmarks()
 
         val landmarks = HandLandmarks(result.timestampMs() * 1_000_000)
 
-        for ((handIdx, hand) in worldLandmarks.withIndex()) {
+        val focalLength = HAND_WIDTH
+
+        for ((handIdx, hand) in localLandmarks.withIndex()) {
+            val world = worldLandmarks[handIdx]
             val label = handedness[handIdx][0].categoryName()
+
+            // Mean distance between four fingers and wrist
+            val mcpIndices = intArrayOf(5, 9, 13, 17)
+            val dists = mutableListOf<Float>()
+            for (mcp in mcpIndices) {
+                val dx = (hand[0].x() - hand[mcp].x()) * HAND_WIDTH
+                val dy = (hand[0].y() - hand[mcp].y()) * HAND_HEIGHT
+                dists.add(sqrt(dx.pow(2) + dy.pow(2)))
+            }
+            val palmSizePx = meanOf(dists)
+
+            // Average distance between finger and wrist is 0.09 m
+            val depth = (focalLength * 0.09) / (palmSizePx + 1e-6) // Avoid zero-division
+
             if (label == "Left") {
                 landmarks.leftHand = FloatArray(21 * 3)
-                for ((i, lm) in hand.withIndex()) {
-                    val offset = i * 3
-                    landmarks.leftHand!![offset] = lm.x()
-                    landmarks.leftHand!![offset + 1] = lm.y()
-                    landmarks.leftHand!![offset + 2] = lm.z()
-                }
             }
             if (label == "Right") {
                 landmarks.rightHand = FloatArray(21 * 3)
-                for ((i, lm) in hand.withIndex()) {
-                    val offset = i * 3
-                    landmarks.rightHand!![offset] = lm.x()
-                    landmarks.rightHand!![offset + 1] = lm.y()
-                    landmarks.rightHand!![offset + 2] = lm.z()
+            }
+
+            for (i in hand.indices) {
+                val z = depth + world[i].z()
+                val x = (hand[i].x() * HAND_WIDTH) * z / focalLength
+                val y = (hand[i].y() * HAND_HEIGHT) * z / focalLength
+
+                val offset = i * 3
+                if (label == "Left") {
+                    landmarks.leftHand!![offset] = x.toFloat()
+                    landmarks.leftHand!![offset + 1] = -y.toFloat()
+                    landmarks.leftHand!![offset + 2] = -z.toFloat()
+                }
+                if (label == "Right") {
+                    landmarks.rightHand!![offset] = x.toFloat()
+                    landmarks.rightHand!![offset + 1] = -y.toFloat()
+                    landmarks.rightHand!![offset + 2] = -z.toFloat()
                 }
             }
         }

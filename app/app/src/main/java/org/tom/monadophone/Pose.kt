@@ -124,12 +124,11 @@ class ArCorePose(
     private var positionBuffer: FloatBuffer? = null
     private var baseTexCoords: FloatBuffer? = null
     private var displayTexCoords: FloatBuffer? = null
+    private var fboTexCoords: FloatBuffer? = null
 
     // Offscreen FBO for hand tracking (smaller than display to reduce glReadPixels cost).
     private var handFbo = -1
     private var handTex = -1
-    private val handW = 480
-    private val handH = 360
     private var handPixelBuffer: ByteBuffer? = null
     private var lastHandFrameNs = 0L
     private val handIntervalNs = 33_333_333L // ~30 Hz
@@ -310,15 +309,33 @@ class ArCorePose(
         if (handFbo != -1 && frame.timestamp - lastHandFrameNs >= handIntervalNs) {
             lastHandFrameNs = frame.timestamp
             val buf = handPixelBuffer ?: return
-            GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, handFbo)
+            // Flip UVs for the FBO render so that the subsequent glReadPixels
+            // (which reads rows bottom-up) yields a top-down image for
+            // MediaPipe. GL does this flip, no per-frame CPU copy needed.
+            val fboUv = fboTexCoords ?: return
+            fboUv.position(0)
             display.position(0)
-            drawQuad(handW, handH, display)
+            for (i in 0 until 4) {
+                fboUv.put(display.get())
+                fboUv.put(1f - display.get())
+            }
+            fboUv.position(0)
+            GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, handFbo)
+            drawQuad(HAND_WIDTH, HAND_HEIGHT, fboUv)
             buf.clear()
-            GLES20.glReadPixels(0, 0, handW, handH, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, buf)
+            GLES20.glReadPixels(
+                0,
+                0,
+                HAND_WIDTH,
+                HAND_HEIGHT,
+                GLES20.GL_RGBA,
+                GLES20.GL_UNSIGNED_BYTE,
+                buf
+            )
             GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)
             GLES20.glViewport(0, 0, surfaceW, surfaceH)
             buf.rewind()
-            handTracker.processImage(buf, handW, handH, frame.timestamp)
+            handTracker.processImage(buf, HAND_WIDTH, HAND_HEIGHT, frame.timestamp)
         }
     }
 
@@ -381,6 +398,7 @@ class ArCorePose(
         // Base texture coordinates, transformed per frame to match display.
         baseTexCoords = directFloatBuffer(floatArrayOf(0f, 1f, 0f, 0f, 1f, 1f, 1f, 0f))
         displayTexCoords = directFloatBuffer(FloatArray(8))
+        fboTexCoords = directFloatBuffer(FloatArray(8))
     }
 
     private fun setupHandFbo() {
@@ -393,7 +411,7 @@ class ArCorePose(
         handTex = tex[0]
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, handTex)
         GLES20.glTexImage2D(
-            GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, handW, handH, 0,
+            GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, HAND_WIDTH, HAND_HEIGHT, 0,
             GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, null
         )
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR)
@@ -411,7 +429,7 @@ class ArCorePose(
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
 
         handPixelBuffer =
-            ByteBuffer.allocateDirect(handW * handH * 4).order(ByteOrder.nativeOrder())
+            ByteBuffer.allocateDirect(HAND_WIDTH * HAND_HEIGHT * 4).order(ByteOrder.nativeOrder())
     }
 
     private fun compileShader(type: Int, source: String): Int {

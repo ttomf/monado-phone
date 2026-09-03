@@ -137,16 +137,43 @@ phone_hmd_get_hand_tracking(struct xrt_device *xdev,
 	packet = *hmd->hand_packet;
 	os_mutex_unlock(&hmd->hand_lock);
 
+	// Get pose like in get_tracked_pose to map hand pose to global space
+	struct xrt_space_relation relation = XRT_SPACE_RELATION_ZERO;
+	enum m_relation_history_result history_result =
+	    m_relation_history_get(hmd->relation_hist, packet.timestamp_ns, &relation);
+	if (history_result == M_RELATION_HISTORY_RESULT_INVALID) {
+		U_LOG_E("phone: no poses pushed");
+	}
+	if (relation.relation_flags & XRT_SPACE_RELATION_ORIENTATION_VALID_BIT) {
+		// Provide only normalized orientation
+		math_quat_normalize(&relation.pose.orientation);
+	}
+
 	const float *lm = (name == XRT_INPUT_HT_UNOBSTRUCTED_LEFT) ? packet.left : packet.right;
+
+	bool is_active = false;
 
 	for (int i = 0; i < XRT_HAND_JOINT_COUNT; ++i) {
 		struct xrt_hand_joint_value *joint = &out_value->values.hand_joint_set_default[i];
 		int mi = mp_idx[i];
-		joint->relation.pose.position.x = lm[3 * mi + 0];
-		joint->relation.pose.position.y = lm[3 * mi + 1];
-		joint->relation.pose.position.z = lm[3 * mi + 2];
+		struct xrt_vec3 hand_pos = {
+		    .x = lm[3 * mi + 0],
+		    .y = lm[3 * mi + 1],
+		    .z = lm[3 * mi + 2],
+		};
+
+		math_quat_rotate_vec3(&relation.pose.orientation, &hand_pos, &joint->relation.pose.position);
+
+		joint->relation.pose.position.x += relation.pose.position.x / 2.f;
+		joint->relation.pose.position.y += relation.pose.position.y / 2.f;
+		joint->relation.pose.position.z += relation.pose.position.z / 2.f;
+
 		joint->relation.relation_flags = (enum xrt_space_relation_flags)(
 		    XRT_SPACE_RELATION_ORIENTATION_VALID_BIT | XRT_SPACE_RELATION_POSITION_VALID_BIT);
+
+		if (hand_pos.x != 0.f || hand_pos.y != 0.f || hand_pos.z != 0.f) {
+			is_active = true;
+		}
 	}
 
 	// Anatomic joints width
@@ -154,7 +181,7 @@ phone_hmd_get_hand_tracking(struct xrt_device *xdev,
 
 	// Root = wrist
 	out_value->hand_pose = out_value->values.hand_joint_set_default[XRT_HAND_JOINT_WRIST].relation;
-	out_value->is_active = true;
+	out_value->is_active = is_active;
 
 	*out_timestamp_ns = hmd->hand_packet->timestamp_ns;
 
