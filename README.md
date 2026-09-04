@@ -10,6 +10,22 @@ Currently, it implements **UDP HEVC streaming** to phone, **6DOF tracking** with
 > This driver is still in development and may not work as expected.
 > Tested only on Moto G85 with Android 16 and Arch Linux with RTX 5060.
 
+## Table of Contents
+
+- [Requirements](#requirements)
+- [Getting Started](#getting-started)
+  - [Steam](#steam)
+- [Building from source](#building-from-source)
+  - [Prerequisites](#prerequisites)
+  - [Driver](#driver)
+  - [App](#app)
+- [Configuration file](#configuration-file)
+- [Architecture](#architecture)
+  - [Phone](#phone)
+  - [Driver](#driver-1)
+  - [Diagram](#diagram)
+- [Generative AI Disclosure](#generative-ai-disclosure)
+
 ## Requirements
 
 - Android phone with minimal API level 29 (Android 10)
@@ -115,6 +131,30 @@ This will create these important files:
 1. Open Android Studio and select **Open an existing project**.
 2. Navigate to the `app` directory and select it.
 3. Build the app as you would with any other Android project.
+
+## Configuration file
+
+Monado Phone Driver uses `~/.config/monado-phone/config.cfg` file to load configuration. After every change, you need to restart monado-service to apply changes. The file is in `key=value` format, must end with newline and cannot have comments.
+
+| key | initial value | description |
+| --- | --- | --- |
+| port | 5500 | UDP port for discovery |
+| multicast_addr | 239.1.1.1 | address of multicast group for discovery |
+| config_port | 5501 | UDP port for configuration socket |
+| stream_port | 5502 | UDP port for streaming |
+| pose_port | 5503 | UDP port for pose receiving |
+| hand_port | 5504 | UDP port for hand landmarks receiving |
+| stream_w | 1280 | width of the stream |
+| stream_h | 720 | height of the stream |
+| screen_w | 2400 | phone screen width in pixels |
+| screen_h | 1080 | phone screen height in pixels |
+| screen_w_m | 0.16 | phone screen width in meters |
+| screen_h_m | 0.07 | phone screen height in meters |
+| k1 | 0.12 | distortion factor k1 |
+| k2 | 0.12 | distortion factor k2 |
+| inter_lens | 0.060 | inter-lens distance in meters |
+| screen_to_lens | 0.050 | distance between phone screen and lens in meters |
+| tray_to_lens | 0.035 | vertical distance from bottom of the phone tray to lens in meters |
 
 ## Architecture
 
