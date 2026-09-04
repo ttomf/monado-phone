@@ -122,7 +122,7 @@ legacy_open_system_impl(struct xrt_builder *xb,
                         struct xrt_tracking_origin *origin,
                         struct xrt_system_devices *xsysd,
                         struct xrt_frame_context *xfctx,
-                        struct t_builder_roles_helper *tbrh)
+                        struct t_builder_options *tbo)
 {
 	xrt_result_t xret;
 	int ret;
@@ -193,16 +193,16 @@ legacy_open_system_impl(struct xrt_builder *xb,
 	conforming_right_ht = u_system_devices_get_ht_device_conforming_right(xsysd);
 
 	// Assign to role(s).
-	tbrh->head = head;
-	tbrh->eyes = eyes;
-	tbrh->face = face;
-	tbrh->left = left;
-	tbrh->right = right;
-	tbrh->gamepad = gamepad;
-	tbrh->hand_tracking.unobstructed.left = unobstructed_left_ht;
-	tbrh->hand_tracking.unobstructed.right = unobstructed_right_ht;
-	tbrh->hand_tracking.conforming.left = conforming_left_ht;
-	tbrh->hand_tracking.conforming.right = conforming_right_ht;
+	tbo->head = head;
+	tbo->eyes = eyes;
+	tbo->face = face;
+	tbo->left = left;
+	tbo->right = right;
+	tbo->gamepad = gamepad;
+	tbo->hand_tracking.unobstructed.left = unobstructed_left_ht;
+	tbo->hand_tracking.unobstructed.right = unobstructed_right_ht;
+	tbo->hand_tracking.conforming.left = conforming_left_ht;
+	tbo->hand_tracking.conforming.right = conforming_right_ht;
 
 	return XRT_SUCCESS;
 }

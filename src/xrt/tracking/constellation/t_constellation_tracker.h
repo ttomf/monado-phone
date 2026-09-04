@@ -85,6 +85,12 @@ struct t_constellation_tracker_device_params
 	 * guesses when finding the device.
 	 */
 	struct t_constellation_tracker_tracking_source *tracking_source;
+
+	/*!
+	 * The IMU sink for this device. This pointer is filled in by the constellation tracker. After adding the device
+	 * to the constellation tracker, drivers should send IMU samples to this sink.
+	 */
+	struct xrt_imu_sink *imu_sink;
 };
 
 enum t_constellation_tracker_flags

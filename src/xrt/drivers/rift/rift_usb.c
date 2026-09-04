@@ -86,9 +86,8 @@ rift_get_config(struct rift_hmd *hmd, struct rift_config_report *config)
 	// FIXME: handle endian differences
 	memcpy(config, buf + 1, sizeof(*config));
 
-	// this value is hardcoded in the DK1 and DK2 firmware
-	if ((hmd->variant == RIFT_VARIANT_DK1 || hmd->variant == RIFT_VARIANT_DK2) &&
-	    config->sample_rate != IMU_SAMPLE_RATE) {
+	// this value is hardcoded in the DK2 firmware
+	if ((hmd->variant == RIFT_VARIANT_DK2) && config->sample_rate != IMU_SAMPLE_RATE) {
 		HMD_ERROR(hmd, "Got invalid config from headset, got sample rate %d when expected %d",
 		          config->sample_rate, IMU_SAMPLE_RATE);
 		return -1;
@@ -148,6 +147,12 @@ int
 rift_set_config(struct rift_hmd *hmd, struct rift_config_report *config)
 {
 	return rift_send_report(hmd, false, FEATURE_REPORT_CONFIG, config, sizeof(*config));
+}
+
+int
+rift_set_custom_pattern(struct rift_hmd *hmd, struct rift_custom_pattern_report *pattern)
+{
+	return rift_send_report(hmd, false, FEATURE_REPORT_CUSTOM_PATTERN, pattern, sizeof(*pattern));
 }
 
 int

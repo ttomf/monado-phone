@@ -7,19 +7,23 @@
  * @ingroup drv_contactglove
  */
 
-#include <xrt/xrt_device.h>
-#include <xrt/xrt_defines.h>
+#pragma once
 
-#include <os/os_threading.h>
+#include "xrt/xrt_device.h"
+#include "xrt/xrt_defines.h"
 
-#include <util/u_cobs.h>
-#include <util/u_var.h>
-#include <util/u_logging.h>
+#include "os/os_threading.h"
 
-#include <math/m_relation_history.h>
+#include "util/u_cobs.h"
+#include "util/u_var.h"
+#include "util/u_logging.h"
+#include "util/u_hand_tracking.h"
+
+#include "math/m_relation_history.h"
 
 #include "contactglove_interface.h"
 #include "contactglove_protocol.h"
+#include "contactglove_calibration.h"
 
 
 /*!
@@ -109,11 +113,7 @@ struct contactglove_device
 	uint16_t raw_flex_adc_values[CONTACTGLOVE2_SENSOR_COUNT];
 	struct u_var_u16_arr u_var_flex_adc_values;
 
-	struct u_hand_tracking_curl_values no_curl_cal;
-	struct u_hand_tracking_curl_values full_curl_cal;
-
-	struct u_var_button u_var_no_curl_cal_button;
-	struct u_var_button u_var_full_curl_cal_button;
+	struct contactglove_calibration_wizard calibration_wizard;
 
 	enum xrt_hand hand;
 	enum contactglove_device_role role;
@@ -165,7 +165,8 @@ static struct xrt_binding_output_pair touch_outputs_magnetra2[] = {
     {XRT_OUTPUT_NAME_TOUCH_HAPTIC, XRT_OUTPUT_NAME_CONTACTGLOVE2_HAPTIC},
 };
 
-struct xrt_binding_profile binding_profiles_magnetra2[] = {
+// @note XRT_MAYBE_UNUSED is here since it's used only in some compilation units, not all that include this file
+XRT_MAYBE_UNUSED static struct xrt_binding_profile binding_profiles_magnetra2[] = {
     {
         .name = XRT_DEVICE_CONTACTGLOVE2,
         .inputs = contactglove2_inputs_magnetra2,

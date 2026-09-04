@@ -182,6 +182,14 @@ math_vec3_translation_from_isometry(const struct xrt_matrix_4x4 *transform, stru
 	map_vec3(*result) = isometry.translation();
 }
 
+extern "C" void
+math_vec3_convert_from_opencv(const struct xrt_vec3 *in, struct xrt_vec3 *out)
+{
+	out->x = in->x;
+	out->y = -in->y;
+	out->z = -in->z;
+}
+
 
 /*
  *
@@ -199,6 +207,14 @@ extern "C" void
 math_vec3_f64_normalize(struct xrt_vec3_f64 *in)
 {
 	map_vec3_f64(*in) = map_vec3_f64(*in).normalized();
+}
+
+extern "C" void
+math_vec3_f64_convert_opencv(const struct xrt_vec3_f64 *in, struct xrt_vec3_f64 *out)
+{
+	out->x = in->x;
+	out->y = -in->y;
+	out->z = -in->z;
 }
 
 
@@ -1004,7 +1020,7 @@ math_pose_transform_point(const struct xrt_pose *transform, const struct xrt_vec
 }
 
 extern "C" void
-math_pose_convert_opencv(const struct xrt_pose *in, struct xrt_pose *out)
+math_pose_convert_from_opencv(const struct xrt_pose *in, struct xrt_pose *out)
 {
 	const struct xrt_pose yz_flip = {
 	    {1.0, 0.0, 0.0, 0.0},

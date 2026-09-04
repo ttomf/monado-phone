@@ -65,6 +65,32 @@ delayed_exit_thread(void *_server)
 }
 
 static void
+handle_exit_on_disconnect(struct ipc_server *s)
+{
+	if (!s->running) {
+		return;
+	}
+
+	// Should we stop the server when a client disconnects?
+	if (s->exit_on_disconnect) {
+		s->running = false;
+	}
+
+	os_mutex_lock(&s->global_state.lock);
+	bool do_delayed_exit = s->exit_when_idle && s->global_state.connected_client_count == 0;
+	os_mutex_unlock(&s->global_state.lock);
+
+	// Should we stop when all clients disconnect?
+	if (do_delayed_exit) {
+		s->last_client_disconnect_ns = os_monotonic_get_ns();
+
+		struct os_thread thread;
+		os_thread_start(&thread, delayed_exit_thread, (void *)s);
+		// We intentionally don't join this thread - it's fire and forget
+	}
+}
+
+static void
 common_shutdown(volatile struct ipc_client_state *ics)
 {
 	/*
@@ -166,19 +192,7 @@ common_shutdown(volatile struct ipc_client_state *ics)
 	ics->plane_detection_size = 0;
 	ics->plane_detection_count = 0;
 
-	// Should we stop the server when a client disconnects?
-	if (ics->server->exit_on_disconnect) {
-		ics->server->running = false;
-	}
-	// Should we stop when all clients disconnect?
-	if (ics->server->exit_when_idle && ics->server->global_state.connected_client_count == 0) {
-		ics->server->last_client_disconnect_ns = os_monotonic_get_ns();
-
-		struct os_thread thread;
-		os_thread_start(&thread, delayed_exit_thread, (void *)ics->server);
-		// We intentionally don't join this thread - it's fire and forget
-	}
-
+	handle_exit_on_disconnect(ics->server);
 
 	ipc_server_deactivate_session(ics);
 }
@@ -235,7 +249,9 @@ client_loop(volatile struct ipc_client_state *ics)
 		return;
 	}
 
-	while (ics->server->running) {
+	struct ipc_thread *it = &ics->server->threads[ics->server_thread_index];
+	it->state = IPC_THREAD_RUNNING;
+	while (it->state == IPC_THREAD_RUNNING) {
 		const int half_a_second_ms = 500;
 		struct epoll_event event = XRT_STRUCT_INIT;
 		int ret = 0;
@@ -341,7 +357,9 @@ client_loop(volatile struct ipc_client_state *ics)
 	    ics->client_state.id,                 //
 	    ics->server->callback_data);          //
 
-	while (ics->server->running) {
+	struct ipc_thread *it = &ics->server->threads[ics->server_thread_index];
+	it->state = IPC_THREAD_RUNNING;
+	while (it->state == IPC_THREAD_RUNNING) {
 		uint8_t buf[IPC_BUF_SIZE] = {0};
 		DWORD len = 0;
 		BOOL bret = false;

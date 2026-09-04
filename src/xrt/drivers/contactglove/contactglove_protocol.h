@@ -7,9 +7,15 @@
  * @ingroup drv_contactglove
  */
 
-#include <xrt/xrt_compiler.h>
-#include <xrt/xrt_byte_order.h>
+#pragma once
 
+#include "xrt/xrt_compiler.h"
+#include "xrt/xrt_byte_order.h"
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define PING_INTERVAL_NS (1000LL * U_TIME_1MS_IN_NS) // 1000 ms
 #define PING_TIMEOUT_NS (800LL * U_TIME_1MS_IN_NS)   // 800 ms
@@ -216,3 +222,7 @@ struct contactglove_to_host_packet_debug
 SIZE_ASSERT(struct contactglove_to_host_packet_debug, 2);
 
 #pragma pack(pop)
+
+#ifdef __cplusplus
+}
+#endif

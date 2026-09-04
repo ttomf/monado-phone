@@ -170,6 +170,9 @@ sdl_system_devices_init(struct sdl_program *sp)
 	sp->xsysd_base.static_xdev_count = 1;
 	sp->xsysd_base.static_roles.head = head;
 
+	struct xrt_pose T_stage_local = XRT_POSE_IDENTITY;
+	T_stage_local.position.y = 1.6;
+
 	t_builder_create_space_overseer_legacy( //
 	    &sp->bsys->broadcast,               // broadcast
 	    head,                               // head
@@ -180,6 +183,7 @@ sdl_system_devices_init(struct sdl_program *sp)
 	    sp->xsysd_base.static_xdevs,        // xdevs
 	    sp->xsysd_base.static_xdev_count,   // xdev_count
 	    false,                              // root_is_unbounded
+	    &T_stage_local,                     // T_stage_local
 	    true,                               // per_app_local_spaces
 	    &sp->xso);                          // out_xso
 }

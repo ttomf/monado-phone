@@ -71,7 +71,7 @@ gui_scene_record_euroc(struct gui_program *p)
 
 
 	struct xrt_slam_sinks *slam_sinks = NULL;
-	slam_sinks = euroc_recorder_create(&xfctx, NULL, 2, false);
+	slam_sinks = euroc_recorder_create(&xfctx, NULL, 2, 1, false);
 
 	u_var_add_root(bsysd, "DepthAI Euroc recorder", 0);
 	euroc_recorder_add_ui(slam_sinks, bsysd, "");

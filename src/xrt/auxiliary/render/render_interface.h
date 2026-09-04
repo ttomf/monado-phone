@@ -1,5 +1,5 @@
 // Copyright 2019-2023, Collabora, Ltd.
-// Copyright 2025, NVIDIA CORPORATION.
+// Copyright 2025-2026, NVIDIA CORPORATION.
 // SPDX-License-Identifier: BSL-1.0
 /*!
  * @file
@@ -18,6 +18,11 @@
 #include "vk/vk_cmd_pool.h"
 
 #include "shaders/render_shaders_interface.h"
+
+
+struct render_distortion_pipeline_cache;
+struct render_layer_pipeline_cache;
+struct render_blit_ms_pipeline_cache;
 
 
 #ifdef __cplusplus
@@ -95,6 +100,12 @@ extern "C" {
 
 //! The binding that the shared layer fragment shader has its source on.
 #define RENDER_BINDING_LAYER_SHARED_SRC 1
+
+/*!
+ * Default inset blend edge width for layer projection edge blending.
+ * Must match the default in layer.comp (k_inset_blend_edge).
+ */
+#define RENDER_LAYER_DEFAULT_INSET_BLEND_EDGE (0.05f)
 
 /*!
  * The maximum number samplers per view that can be used by the compute shader
@@ -485,6 +496,9 @@ struct render_resources
 			//! Doesn't depend on target so is static.
 			VkPipeline timewarp_pipeline;
 
+			//! Get-or-create cache for layer.comp specialization variants.
+			struct render_layer_pipeline_cache *pipeline_cache;
+
 			//! Size of combined image sampler array
 			uint32_t image_array_size;
 
@@ -500,11 +514,14 @@ struct render_resources
 			//! Pipeline layout used for compute distortion, shared with clear.
 			VkPipelineLayout pipeline_layout;
 
-			//! Doesn't depend on target so is static.
+			//! Cached non-timewarp variant from @ref pipeline_cache.
 			VkPipeline pipeline;
 
-			//! Doesn't depend on target so is static.
+			//! Cached timewarp variant from @ref pipeline_cache.
 			VkPipeline timewarp_pipeline;
+
+			//! Get-or-create cache for distortion.comp specialization variants.
+			struct render_distortion_pipeline_cache *pipeline_cache;
 
 			//! Target info.
 			struct render_buffer ubo;
@@ -1207,18 +1224,6 @@ enum render_compute_blit_resolve_color_mode
 	//! Source is sRGB but the submitted bytes are already linear.
 	RENDER_BLIT_RESOLVE_COLOR_MODE_LINEAR_IN_SRGB_FORMAT = 2,
 	RENDER_BLIT_RESOLVE_COLOR_MODE_COUNT = 2,
-};
-
-/*!
- * Specialization constants for the blit shader, used to select the correct shader variant for the source and target
- * image formats.
- *
- * @relates render_compute
- */
-struct render_compute_blit_specialization_constants
-{
-	//! See @ref render_compute_blit_resolve_color_mode.
-	uint32_t color_transform_mode;
 };
 
 /*!

@@ -353,12 +353,8 @@ handle_input_packet(struct wmr_controller_base *wcb, uint64_t time_ns, uint8_t *
 	struct wmr_controller_og *ctrl = (struct wmr_controller_og *)(wcb);
 	bool b = wmr_controller_og_packet_parse(ctrl, buffer, buf_size);
 	if (b) {
-		m_imu_3dof_update(&wcb->fusion,
-		                  ctrl->last_inputs.imu.timestamp_ticks * WMR_MOTION_CONTROLLER_NS_PER_TICK,
-		                  &ctrl->last_inputs.imu.acc, &ctrl->last_inputs.imu.gyro);
-
-		wcb->last_imu_timestamp_ns = time_ns;
-		wcb->last_angular_velocity = ctrl->last_inputs.imu.gyro;
+		wmr_controller_base_handle_imu_sample(wcb, time_ns, ctrl->last_inputs.imu.timestamp_ticks,
+		                                      &ctrl->last_inputs.imu.acc, &ctrl->last_inputs.imu.gyro);
 	}
 
 	return b;
@@ -405,7 +401,8 @@ struct wmr_controller_base *
 wmr_controller_og_create(struct wmr_controller_connection *conn,
                          enum xrt_device_type controller_type,
                          uint16_t pid,
-                         enum u_logging_level log_level)
+                         enum u_logging_level log_level,
+                         struct xrt_fs *src)
 {
 	DRV_TRACE_MARKER();
 
@@ -413,7 +410,7 @@ wmr_controller_og_create(struct wmr_controller_connection *conn,
 	struct wmr_controller_og *ctrl = U_DEVICE_ALLOCATE(struct wmr_controller_og, flags, 11, 1);
 	struct wmr_controller_base *wcb = (struct wmr_controller_base *)(ctrl);
 
-	if (!wmr_controller_base_init(wcb, conn, controller_type, log_level, wmr_controller_og_destroy)) {
+	if (!wmr_controller_base_init(wcb, conn, controller_type, log_level, wmr_controller_og_destroy, src)) {
 		wmr_controller_og_destroy(&wcb->base);
 		return NULL;
 	}

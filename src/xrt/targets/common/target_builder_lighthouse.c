@@ -441,8 +441,9 @@ valve_index_setup_visual_trackers(struct lighthouse_system *lhs,
 
 	struct xrt_slam_sinks entry_sinks = {
 	    .cam_count = 1,
+	    .imu_count = 1,
 	    .cams = {entry_sbs_sink},
-	    .imu = slam_enabled ? slam_sinks->imu : NULL,
+	    .imus = {slam_enabled ? slam_sinks->imus[0] : NULL},
 	    .gt = slam_enabled ? slam_sinks->gt : NULL,
 	};
 
@@ -517,7 +518,7 @@ lighthouse_open_system_impl(struct xrt_builder *xb,
                             struct xrt_tracking_origin *origin,
                             struct xrt_system_devices *xsysd,
                             struct xrt_frame_context *xfctx,
-                            struct t_builder_roles_helper *tbrh)
+                            struct t_builder_options *tbo)
 {
 	struct lighthouse_system *lhs = (struct lighthouse_system *)xb;
 	xrt_result_t result = XRT_SUCCESS;
@@ -748,15 +749,15 @@ end_valve_index:
 	}
 
 	// Assign to role(s).
-	tbrh->head = head;
-	tbrh->face = face;
-	tbrh->eyes = eyes;
-	tbrh->left = left;
-	tbrh->right = right;
-	tbrh->hand_tracking.unobstructed.left = unobstructed_left_ht;
-	tbrh->hand_tracking.unobstructed.right = unobstructed_right_ht;
-	tbrh->hand_tracking.conforming.left = conforming_left_ht;
-	tbrh->hand_tracking.conforming.right = conforming_right_ht;
+	tbo->head = head;
+	tbo->face = face;
+	tbo->eyes = eyes;
+	tbo->left = left;
+	tbo->right = right;
+	tbo->hand_tracking.unobstructed.left = unobstructed_left_ht;
+	tbo->hand_tracking.unobstructed.right = unobstructed_right_ht;
+	tbo->hand_tracking.conforming.left = conforming_left_ht;
+	tbo->hand_tracking.conforming.right = conforming_right_ht;
 
 	// Clean up after us.
 	lhs->xfctx = NULL;

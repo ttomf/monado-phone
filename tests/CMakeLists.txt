@@ -32,7 +32,13 @@ if(XRT_HAVE_D3D12)
 	list(APPEND tests tests_aux_d3d_d3d12 tests_comp_client_d3d12)
 endif()
 if(XRT_HAVE_VULKAN)
-	list(APPEND tests tests_comp_client_vulkan tests_uv_to_tangent)
+	list(
+		APPEND
+		tests
+		tests_comp_client_vulkan
+		tests_uv_to_tangent
+		tests_render_pipeline_cache
+		)
 endif()
 if(XRT_FEATURE_OPENXR)
 	list(APPEND tests tests_input_transform)
@@ -65,7 +71,7 @@ target_link_libraries(tests_glue_traits PRIVATE xrt-interfaces aux_glue)
 target_link_libraries(tests_history_buf PRIVATE aux_math)
 target_link_libraries(tests_lowpass_float PRIVATE aux_math)
 target_link_libraries(tests_lowpass_integer PRIVATE aux_math)
-target_link_libraries(tests_quatexpmap PRIVATE aux_math)
+target_link_libraries(tests_quatexpmap PRIVATE xrt-external-tinyceres aux_math)
 target_link_libraries(tests_rational PRIVATE aux_math)
 target_link_libraries(tests_relation_chain PRIVATE aux_math)
 target_link_libraries(tests_pose PRIVATE aux_math)
@@ -100,6 +106,20 @@ if(XRT_HAVE_VULKAN)
 		tests_comp_client_vulkan PRIVATE comp_client comp_mock comp_util aux_vk
 		)
 	target_link_libraries(tests_uv_to_tangent PRIVATE aux_render)
+	target_link_libraries(
+		tests_render_pipeline_cache
+		PRIVATE
+			aux_render_cache
+			comp_util
+			aux_vk
+			aux_shaders
+			xrt-interfaces
+		)
+	get_target_property(_aux_shaders_binary_dir aux_shaders BINARY_DIR)
+	target_include_directories(
+		tests_render_pipeline_cache SYSTEM PRIVATE ${_aux_shaders_binary_dir}
+		)
+	add_dependencies(tests_render_pipeline_cache aux_shaders render_shader_specialization)
 endif()
 
 if(XRT_FEATURE_OPENXR)

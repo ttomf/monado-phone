@@ -262,7 +262,9 @@ struct pssense_device
 		struct pssense_led_settings led_settings;
 
 		bool use_constellation;
+		struct t_constellation_tracker *constellation_tracker;
 		t_constellation_device_id_t constellation_device_id;
+		struct xrt_imu_sink *constellation_imu_sink;
 		struct m_relation_history *constellation_relation_history;
 
 		struct t_led_sync_refinement led_sync_refinement;
@@ -427,6 +429,32 @@ pssense_host_ts_to_device(struct pssense_device *pssense,
 	return false;
 }
 
+static bool
+pssense_device_ts_to_host(struct pssense_device *pssense,
+                          timepoint_ns device_timestamp_ns,
+                          timepoint_ns *out_host_timestamp_ns)
+{
+	if (!pssense->timing.has_clock_offset) {
+		return false;
+	}
+
+	switch (pssense->tracking.latest_led_sync_sample.timestamp_mode) {
+	case T_LED_SYNC_SAMPLE_TIMESTAMP_MODE_INVALID:
+	case T_LED_SYNC_SAMPLE_TIMESTAMP_MODE_DEVICE_HOST_LATENCY: {
+		*out_host_timestamp_ns = device_timestamp_ns - (timepoint_ns)(pssense->timing.filtered_offset_ns) -
+		                         pssense->tracking.latest_led_sync_sample.timestamp.device_host_latency_ns;
+		return true;
+	}
+	case T_LED_SYNC_SAMPLE_TIMESTAMP_MODE_HOST_DEVICE_CLOCK_OFFSET: {
+		*out_host_timestamp_ns = device_timestamp_ns -
+		                         pssense->tracking.latest_led_sync_sample.timestamp.host_device_clock_offset_ns;
+		return true;
+	}
+	}
+
+	return false;
+}
+
 /*!
  * Reads one packet from the device, wrapping no data as EAGAIN. Does not block.
  */
@@ -480,6 +508,29 @@ pssense_update_fusion(struct pssense_device *pssense)
 	};
 	m_relation_history_push(pssense->tracking.imu_relation_history, &space_relation,
 	                        pssense->timing.latest_imu_time_ns);
+
+	if (pssense->tracking.constellation_imu_sink != NULL) {
+		struct xrt_imu_sample sample = {
+		    .accel_m_s2 =
+		        {
+		            .x = accel.x,
+		            .y = accel.y,
+		            .z = accel.z,
+		        },
+		    .gyro_rad_secs =
+		        {
+		            .x = gyro.x,
+		            .y = gyro.y,
+		            .z = gyro.z,
+		        },
+		};
+
+		if (pssense_device_ts_to_host(pssense,                            //
+		                              pssense->timing.latest_imu_time_ns, //
+		                              &sample.timestamp_ns)) {            //
+			xrt_sink_push_imu(pssense->tracking.constellation_imu_sink, &sample);
+		}
+	}
 }
 
 static int
@@ -1794,6 +1845,9 @@ pssense_add_to_constellation_tracker(struct xrt_device *xdev, struct t_constella
 	} else {
 		pssense->tracking.use_constellation = true;
 	}
+
+	pssense->tracking.constellation_imu_sink = params.imu_sink;
+	pssense->tracking.constellation_tracker = tracker;
 
 	pssense->base.tracking_origin = t_constellation_tracker_get_tracking_origin(tracker);
 

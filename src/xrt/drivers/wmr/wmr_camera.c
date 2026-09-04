@@ -124,7 +124,7 @@ struct wmr_camera
 
 	struct u_sink_debug debug_sinks[2];
 
-	struct xrt_frame_sink *cam_sinks[WMR_MAX_CAMERAS]; //!< Downstream sinks to push tracking frames to
+	struct xrt_frame_sink *cam_sinks[XRT_TRACKING_MAX_CAMS]; //!< Downstream sinks to push tracking frames to
 
 	enum u_logging_level log_level;
 };
@@ -300,6 +300,10 @@ img_xfer_cb(struct libusb_transfer *xfer)
 
 	struct wmr_camera *cam = xfer->user_data;
 
+	if (!cam->running) {
+		return;
+	}
+
 	if (xfer->status != LIBUSB_TRANSFER_COMPLETED) {
 		WMR_CAM_DEBUG(cam, "Camera transfer completed with status: %s (%u)", libusb_error_name(xfer->status),
 		              xfer->status);
@@ -408,25 +412,28 @@ img_xfer_cb(struct libusb_transfer *xfer)
 	}
 
 	// Push to sinks
-	if (slam_tracking_frame) {
-		DRV_TRACE_IDENT(push_to_sinks);
+	DRV_TRACE_BEGIN(push_to_sinks);
 
-		// Tracking frames usually come at ~30fps
-		struct xrt_frame *frames[WMR_MAX_CAMERAS] = {NULL};
-		for (int i = 0; i < cam->slam_cam_count; i++) {
-			u_frame_create_roi(xf, cam->tcam_confs[i].roi, &frames[i]);
-		}
-
-		update_expgain(cam, frames);
-
-		for (int i = 0; i < cam->slam_cam_count; i++) {
-			xrt_sink_push_frame(cam->cam_sinks[i], frames[i]);
-		}
-
-		for (int i = 0; i < cam->slam_cam_count; i++) {
-			xrt_frame_reference(&frames[i], NULL);
-		}
+	// Tracking frames usually come at ~30fps
+	struct xrt_frame *frames[WMR_MAX_CAMERAS] = {NULL};
+	for (int i = 0; i < cam->slam_cam_count; i++) {
+		u_frame_create_roi(xf, cam->tcam_confs[i].roi, &frames[i]);
 	}
+
+	if (slam_tracking_frame) {
+		update_expgain(cam, frames);
+	}
+
+	for (int i = 0; i < cam->slam_cam_count; i++) {
+		int j = i + (slam_tracking_frame ? 0 : cam->slam_cam_count);
+		xrt_sink_push_frame(cam->cam_sinks[j], frames[i]);
+	}
+
+	for (int i = 0; i < cam->slam_cam_count; i++) {
+		xrt_frame_reference(&frames[i], NULL);
+	}
+
+	DRV_TRACE_END(push_to_sinks);
 
 drop_frame:
 	xrt_frame_reference(&xf, NULL);
@@ -457,7 +464,8 @@ wmr_camera_open(struct wmr_camera_open_config *config)
 
 	for (int i = 0; i < cam->tcam_count; i++) {
 		cam->tcam_confs[i] = *config->tcam_confs[i];
-		cam->cam_sinks[i] = config->tcam_sinks[i];
+		cam->cam_sinks[i] = config->tcam_sinks[i];                                     // SLAM frames
+		cam->cam_sinks[i + cam->tcam_count] = config->tcam_sinks[i + cam->tcam_count]; // Controller frames
 	}
 
 	if (os_thread_helper_init(&cam->usb_thread) != 0) {

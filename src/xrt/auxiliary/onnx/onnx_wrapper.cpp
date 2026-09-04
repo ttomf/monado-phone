@@ -28,6 +28,7 @@ OnnxWrapper::OnnxWrapper(enum u_logging_level log_level, std::string path, std::
 	ORT_SAFE(*this, SetIntraOpNumThreads(opts, 1));
 
 	ORT_SAFE(*this, CreateEnv(ORT_LOGGING_LEVEL_FATAL, env_name.c_str(), &this->env));
+	ORT_SAFE(*this, DisableTelemetryEvents(this->env));
 
 	ORT_SAFE(*this, CreateCpuMemoryInfo(OrtArenaAllocator, OrtMemTypeDefault, &this->meminfo));
 
@@ -53,6 +54,5 @@ OnnxWrapper::~OnnxWrapper()
 
 	this->api = nullptr;
 }
-
 
 }; // namespace xrt::auxiliary::onnx

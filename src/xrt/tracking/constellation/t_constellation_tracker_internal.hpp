@@ -335,13 +335,21 @@ public: // Methods
 	DeviceLastPose(xrt_pose Txr_world_device, timepoint_ns timestamp_ns);
 };
 
-struct Device
+struct DeviceBase
+{
+	xrt_imu_sink imu_sink;
+};
+
+struct Device : public DeviceBase
 {
 public: // Fields
 	t_constellation_tracker_device_params params;
 	t_constellation_tracker_device *device;
 
 	t_constellation_device_id_t id;
+
+	//! The owner tracker, so we can retrieve it from the IMU sink callback
+	ConstellationTracker *tracker;
 
 	// @todo remove when clang-format is updated in CI
 	// clang-format off
@@ -366,6 +374,17 @@ public: // Methods
 	       t_constellation_device_id_t id);
 
 	~Device();
+
+	static Device *
+	fromXrtImuSink(xrt_imu_sink *sink)
+	{
+		// Go through DeviceBase* to Device* so that `Device` doesn't have to be a standard layout type and we
+		// can still use `container_of` safely.
+		return static_cast<Device *>(container_of(sink, DeviceBase, imu_sink));
+	}
+
+	void
+	pushImuSample(const xrt_imu_sample &sample);
 };
 
 // Separate base struct with our interface implementations so that `ConstellationTrackerBase` remains a standard layout

@@ -1,4 +1,5 @@
 # Copyright 2026, Beyley Cardellio
+# Copyright 2026, NVIDIA CORPORATION.
 # SPDX-License-Identifier: BSL-1.0
 
 add_library(
@@ -44,7 +45,7 @@ add_library(
 if(XRT_HAVE_VULKAN)
 	target_sources(st_openvr PRIVATE compositor/openvr_compositor_vulkan.cpp)
 
-	target_link_libraries(st_openvr PRIVATE aux_vk aux_render aux_shaders)
+	target_link_libraries(st_openvr PRIVATE aux_vk aux_render aux_shaders aux_render_cache)
 endif()
 
 target_link_libraries(

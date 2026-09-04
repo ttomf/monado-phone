@@ -193,6 +193,18 @@ math_vec3_translation_from_isometry(const struct xrt_matrix_4x4 *isometry, struc
 void
 math_vec3_normalize(struct xrt_vec3 *in);
 
+/*!
+ * Convert a vec3 from the OpenCV coordinate system to the OpenXR coordinate system and back. OpenCV camera space
+ * coordinates has +Y down and +Z away from the user.
+ *
+ * The input and output may be the same pointer.
+ *
+ * @relates xrt_vec3
+ * @ingroup aux_math
+ */
+void
+math_vec3_convert_from_opencv(const struct xrt_vec3 *in, struct xrt_vec3 *out);
+
 
 /*
  *
@@ -217,6 +229,18 @@ math_vec3_f64_cross(const struct xrt_vec3_f64 *l, const struct xrt_vec3_f64 *r, 
  */
 void
 math_vec3_f64_normalize(struct xrt_vec3_f64 *in);
+
+/*!
+ * Convert a vec3_f64 from the OpenCV coordinate system to the OpenXR coordinate system. OpenCV camera space coordinates
+ * has +Y down and +Z away from the user.
+ *
+ * The input and output may be the same pointer.
+ *
+ * @relates xrt_vec3
+ * @ingroup aux_math
+ */
+void
+math_vec3_f64_convert_opencv(const struct xrt_vec3_f64 *in, struct xrt_vec3_f64 *out);
 
 
 /*
@@ -829,8 +853,8 @@ void
 math_pose_transform_point(const struct xrt_pose *transform, const struct xrt_vec3 *point, struct xrt_vec3 *out_point);
 
 /*!
- * Convert a pose from the OpenCV coordinate system to the OpenXR coordinate system. OpenCV camera space coordinates has
- * +Y down and +Z away from the user.
+ * Convert a pose from the OpenCV coordinate system to the OpenXR coordinate system and back. OpenCV camera space
+ * coordinates has +Y down and +Z away from the user.
  *
  * The input and output may be the same pointer.
  *
@@ -838,7 +862,7 @@ math_pose_transform_point(const struct xrt_pose *transform, const struct xrt_vec
  * @ingroup aux_math
  */
 void
-math_pose_convert_opencv(const struct xrt_pose *in, struct xrt_pose *out);
+math_pose_convert_from_opencv(const struct xrt_pose *in, struct xrt_pose *out);
 
 
 /*

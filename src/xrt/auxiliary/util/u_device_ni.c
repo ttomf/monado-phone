@@ -225,3 +225,10 @@ u_device_ni_end_feature(struct xrt_device *xdev, enum xrt_device_feature_type ty
 	E(end_feature);
 	return XRT_ERROR_NOT_IMPLEMENTED;
 }
+
+xrt_result_t
+u_device_ni_notify_chirality(struct xrt_device *xdev, bool has_chirality, enum xrt_hand chirality)
+{
+	E(notify_chirality);
+	return XRT_ERROR_NOT_IMPLEMENTED;
+}

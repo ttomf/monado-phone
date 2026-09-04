@@ -224,7 +224,7 @@ process_payload(struct uvc_fs *stream, unsigned char *payload, size_t len)
 			// time.
 			timepoint_ns custom_timestamp;
 			if (stream->get_frame_timestamp &&
-			    stream->get_frame_timestamp(stream->get_frame_timestamp_user_data, &custom_timestamp,
+			    stream->get_frame_timestamp(stream->get_frame_timestamp_user_data, &custom_timestamp, time,
 			                                pts)) {
 				frame->timestamp = custom_timestamp;
 			}

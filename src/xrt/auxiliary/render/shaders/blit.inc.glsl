@@ -16,7 +16,7 @@ const int COLOR_TRANSFORM_MODE_NONE = 0;
 const int COLOR_TRANSFORM_MODE_GAMMA_IN_LINEAR_FORMAT = 1;
 const int COLOR_TRANSFORM_MODE_LINEAR_IN_SRGB_FORMAT = 2;
 
-layout(constant_id = 0) const int color_transform_mode = COLOR_TRANSFORM_MODE_NONE;
+layout(constant_id = 0) const int k_color_transform_mode = COLOR_TRANSFORM_MODE_NONE;
 
 layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
 
@@ -55,11 +55,11 @@ vec2 position_to_uv(ivec2 extent, uint ix, uint iy)
 
 vec4 apply_pre_resolve_color_transform(vec4 rgba)
 {
-	if (color_transform_mode == COLOR_TRANSFORM_MODE_GAMMA_IN_LINEAR_FORMAT) {
+	if (k_color_transform_mode == COLOR_TRANSFORM_MODE_GAMMA_IN_LINEAR_FORMAT) {
 		return vec4(from_srgb_to_linear(rgba.rgb), rgba.a);
 	}
 
-	if (color_transform_mode == COLOR_TRANSFORM_MODE_LINEAR_IN_SRGB_FORMAT) {
+	if (k_color_transform_mode == COLOR_TRANSFORM_MODE_LINEAR_IN_SRGB_FORMAT) {
 		return vec4(from_linear_to_srgb(rgba.rgb), rgba.a);
 	}
 
@@ -103,7 +103,7 @@ void blit()
 	// Do the sample.
 	vec4 rgba = sample_source(uv);
 
-	if (color_transform_mode == COLOR_TRANSFORM_MODE_GAMMA_IN_LINEAR_FORMAT) {
+	if (k_color_transform_mode == COLOR_TRANSFORM_MODE_GAMMA_IN_LINEAR_FORMAT) {
 		rgba = vec4(from_linear_to_srgb(rgba.rgb), rgba.a);
 	}
 

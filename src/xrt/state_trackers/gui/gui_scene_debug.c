@@ -713,6 +713,7 @@ on_elem(struct u_var_info *info, void *priv)
 	case U_VAR_KIND_LOG_LEVEL: igCombo_Str(name, (int *)ptr, "Trace\0Debug\0Info\0Warn\0Error\0\0", 5); break;
 	case U_VAR_KIND_RO_TEXT: igText("%s: '%s'", name, (char *)ptr); break;
 	case U_VAR_KIND_RO_RAW_TEXT: igText("%s", (char *)ptr); break;
+	case U_VAR_KIND_RO_U8: igInputScalar(name, ImGuiDataType_U8, ptr, NULL, NULL, NULL, ro_i_flags); break;
 	case U_VAR_KIND_RO_I16: igInputScalar(name, ImGuiDataType_S16, ptr, NULL, NULL, NULL, ro_i_flags); break;
 	case U_VAR_KIND_RO_I32: igInputScalar(name, ImGuiDataType_S32, ptr, NULL, NULL, NULL, ro_i_flags); break;
 	case U_VAR_KIND_RO_U16: igInputScalar(name, ImGuiDataType_U16, ptr, NULL, NULL, NULL, ro_i_flags); break;

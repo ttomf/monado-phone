@@ -268,6 +268,7 @@ enum u_var_kind
 	U_VAR_KIND_LOG_LEVEL,
 	U_VAR_KIND_RO_TEXT,
 	U_VAR_KIND_RO_RAW_TEXT,
+	U_VAR_KIND_RO_U8,
 	U_VAR_KIND_RO_I16,
 	U_VAR_KIND_RO_I32,
 	U_VAR_KIND_RO_U16,
@@ -433,6 +434,7 @@ u_var_force_on(void);
 	ADD_FUNC(log_level, enum u_logging_level, LOG_LEVEL)                                                           \
 	ADD_FUNC(ro_text, const char, RO_TEXT)                                                                         \
 	ADD_FUNC(ro_raw_text, const char, RO_RAW_TEXT)                                                                 \
+	ADD_FUNC(ro_u8, uint8_t, RO_U8)                                                                                \
 	ADD_FUNC(ro_i16, int16_t, RO_I16)                                                                              \
 	ADD_FUNC(ro_i32, int32_t, RO_I32)                                                                              \
 	ADD_FUNC(ro_u16, uint16_t, RO_U16)                                                                             \

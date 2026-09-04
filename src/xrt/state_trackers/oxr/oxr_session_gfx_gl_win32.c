@@ -38,13 +38,13 @@ oxr_session_populate_gl_win32(struct oxr_logger *log,
 {
 
 	struct xrt_compositor_native *xcn = sess->xcn;
-	struct xrt_compositor_gl *xcgl = xrt_gfx_provider_create_gl_win32(xcn, next->hDC, next->hGLRC);
+	struct xrt_compositor *xc = xrt_gfx_provider_create_gl_win32(xcn, next->hDC, next->hGLRC);
 
-	if (xcgl == NULL) {
+	if (xc == NULL) {
 		return oxr_error(log, XR_ERROR_INITIALIZATION_FAILED, "Failed to create a Win32 client compositor");
 	}
 
-	sess->compositor = &xcgl->base;
+	sess->compositor = xc;
 	sess->create_swapchain = oxr_swapchain_gl_create;
 
 	return XR_SUCCESS;

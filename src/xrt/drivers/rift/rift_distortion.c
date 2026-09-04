@@ -405,7 +405,7 @@ rift_hmd_compute_distortion(struct xrt_device *dev, uint32_t view, float u, floa
 
 	struct rift_scale_and_offset *eye_to_source_uv = &hmd->extra_display_info.eye_to_source_uv;
 
-#if 0 
+#if 0
 	// no chromatic aberration correction, pulled from the green channel, which has no correction applied
 	struct xrt_uv_triplet sample_tex_coord = {
 	    .r = m_vec2_add(m_vec2_mul(tan_fov_chroma.g, eye_to_source_uv->scale), eye_to_source_uv->offset),
@@ -524,7 +524,6 @@ void
 rift_fill_in_default_distortions(struct rift_hmd *hmd)
 {
 	switch (hmd->variant) {
-	case RIFT_VARIANT_DK1: // TODO: fill these in for DK1, for now just use DK2
 	case RIFT_VARIANT_DK2: {
 		hmd->num_lens_distortions = ARRAY_SIZE(DK2_DISTORTIONS);
 		hmd->lens_distortions = DK2_DISTORTIONS;

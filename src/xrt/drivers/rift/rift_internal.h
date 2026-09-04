@@ -767,6 +767,7 @@ struct rift_touch_controller_input_state
 struct rift_touch_controller
 {
 	struct xrt_device base;
+	struct xrt_frame_node node;
 
 	struct rift_hmd *hmd;
 
@@ -842,6 +843,7 @@ enum rift_remote_inputs
 struct rift_remote
 {
 	struct xrt_device base;
+	struct xrt_frame_node node;
 
 	//! The button state of the remote, stored as an atomic to avoid needing a mutex.
 	xrt_atomic_s32_t buttons;
@@ -885,6 +887,26 @@ union rift_radio_command_data {
 	struct rift_radio_command_data_read_flash read_flash;
 };
 
+//! How many past exposures a frame can be matched against. At ~60 Hz this is a little over a quarter second.
+#define RIFT_EXPOSURE_HISTORY_SIZE 16
+
+//! One camera exposure the HMD told us about, held so that late frames can still find the exposure they belong to.
+struct rift_exposure_event
+{
+	//! The value of rift_hmd::exposure_counter at this exposure.
+	uint32_t sequence;
+	//! When the exposure started, in local monotonic time. This is what frames matched to it are timestamped with.
+	timepoint_ns timestamp_ns;
+	/*!
+	 * When the IN report announcing this exposure arrived, in local monotonic time.
+	 *
+	 * Frames are matched against this rather than against @ref timestamp_ns. Both the report and the frame have
+	 * travelled over USB before we see them, so their arrival times share most of that delay and land near each
+	 * other; the exposure instant on the HMD's own clock is a good deal earlier than either.
+	 */
+	timepoint_ns recv_timestamp_ns;
+};
+
 /*!
  * A rift HMD device.
  *
@@ -895,6 +917,9 @@ union rift_radio_command_data {
 struct rift_hmd
 {
 	struct xrt_device base;
+	struct xrt_frame_node node;
+
+	struct xrt_frame_context *xfctx;
 
 	enum u_logging_level log_level;
 
@@ -920,6 +945,12 @@ struct rift_hmd
 	//! A total counter for how many exposures have occurred
 	uint32_t exposure_counter;
 	uint16_t last_tracking_count;
+
+	//! The most recent exposures, newest at `(exposure_history_pushed - 1) % RIFT_EXPOSURE_HISTORY_SIZE`, locked by
+	//! sensor_thread.
+	struct rift_exposure_event exposure_history[RIFT_EXPOSURE_HISTORY_SIZE];
+	//! How many exposures have ever been pushed into the history, locked by sensor_thread.
+	uint64_t exposure_history_pushed;
 
 	struct m_imu_3dof fusion;
 	struct m_clock_windowed_skew_tracker *clock_tracker;
@@ -967,6 +998,8 @@ struct rift_hmd
 	struct m_ff_f64 *gravity_correction;
 	timepoint_ns latest_constellation_ts;
 
+	struct xrt_imu_sink *constellation_imu_sink;
+
 	struct t_constellation_tracker_led_model led_model;
 	struct xrt_pose T_imu_device;
 	struct xrt_pose T_device_imu;
@@ -984,11 +1017,17 @@ struct rift_hmd
 	} radio_state;
 };
 
-/// Casting helper function
+//! Casting helper function from xrt_device->rift_hmd
 static inline struct rift_hmd *
 rift_hmd(struct xrt_device *xdev)
 {
 	return (struct rift_hmd *)xdev;
+}
+
+static inline struct rift_hmd *
+rift_hmd_from_node(struct xrt_frame_node *node)
+{
+	return (struct rift_hmd *)container_of(node, struct rift_hmd, node);
 }
 
 static inline struct rift_touch_controller *
@@ -997,10 +1036,22 @@ rift_touch_controller(struct xrt_device *xdev)
 	return (struct rift_touch_controller *)xdev;
 }
 
+static inline struct rift_touch_controller *
+rift_touch_controller_from_node(struct xrt_frame_node *node)
+{
+	return (struct rift_touch_controller *)container_of(node, struct rift_touch_controller, node);
+}
+
 static inline struct rift_remote *
 rift_remote(struct xrt_device *xdev)
 {
 	return (struct rift_remote *)xdev;
+}
+
+static inline struct rift_remote *
+rift_remote_from_node(struct xrt_frame_node *node)
+{
+	return (struct rift_remote *)container_of(node, struct rift_remote, node);
 }
 
 static inline size_t

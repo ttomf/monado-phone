@@ -205,14 +205,14 @@ twrap_slam_create_device(struct xrt_frame_context *xfctx,
 	// Create a split sink at out_sink that pushes to the SLAM IMU sink as well as the 3dof IMU sink, then replace
 	// out_sinks's imu sink with the split sink.
 
-	struct xrt_imu_sink *sink_slam = (*out_sinks)->imu;
+	struct xrt_imu_sink *sink_slam = (*out_sinks)->imus[0];
 
 	struct xrt_imu_sink *tmp = NULL;
 
 	u_imu_sink_split_create(xfctx, &dx->dof3->sink, sink_slam, &tmp);
 	u_imu_sink_force_monotonic_create(xfctx, tmp, &tmp);
 
-	(*out_sinks)->imu = tmp;
+	(*out_sinks)->imus[0] = tmp;
 
 	int start_status = t_slam_start(dx->slam);
 

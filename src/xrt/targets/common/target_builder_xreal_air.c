@@ -134,7 +134,7 @@ xreal_air_open_system_impl(struct xrt_builder *xb,
                            struct xrt_tracking_origin *origin,
                            struct xrt_system_devices *xsysd,
                            struct xrt_frame_context *xfctx,
-                           struct t_builder_roles_helper *tbrh)
+                           struct t_builder_options *tbo)
 {
 	struct xrt_prober_device **xpdevs = NULL;
 	size_t xpdev_count = 0;
@@ -209,7 +209,7 @@ xreal_air_open_system_impl(struct xrt_builder *xb,
 	xsysd->static_xdevs[xsysd->static_xdev_count++] = xreal_air_device;
 
 	// Assign to role(s).
-	tbrh->head = xreal_air_device;
+	tbo->head = xreal_air_device;
 
 	return XRT_SUCCESS;
 

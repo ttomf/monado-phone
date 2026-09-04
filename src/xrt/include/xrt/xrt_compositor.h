@@ -2017,17 +2017,6 @@ struct xrt_swapchain_gl
 };
 
 /*!
- * Base class for an OpenGL (ES) client compositor.
- *
- * @ingroup xrt_iface comp_client
- * @extends xrt_compositor
- */
-struct xrt_compositor_gl
-{
-	struct xrt_compositor base;
-};
-
-/*!
  * Down-cast helper.
  *
  * @private @memberof xrt_swapchain_gl
@@ -2038,19 +2027,6 @@ static inline struct xrt_swapchain_gl *
 xrt_swapchain_gl(struct xrt_swapchain *xsc)
 {
 	return (struct xrt_swapchain_gl *)xsc;
-}
-
-/*!
- * Down-cast helper.
- *
- * @private @memberof xrt_compositor_gl
- *
- * @todo unused - remove?
- */
-static inline struct xrt_compositor_gl *
-xrt_compositor_gl(struct xrt_compositor *xc)
-{
-	return (struct xrt_compositor_gl *)xc;
 }
 
 
@@ -2076,18 +2052,6 @@ struct xrt_swapchain_vk
 };
 
 /*!
- * Base class for a Vulkan client compositor.
- *
- * @ingroup xrt_iface comp_client
- * @extends xrt_compositor
- */
-struct xrt_compositor_vk
-{
-	//! @public Base
-	struct xrt_compositor base;
-};
-
-/*!
  * Down-cast helper.
  *
  * @private @memberof xrt_swapchain_vk
@@ -2098,19 +2062,6 @@ static inline struct xrt_swapchain_vk *
 xrt_swapchain_vk(struct xrt_swapchain *xsc)
 {
 	return (struct xrt_swapchain_vk *)xsc;
-}
-
-/*!
- * Down-cast helper.
- *
- * @private @memberof xrt_compositor_vk
- *
- * @todo unused - remove?
- */
-static inline struct xrt_compositor_vk *
-xrt_compositor_vk(struct xrt_compositor *xc)
-{
-	return (struct xrt_compositor_vk *)xc;
 }
 
 #if defined(XRT_HAVE_D3D11) || defined(XRT_DOXYGEN)
@@ -2134,18 +2085,6 @@ struct xrt_swapchain_d3d11
 
 	//! Images to be used by the caller.
 	ID3D11Texture2D *images[XRT_MAX_SWAPCHAIN_IMAGES];
-};
-
-/*!
- * Base class for a D3D11 client compositor.
- *
- * @ingroup xrt_iface comp_client
- * @extends xrt_compositor
- */
-struct xrt_compositor_d3d11
-{
-	//! @public Base
-	struct xrt_compositor base;
 };
 
 /*!
@@ -2184,17 +2123,6 @@ struct xrt_swapchain_d3d12
 	ID3D12Resource *images[XRT_MAX_SWAPCHAIN_IMAGES];
 };
 
-/*!
- * Base class for a D3D12 client compositor.
- *
- * @ingroup xrt_iface comp_client
- * @extends xrt_compositor
- */
-struct xrt_compositor_d3d12
-{
-	//! @public Base
-	struct xrt_compositor base;
-};
 #endif
 
 /*

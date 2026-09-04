@@ -60,11 +60,11 @@ struct client_vk_swapchain
  * Wraps the real compositor providing a Vulkan based interface.
  *
  * @ingroup comp_client
- * @implements xrt_compositor_vk
+ * @implements xrt_compositor
  */
 struct client_vk_compositor
 {
-	struct xrt_compositor_vk base;
+	struct xrt_compositor base;
 
 	//! Owning reference to the backing native compositor
 	struct xrt_compositor_native *xcn;

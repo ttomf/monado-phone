@@ -15,10 +15,12 @@
 
 #include "util/u_logging.h"
 #include "util/u_distortion_mesh.h"
+#include "xrt/xrt_tracking.h"
 
-/* Increase this number if anyone releases a headset with
- * more cameras */
 #define WMR_MAX_CAMERAS 4
+#define WMR_HMD_IMU_INDEX 0
+#define WMR_LEFT_CTRL_IMU_INDEX 1
+#define WMR_RIGHT_CTRL_IMU_INDEX 2
 
 /* Increase this number if anyone releases a controller with
  * more tracking LEDs */
@@ -161,6 +163,7 @@ struct wmr_hmd_config
 	struct wmr_camera_config *tcams[WMR_MAX_CAMERAS]; //!< Pointers to tracking cameras in `cameras`
 	int tcam_count;                                   //!< Number of tracking cameras
 	int slam_cam_count;                               //!< Number of tracking cameras to use for SLAM
+	int sinks_count;                                  //!< 2x @ref tcam_count to split SLAM and camera streams
 };
 
 bool

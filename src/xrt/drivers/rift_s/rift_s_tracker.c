@@ -532,14 +532,14 @@ rift_s_tracker_imu_update(struct rift_s_tracker *t,
 
 	os_mutex_unlock(&t->mutex);
 
-	if (t->slam_sinks.imu) {
+	if (t->slam_sinks.imus[0]) {
 		/* Push IMU sample to the SLAM tracker */
 		struct xrt_vec3_f64 accel64 = {accel->x, accel->y, accel->z};
 		struct xrt_vec3_f64 gyro64 = {gyro->x, gyro->y, gyro->z};
 		struct xrt_imu_sample sample = {
 		    .timestamp_ns = local_timestamp_ns, .accel_m_s2 = accel64, .gyro_rad_secs = gyro64};
 
-		xrt_sink_push_imu(t->slam_sinks.imu, &sample);
+		xrt_sink_push_imu(t->slam_sinks.imus[0], &sample);
 	}
 }
 

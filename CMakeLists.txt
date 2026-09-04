@@ -347,7 +347,7 @@ option_with_deps(XRT_BUILD_DRIVER_UVC "Enable userspace UVC driver" DEPENDS XRT_
 option_with_deps(XRT_BUILD_DRIVER_ANDROID "Enable Android sensors driver" DEPENDS ANDROID)
 option_with_deps(XRT_BUILD_DRIVER_ARDUINO "Enable Arduino input device with BLE" DEPENDS XRT_HAVE_DBUS)
 option_with_deps(XRT_BUILD_DRIVER_BLUBUR_S1 "Enable 3Glasses Blubur S1 device driver" DEPENDS XRT_HAVE_INTERNAL_HID)
-option_with_deps(XRT_BUILD_DRIVER_CONTACTGLOVE "Enable Diver-X ContactGlove(2) device driver" DEPENDS XRT_HAVE_LINUX) # only Linux has serial right now
+option_with_deps(XRT_BUILD_DRIVER_CONTACTGLOVE "Enable Melt Interface Technologies ContactGlove (CG2) device driver" DEPENDS XRT_HAVE_LINUX) # only Linux has serial right now
 option_with_deps(XRT_BUILD_DRIVER_DAYDREAM "Enable the Google Daydream View controller driver (BLE)" DEPENDS XRT_HAVE_DBUS)
 option_with_deps(XRT_BUILD_DRIVER_DEPTHAI "DepthAI" DEPENDS depthai_FOUND)
 option_with_deps(XRT_BUILD_DRIVER_EUROC "Enable EuRoC dataset driver for SLAM evaluation" DEPENDS XRT_HAVE_OPENCV "NOT MSVC")

@@ -1,4 +1,5 @@
 // Copyright 2026, Beyley Cardellio
+// Copyright 2026, NVIDIA CORPORATION.
 // SPDX-License-Identifier: BSL-1.0
 /*!
  * @file
@@ -20,6 +21,9 @@
 #include "client/comp_vk_client.h"
 
 #include "render/render_interface.h"
+
+#include "cache/render_compute_pipeline_cache.h"
+#include "cache/render_shader_specialization_helpers.h"
 
 #include "common/openvr_error.hpp"
 
@@ -236,12 +240,12 @@ Compositor::setupBlitPipelines(openvr_logger &logger)
 	}
 	VK_NAME_DESCRIPTOR_POOL(vk, this->blit.descriptor_pool, "openvr_compositor_vulkan blit descriptor pool");
 
-	vk_result = vk_create_pipeline_cache(vk, &this->blit.pipeline_cache);
+	vk_result = vk_create_pipeline_cache(vk, &this->blit.driver_pipeline_cache);
 	if (vk_result != VK_SUCCESS) {
 		VK_ERROR(vk, "Failed to create blit pipeline cache for Vulkan compositor, error code: %d", vk_result);
 		return XRT_ERROR_VULKAN;
 	}
-	VK_NAME_PIPELINE_CACHE(vk, this->blit.pipeline_cache, "openvr_compositor_vulkan blit pipeline cache");
+	VK_NAME_PIPELINE_CACHE(vk, this->blit.driver_pipeline_cache, "openvr_compositor_vulkan blit pipeline cache");
 
 	VkDescriptorSetLayoutBinding set_layout_bindings[2] = {
 	    {
@@ -306,40 +310,54 @@ Compositor::setupBlitPipelines(openvr_logger &logger)
 	}
 	VK_NAME_PIPELINE_LAYOUT(vk, this->blit.pipeline_layout, "openvr_compositor_vulkan blit pipeline layout");
 
+	xrt_result_t xret =
+	    render_blit_ms_pipeline_cache_create("openvr_compositor_vulkan blit", &this->blit.pipeline_cache);
+	if (xret != XRT_SUCCESS) {
+		return xret;
+	}
+
+	xret = render_blit_ms_pipeline_cache_init( //
+	    this->blit.pipeline_cache,             //
+	    this->shaders.blit_ms_comp,            //
+	    this->blit.pipeline_layout,            //
+	    this->blit.driver_pipeline_cache);     //
+	if (xret != XRT_SUCCESS) {
+		return xret;
+	}
+
 	constexpr std::array<render_compute_blit_resolve_color_mode, RENDER_BLIT_RESOLVE_COLOR_MODE_COUNT> kColorModes =
 	    {
 	        RENDER_BLIT_RESOLVE_COLOR_MODE_GAMMA_IN_LINEAR_FORMAT,
 	        RENDER_BLIT_RESOLVE_COLOR_MODE_LINEAR_IN_SRGB_FORMAT,
 	    };
 
+	const struct render_blit_ms_spec blit_variants[] = {
+	    render_make_blit_ms_spec(RENDER_BLIT_RESOLVE_COLOR_MODE_GAMMA_IN_LINEAR_FORMAT),
+	    render_make_blit_ms_spec(RENDER_BLIT_RESOLVE_COLOR_MODE_LINEAR_IN_SRGB_FORMAT),
+	};
+
+	xret = render_blit_ms_pipeline_cache_prewarm( //
+	    this->blit.pipeline_cache,                //
+	    this->vk,                                 //
+	    blit_variants,                            //
+	    std::size(blit_variants));                //
+	if (xret != XRT_SUCCESS) {
+		return xret;
+	}
+
 	for (render_compute_blit_resolve_color_mode color_mode : kColorModes) {
 		uint32_t pipeline_id = getBlitPipelineId(color_mode);
 		assert(pipeline_id < std::size(this->blit.pipelines));
 
-		render_compute_blit_specialization_constants specialization_constants_data = {
-		    .color_transform_mode = static_cast<uint32_t>(color_mode),
-		};
+		const render_blit_ms_spec key = render_make_blit_ms_spec(color_mode);
 
-		std::array<VkSpecializationMapEntry, 1> specialization_map_entries = {{
-		    {
-		        .constantID = 0,
-		        .offset = offsetof(render_compute_blit_specialization_constants, color_transform_mode),
-		        .size = sizeof(uint32_t),
-		    },
-		}};
-
-		VkSpecializationInfo specialization_info = {
-		    .mapEntryCount = static_cast<uint32_t>(specialization_map_entries.size()),
-		    .pMapEntries = specialization_map_entries.data(),
-		    .dataSize = sizeof(specialization_constants_data),
-		    .pData = &specialization_constants_data,
-		};
-		vk_result = vk_create_compute_pipeline(this->vk, this->blit.pipeline_cache, this->shaders.blit_ms_comp,
-		                                       this->blit.pipeline_layout, &specialization_info,
-		                                       &this->blit.pipelines[pipeline_id]);
-		if (vk_result != VK_SUCCESS) {
-			VK_ERROR(vk, "vk_create_compute_pipeline failed: %s", vk_result_string(vk_result));
-			return XRT_ERROR_VULKAN;
+		xret = render_blit_ms_pipeline_cache_get( //
+		    this->blit.pipeline_cache,            //
+		    this->vk,                             //
+		    &key,                                 //
+		    &this->blit.pipelines[pipeline_id]);  //
+		if (xret != XRT_SUCCESS) {
+			return xret;
 		}
 	}
 
@@ -431,13 +449,13 @@ Compositor::setupVulkanCompositor(openvr_logger &logger, vr::VRVulkanTextureData
 	    .meta_body_tracking_fidelity_enabled = false,
 	    .android_face_tracking_enabled = false,
 	};
-	xrt_result_t xret = xrt_comp_begin_session(&this->xc_vk->base, &bsi);
+	xrt_result_t xret = xrt_comp_begin_session(this->xc_vk, &bsi);
 
 	if (xret != XRT_SUCCESS) {
 		OPENVR_LOG_ERROR_XRET(logger, "Failed to begin Vulkan compositor session", xret);
 
 		// Destroy the compositor we created, since it's not usable.
-		struct xrt_compositor *xc = &this->xc_vk->base;
+		struct xrt_compositor *xc = this->xc_vk;
 		xrt_comp_destroy(&xc);
 		this->xc_vk = nullptr;
 
@@ -445,7 +463,7 @@ Compositor::setupVulkanCompositor(openvr_logger &logger, vr::VRVulkanTextureData
 	}
 
 	// We've created an active compositor, and begun the session.
-	this->active_compositor = &this->xc_vk->base;
+	this->active_compositor = this->xc_vk;
 
 	client_vk_compositor *c = (client_vk_compositor *)this->xc_vk;
 
@@ -468,10 +486,11 @@ Compositor::destroyVulkanResources()
 		}
 
 		for (uint32_t i = 0; i < std::size(this->blit.pipelines); i++) {
-			if (this->blit.pipelines[i] != VK_NULL_HANDLE) {
-				vk->vkDestroyPipeline(vk->device, this->blit.pipelines[i], NULL);
-				this->blit.pipelines[i] = VK_NULL_HANDLE;
-			}
+			this->blit.pipelines[i] = VK_NULL_HANDLE;
+		}
+
+		if (this->blit.pipeline_cache != nullptr) {
+			render_blit_ms_pipeline_cache_destroy(&this->blit.pipeline_cache, this->vk);
 		}
 
 		if (this->blit.pipeline_layout != VK_NULL_HANDLE) {
@@ -484,9 +503,9 @@ Compositor::destroyVulkanResources()
 			this->blit.descriptor_set_layout = VK_NULL_HANDLE;
 		}
 
-		if (this->blit.pipeline_cache != VK_NULL_HANDLE) {
-			vk->vkDestroyPipelineCache(vk->device, this->blit.pipeline_cache, NULL);
-			this->blit.pipeline_cache = VK_NULL_HANDLE;
+		if (this->blit.driver_pipeline_cache != VK_NULL_HANDLE) {
+			vk->vkDestroyPipelineCache(vk->device, this->blit.driver_pipeline_cache, NULL);
+			this->blit.driver_pipeline_cache = VK_NULL_HANDLE;
 		}
 
 		if (this->blit.descriptor_pool != VK_NULL_HANDLE) {

@@ -22,6 +22,14 @@ typedef int8_t t_constellation_led_id_it;
 #define XRT_CONSTELLATION_MAX_BLOBS_PER_FRAME 250
 #define XRT_CONSTELLATION_MAX_DEVICES 4
 
+/*!
+ * The maximum number of LEDs that a single device can have.
+ *
+ * This is a hard limit since we use some bitfields to track LEDs in the pose optimization.
+ * If this ever needs to be raised, you need to go update pose_optimize.cpp to use some other data type.
+ */
+#define XRT_CONSTELLATION_MAX_LEDS_PER_DEVICE 64
+
 #define XRT_CONSTELLATION_INVALID_DEVICE_ID -1
 #define XRT_CONSTELLATION_INVALID_LED_ID -1
 

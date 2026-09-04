@@ -124,7 +124,7 @@ psvr2_open_system_impl(struct xrt_builder *xb,
                        struct xrt_tracking_origin *origin,
                        struct xrt_system_devices *xsysd,
                        struct xrt_frame_context *xfctx,
-                       struct t_builder_roles_helper *tbrh)
+                       struct t_builder_options *tbo)
 {
 	struct xrt_prober_device **xpdevs = NULL;
 	size_t xpdev_count = 0;
@@ -150,9 +150,9 @@ psvr2_open_system_impl(struct xrt_builder *xb,
 		xsysd->static_xdevs[xsysd->static_xdev_count++] = head_xdev;
 	}
 
-	tbrh->head = head_xdev;
-	tbrh->eyes = head_xdev;
-	tbrh->face = head_xdev;
+	tbo->head = head_xdev;
+	tbo->eyes = head_xdev;
+	tbo->face = head_xdev;
 
 #ifdef XRT_BUILD_DRIVER_PSSENSE
 	struct xrt_device *left_xdev = NULL;
@@ -179,8 +179,8 @@ psvr2_open_system_impl(struct xrt_builder *xb,
 		}
 	}
 
-	tbrh->left = left_xdev;
-	tbrh->right = right_xdev;
+	tbo->left = left_xdev;
+	tbo->right = right_xdev;
 #endif
 
 	xret = xrt_prober_unlock_list(xp, &xpdevs);

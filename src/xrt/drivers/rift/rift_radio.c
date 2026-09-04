@@ -62,33 +62,7 @@ rift_touch_controller_get_tracked_pose(struct xrt_device *xdev,
 
 static void
 rift_touch_controller_destroy(struct xrt_device *xdev)
-{
-	struct rift_touch_controller *controller = (struct rift_touch_controller *)xdev;
-
-	u_var_remove_root(controller);
-
-	if (controller->input.mutex_created) {
-		os_mutex_destroy(&controller->input.mutex);
-	}
-
-	if (controller->radio_data.calibration_body_json) {
-		free(controller->radio_data.calibration_body_json);
-	}
-
-	if (controller->input.calibration.leds) {
-		free(controller->input.calibration.leds);
-	}
-
-	if (controller->input.clock_tracker) {
-		m_clock_windowed_skew_tracker_destroy(controller->input.clock_tracker);
-	}
-
-	if (controller->input.imu_fusion) {
-		imu_fusion_destroy(controller->input.imu_fusion);
-	}
-
-	u_device_free(&controller->base);
-}
+{}
 
 static xrt_result_t
 rift_touch_controller_update_inputs(struct xrt_device *xdev)
@@ -192,9 +166,46 @@ rift_touch_controller_get_battery_status(struct xrt_device *xdev,
 	return XRT_SUCCESS;
 }
 
+void
+rift_touch_controller_node_break_apart(struct xrt_frame_node *node)
+{}
+
+void
+rift_touch_controller_node_destroy(struct xrt_frame_node *node)
+{
+	struct rift_touch_controller *controller = rift_touch_controller_from_node(node);
+
+	u_var_remove_root(controller);
+
+	if (controller->input.mutex_created) {
+		os_mutex_destroy(&controller->input.mutex);
+	}
+
+	if (controller->radio_data.calibration_body_json) {
+		free(controller->radio_data.calibration_body_json);
+	}
+
+	if (controller->input.calibration.leds) {
+		free(controller->input.calibration.leds);
+	}
+
+	if (controller->input.clock_tracker) {
+		m_clock_windowed_skew_tracker_destroy(controller->input.clock_tracker);
+	}
+
+	if (controller->input.imu_fusion) {
+		imu_fusion_destroy(controller->input.imu_fusion);
+	}
+
+	u_device_free(&controller->base);
+}
+
 /*
+ *
  * Rift Remote device functions
+ *
  */
+
 static xrt_result_t
 rift_remote_get_tracked_pose(struct xrt_device *xdev,
                              const enum xrt_input_name name,
@@ -208,11 +219,7 @@ rift_remote_get_tracked_pose(struct xrt_device *xdev,
 static void
 rift_remote_destroy(struct xrt_device *xdev)
 {
-	struct rift_remote *remote = (struct rift_remote *)xdev;
-
-	u_var_remove_root(remote);
-
-	u_device_free(&remote->base);
+	// stub
 }
 
 static xrt_result_t
@@ -246,12 +253,26 @@ rift_remote_update_inputs(struct xrt_device *xdev)
 	return XRT_SUCCESS;
 }
 
+static void
+rift_remote_node_break_apart(struct xrt_frame_node *node)
+{}
+
+static void
+rift_remote_node_destroy(struct xrt_frame_node *node)
+{
+	struct rift_remote *remote = rift_remote_from_node(node);
+
+	u_var_remove_root(remote);
+
+	u_device_free(&remote->base);
+}
+
 /*
  * Implementation functions
  */
 
 static struct rift_remote *
-rift_remote_create(struct rift_hmd *hmd)
+rift_remote_create(struct rift_hmd *hmd, struct xrt_frame_context *xfctx)
 {
 	struct rift_remote *remote =
 	    U_DEVICE_ALLOCATE(struct rift_remote, U_DEVICE_ALLOC_TRACKING_NONE, RIFT_REMOTE_INPUT_COUNT, 1);
@@ -259,6 +280,9 @@ rift_remote_create(struct rift_hmd *hmd)
 		HMD_ERROR(hmd, "Failed to allocate remote");
 		return NULL;
 	}
+
+	remote->node.break_apart = rift_remote_node_break_apart;
+	remote->node.destroy = rift_remote_node_destroy;
 
 	snprintf(remote->base.str, XRT_DEVICE_NAME_LEN, "Oculus Rift Remote");
 	remote->base.device_type = XRT_DEVICE_TYPE_GAMEPAD;
@@ -288,11 +312,15 @@ rift_remote_create(struct rift_hmd *hmd)
 	u_var_add_root(remote, "Rift Remote", true);
 	u_var_add_ro_u32(remote, (uint32_t *)&remote->buttons, "buttons");
 
+	xrt_frame_context_add(xfctx, &remote->node);
+
 	return remote;
 }
 
 static struct rift_touch_controller *
-rift_touch_controller_create(struct rift_hmd *hmd, enum rift_radio_device_type device_type)
+rift_touch_controller_create(struct rift_hmd *hmd,
+                             enum rift_radio_device_type device_type,
+                             struct xrt_frame_context *xfctx)
 {
 	int result;
 
@@ -302,6 +330,9 @@ rift_touch_controller_create(struct rift_hmd *hmd, enum rift_radio_device_type d
 		HMD_ERROR(hmd, "Failed to allocate touch controller");
 		return NULL;
 	}
+
+	controller->node.break_apart = rift_touch_controller_node_break_apart;
+	controller->node.destroy = rift_touch_controller_node_destroy;
 
 	controller->device_type = device_type;
 	controller->hmd = hmd;
@@ -375,7 +406,7 @@ rift_touch_controller_create(struct rift_hmd *hmd, enum rift_radio_device_type d
 	result = os_mutex_init(&controller->input.mutex);
 	if (result < 0) {
 		HMD_ERROR(hmd, "Failed to init touch controller input mutex");
-		rift_touch_controller_destroy(&controller->base);
+		rift_touch_controller_node_destroy(&controller->node);
 		return NULL;
 	}
 	controller->input.mutex_created = true;
@@ -383,14 +414,14 @@ rift_touch_controller_create(struct rift_hmd *hmd, enum rift_radio_device_type d
 	controller->input.clock_tracker = m_clock_windowed_skew_tracker_alloc(64);
 	if (controller->input.clock_tracker == NULL) {
 		HMD_ERROR(hmd, "Failed to allocate touch controller clock tracker");
-		rift_touch_controller_destroy(&controller->base);
+		rift_touch_controller_node_destroy(&controller->node);
 		return NULL;
 	}
 
 	controller->input.imu_fusion = imu_fusion_create();
 	if (controller->input.imu_fusion == NULL) {
 		HMD_ERROR(hmd, "Failed to create touch controller IMU fusion");
-		rift_touch_controller_destroy(&controller->base);
+		rift_touch_controller_node_destroy(&controller->node);
 		return NULL;
 	}
 
@@ -420,6 +451,8 @@ rift_touch_controller_create(struct rift_hmd *hmd, enum rift_radio_device_type d
 		u_var_add_f32(controller, &controller->input.state.cap_trigger, "cap_trigger");
 		u_var_add_f32(controller, &controller->input.state.cap_thumbrest, "cap_thumbrest");
 	}
+
+	xrt_frame_context_add(xfctx, &controller->node);
 
 	return controller;
 }
@@ -934,7 +967,7 @@ rift_radio_handle_read(struct rift_hmd *hmd)
 
 			if (controller == NULL) {
 				controller = hmd->radio_state.touch_controllers[touch_index] =
-				    rift_touch_controller_create(hmd, message.device_type);
+				    rift_touch_controller_create(hmd, message.device_type, hmd->xfctx);
 
 				if (controller == NULL) {
 					HMD_ERROR(hmd, "Failed to create touch controller for device type %d",
@@ -968,7 +1001,7 @@ rift_radio_handle_read(struct rift_hmd *hmd)
 			struct rift_remote *remote = hmd->radio_state.remote;
 
 			if (remote == NULL) {
-				remote = hmd->radio_state.remote = rift_remote_create(hmd);
+				remote = hmd->radio_state.remote = rift_remote_create(hmd, hmd->xfctx);
 
 				if (remote == NULL) {
 					HMD_ERROR(hmd, "Failed to create remote");

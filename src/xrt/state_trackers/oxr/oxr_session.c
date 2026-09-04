@@ -335,12 +335,24 @@ get_device_fovs_and_poses(struct oxr_logger *log,
 	return XR_SUCCESS;
 }
 
-
+#ifdef OXR_HAVE_KHR_visibility_mask
 static bool
 is_emulated_quad_inset_view(struct xrt_device *xdev, uint32_t view_index)
 {
 	return view_index >= 2 && !xdev->supported.get_views_quad;
 }
+
+static enum xrt_visibility_mask_type
+convert_mask_type(XrVisibilityMaskTypeKHR type)
+{
+	switch (type) {
+	case XR_VISIBILITY_MASK_TYPE_HIDDEN_TRIANGLE_MESH_KHR: return XRT_VISIBILITY_MASK_TYPE_HIDDEN_TRIANGLE_MESH;
+	case XR_VISIBILITY_MASK_TYPE_VISIBLE_TRIANGLE_MESH_KHR: return XRT_VISIBILITY_MASK_TYPE_VISIBLE_TRIANGLE_MESH;
+	case XR_VISIBILITY_MASK_TYPE_LINE_LOOP_KHR: return XRT_VISIBILITY_MASK_TYPE_LINE_LOOP;
+	default: return (enum xrt_visibility_mask_type)0;
+	}
+}
+#endif // OXR_HAVE_KHR_visibility_mask
 
 
 /*
@@ -1672,17 +1684,6 @@ oxr_session_android_thread_settings(struct oxr_logger *log,
 #endif // OXR_HAVE_KHR_android_thread_settings
 
 #ifdef OXR_HAVE_KHR_visibility_mask
-
-static enum xrt_visibility_mask_type
-convert_mask_type(XrVisibilityMaskTypeKHR type)
-{
-	switch (type) {
-	case XR_VISIBILITY_MASK_TYPE_HIDDEN_TRIANGLE_MESH_KHR: return XRT_VISIBILITY_MASK_TYPE_HIDDEN_TRIANGLE_MESH;
-	case XR_VISIBILITY_MASK_TYPE_VISIBLE_TRIANGLE_MESH_KHR: return XRT_VISIBILITY_MASK_TYPE_VISIBLE_TRIANGLE_MESH;
-	case XR_VISIBILITY_MASK_TYPE_LINE_LOOP_KHR: return XRT_VISIBILITY_MASK_TYPE_LINE_LOOP;
-	default: return (enum xrt_visibility_mask_type)0;
-	}
-}
 
 XrResult
 oxr_session_get_visibility_mask(struct oxr_logger *log,

@@ -236,7 +236,7 @@ client_gl_win32_compositor_create(struct xrt_compositor_native *xcn, void *hDC, 
 		return NULL;
 	}
 
-	c->base.base.base.destroy = client_gl_win32_compositor_destroy;
+	c->base.base.destroy = client_gl_win32_compositor_destroy;
 
 	return c;
 }
