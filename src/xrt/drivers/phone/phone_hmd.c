@@ -183,7 +183,7 @@ phone_hmd_get_hand_tracking(struct xrt_device *xdev,
 	out_value->hand_pose = out_value->values.hand_joint_set_default[XRT_HAND_JOINT_WRIST].relation;
 	out_value->is_active = is_active;
 
-	*out_timestamp_ns = hmd->hand_packet->timestamp_ns;
+	*out_timestamp_ns = packet.timestamp_ns;
 
 	return XRT_SUCCESS;
 }

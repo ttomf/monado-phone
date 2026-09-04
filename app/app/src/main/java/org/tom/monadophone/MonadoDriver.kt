@@ -275,8 +275,8 @@ class MonadoDriver(
 
             for (i in hand.indices) {
                 val z = depth + world[i].z()
-                val x = (hand[i].x() * HAND_WIDTH) * z / focalLength
-                val y = (hand[i].y() * HAND_HEIGHT) * z / focalLength
+                val x = (hand[i].x() * HAND_WIDTH - HAND_WIDTH / 2) * z / focalLength
+                val y = (hand[i].y() * HAND_HEIGHT - HAND_HEIGHT / 2) * z / focalLength
 
                 val offset = i * 3
                 if (label == "Left") {
