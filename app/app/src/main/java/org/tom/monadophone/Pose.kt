@@ -26,13 +26,13 @@ import kotlin.math.sin
 data class ArPose(
     val timestampNs: Long,
     val trackingState: Int,
-    val qx: Float,
-    val qy: Float,
-    val qz: Float,
-    val qw: Float,
-    val tx: Float,
-    val ty: Float,
-    val tz: Float,
+    var qx: Float,
+    var qy: Float,
+    var qz: Float,
+    var qw: Float,
+    var tx: Float,
+    var ty: Float,
+    var tz: Float,
 ) {
     operator fun minus(other: ArPose): ArPose {
         val yawOther = atan2(

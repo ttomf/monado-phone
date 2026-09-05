@@ -57,8 +57,8 @@ config_init(void)
 		return;
 	}
 	fprintf(tmp,
-	        "port=5500\n"
 	        "multicast_addr=239.1.1.1\n"
+	        "port=5500\n"
 	        "config_port=5501\n"
 	        "stream_port=5502\n"
 	        "pose_port=5503\n"

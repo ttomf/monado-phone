@@ -30,17 +30,10 @@ import java.net.MulticastSocket
 import java.net.Socket
 import java.net.SocketException
 import java.net.SocketTimeoutException
-import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.pow
 import kotlin.math.sqrt
 import kotlin.time.Duration.Companion.milliseconds
 
-private const val MCAST_ADDR = "239.1.1.1"
-private const val PORT = 5500
-private const val CONFIG_PORT = 5501
-private const val STREAM_PORT = 5502
-private const val POSE_PORT = 5503
-private const val HANDS_PORT = 5504
 private const val DISCOVER_MSG_PHONE = "MONADO_PHONE_DISCOVER_PHONE"
 private const val DISCOVER_MSG_PC = "MONADO_PHONE_DISCOVER_PC"
 private const val TAG = "MonadoDriver"
@@ -124,7 +117,7 @@ class MonadoDriver(
             discoverySocket.timeToLive = 1
             discoverySocket.soTimeout = 500
             val msg = DISCOVER_MSG_PHONE.toByteArray(Charsets.UTF_8)
-            val packet = DatagramPacket(msg, msg.size, InetAddress.getByName(MCAST_ADDR), PORT)
+            val packet = DatagramPacket(msg, msg.size, InetAddress.getByName(Settings.multicastAddr), Settings.port)
 
             Log.d(TAG, "start sending beacon packets")
             discoverySocket.use { socket ->
@@ -163,8 +156,10 @@ class MonadoDriver(
             if (currentCoroutineContext().isActive) {
                 Log.d(TAG, "paired with ${runtimeAddr.hostAddress}, opening stream")
                 toast("Connecting to ${runtimeAddr.hostAddress}")
-                handTracker.setup()
-                handsSocket = DatagramSocket()
+                if (Settings.enableHandTracking) {
+                    handTracker.setup()
+                    handsSocket = DatagramSocket()
+                }
                 coroutineScope {
                     launch { receiveVideo(surf) }
                     launch { configHandler() }
@@ -182,7 +177,7 @@ class MonadoDriver(
 
     private fun configHandler() {
         try {
-            configSocket = Socket(runtimeAddr, CONFIG_PORT)
+            configSocket = Socket(runtimeAddr, Settings.configPort)
             val input = configSocket!!.getInputStream()
             val buffer = ByteArray(4096)
 
@@ -220,7 +215,7 @@ class MonadoDriver(
             DatagramSocket()
         }
         try {
-            Log.d(TAG, "sending pose to ${runtimeAddr.hostAddress}:$POSE_PORT")
+            Log.d(TAG, "sending pose to ${runtimeAddr.hostAddress}:${Settings.posePort}")
             while (currentCoroutineContext().isActive) {
                 val pose = poseSource!!.latestPose()
                 val offset = poseSource!!.offset()
@@ -228,8 +223,13 @@ class MonadoDriver(
                     delay(10.milliseconds)
                     continue
                 }
+                if (!Settings.enable6DOFTracking) {
+                    pose.tx = 0f
+                    pose.ty = 0f
+                    pose.tz = 0f
+                }
                 val data = PosePacket.encode(pose - offset)
-                val datagram = DatagramPacket(data, data.size, runtimeAddr, POSE_PORT)
+                val datagram = DatagramPacket(data, data.size, runtimeAddr, Settings.posePort)
                 withContext(Dispatchers.IO) {
                     poseSocket?.send(datagram)
                 }
@@ -293,7 +293,7 @@ class MonadoDriver(
         }
 
         val data = HandsPacket.encode(landmarks)
-        val datagram = DatagramPacket(data, data.size, runtimeAddr, HANDS_PORT)
+        val datagram = DatagramPacket(data, data.size, runtimeAddr, Settings.handsPort)
         handsSocket?.send(datagram)
     }
 
@@ -325,12 +325,12 @@ class MonadoDriver(
                     soTimeout = 500
                     // Large kernel receive buffer so bursty RTP traffic does not get dropped
                     receiveBufferSize = 4 * 1024 * 1024
-                    bind(InetSocketAddress(STREAM_PORT))
+                    bind(InetSocketAddress(Settings.streamPort))
                 }
             }
             streamSocket = socket
             socket.use { socket ->
-                Log.d(TAG, "listening for stream on port $STREAM_PORT")
+                Log.d(TAG, "listening for stream on port ${Settings.streamPort}")
                 var lastSeq = -1
                 var lostPackets = 0L
                 var lastLossLog = 0L
@@ -477,6 +477,6 @@ class MonadoDriver(
     }
 
     fun recenter() {
-        poseSource!!.recenter()
+        poseSource?.recenter()
     }
 }
