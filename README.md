@@ -19,7 +19,8 @@ Currently, it implements **UDP HEVC streaming** to phone, **6DOF tracking** with
   - [Prerequisites](#prerequisites)
   - [Driver](#driver)
   - [App](#app)
-- [Configuration file](#configuration-file)
+- [Usage](#usage)
+  - [Configuration file](#configuration-file)
 - [Architecture](#architecture)
   - [Phone](#phone)
   - [Driver](#driver-1)
@@ -132,7 +133,9 @@ This will create these important files:
 2. Navigate to the `app` directory and select it.
 3. Build the app as you would with any other Android project.
 
-## Configuration file
+## Usage
+
+### Configuration file
 
 Monado Phone Driver uses `~/.config/monado-phone/config.cfg` file to load configuration. After every change, you need to restart monado-service to apply changes. The file is in `key=value` format, must end with newline and cannot have comments.
 
@@ -214,7 +217,7 @@ sequenceDiagram
       Note over D: Driver decodes pose data
       D->>M: Driver sends pose data to Monado
       M->>G: Monado sends pose data to game
-    endd
+    end
     loop Hand Data
       Note over P: Phone creates hand data from MediaPipe landmarks
       P->>D: Phone sends hand data
