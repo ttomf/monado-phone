@@ -14,6 +14,9 @@ Currently, it implements **UDP HEVC streaming** to phone, **6DOF tracking** with
 
 - [Requirements](#requirements)
 - [Getting Started](#getting-started)
+  - [Dependencies](#dependencies)
+  - [Automatic installation](#automatic-installation)
+  - [Manual installation](#manual-installation)
   - [Steam](#steam)
 - [Building from source](#building-from-source)
   - [Prerequisites](#prerequisites)
@@ -36,14 +39,15 @@ Currently, it implements **UDP HEVC streaming** to phone, **6DOF tracking** with
 ## Getting Started
 
 > [!NOTE]
-> This is full replacement of Monado, so you don't need to have installed anything except depencies listed below.
+> This is full replacement of Monado, so you don't need to have installed anything except dependencies listed below.
 
-1. Download `MonadoPhone.apk`, `libopenxr_monado.so`, `monado-service` and `openxr_monado-dev.json` from [Releases](https://github.com/ttomf/monado-phone/releases)
-2. Install `MonadoPhone.apk` on your phone (via `adb` or your preferred method) and run it (Monado driver on PC has 5s timeout, so it's better to start the app first)
-3. Install these packages on your Linux PC (or equivalent for your distro, with package manager of your choice):
+### Dependencies
+
+Install these packages on your Linux PC (or equivalent for your distro, with package manager of your choice):
 
 ```sh
 sudo pacman -Sy --needed \
+python3 \
 dbus \
 glibc \
 glib2 \
@@ -62,8 +66,18 @@ vulkan-icd-loader \
 zlib
 ```
 
-4. Run `monado-service` on your Linux PC and wait for the phone to connect (phone app will tell you it's connected)
-5. Open another terminal and run your OpenXR application with **environment variable** set (make sure `libopenxr_monado.so` is in same directory as `openxr_monado-dev.json`, or path in `openxr_monado-dev.json` is correct):
+### Automatic installation
+
+1. Download `installer.py` from [Releases](https://github.com/ttomf/monado-phone/releases)
+2. Run `python installer.py` on your Linux PC in directory where you want to install Monado Phone Driver
+3. Follow the instructions
+
+### Manual installation
+
+1. Download `MonadoPhone.apk`, `libopenxr_monado.so`, `monado-service` and `openxr_monado-dev.json` from [Releases](https://github.com/ttomf/monado-phone/releases)
+2. Install `MonadoPhone.apk` on your phone (via `adb` or your preferred method) and run it (Monado driver on PC has 5s timeout, so it's better to start the app first)
+3. Run `monado-service` on your Linux PC and wait for the phone to connect (phone app will tell you it's connected)
+4. Open another terminal and run your OpenXR application with **environment variable** set (make sure `libopenxr_monado.so` is in same directory as `openxr_monado-dev.json`, or path in `openxr_monado-dev.json` is correct):
 
 ```sh
 export XR_RUNTIME_JSON=openxr_monado-dev.json
