@@ -102,15 +102,7 @@ class MonadoDriver(
         }
         surface = surf
 
-        job?.cancel() // Replace any previous job
-        streamSocket?.close() // Free the stream port synchronously
-        streamSocket = null
-        poseSocket?.close()
-        poseSocket = null
-        handsSocket?.close()
-        handsSocket = null
-        configSocket?.close()
-        configSocket = null
+        stop() // Stop all previous tasks
 
         job = scope.launch {
             val discoverySocket = MulticastSocket()
@@ -178,6 +170,7 @@ class MonadoDriver(
     private fun configHandler() {
         try {
             configSocket = Socket(runtimeAddr, Settings.configPort)
+            sendScreenSize()
             val input = configSocket!!.getInputStream()
             val buffer = ByteArray(4096)
 
@@ -199,6 +192,25 @@ class MonadoDriver(
         } finally {
             toast("PC Disconnected")
             restart()
+        }
+    }
+
+    /**
+     * Sends the physical display size to the PC as a "screen W H" command on
+     * the config TCP socket. The PC driver parses this and requests a Monado
+     * restart with the new screen_w/screen_h config values.
+     */
+    private fun sendScreenSize() {
+        try {
+            val size = context.resources.displayMetrics.run {
+                Pair(widthPixels, heightPixels)
+            }
+            val msg = "screen ${size.first} ${size.second}\n"
+            configSocket?.getOutputStream()?.write(msg.toByteArray(Charsets.UTF_8))
+            configSocket?.getOutputStream()?.flush()
+            Log.d(TAG, "sent screen size: ${msg.trim()}")
+        } catch (e: Exception) {
+            Log.e(TAG, "sendScreenSize failed", e)
         }
     }
 

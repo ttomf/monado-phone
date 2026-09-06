@@ -107,13 +107,33 @@ static void *
 net_config_thread(void *ptr)
 {
 	struct net_config *nc = (struct net_config *)ptr;
-	char buf[256];
+	char buf[4096];
 	while (nc->running) {
-		// ssize_t n = recv(nc->sock, buf, sizeof(buf), 0);
-		U_LOG_D("phone: received config: %s", buf);
-		switch (buf[0]) {
-			// set something in config file, Monado must be restarted
-			// case 'c': config_set() break;
+		ssize_t n = recv(nc->sock, buf, sizeof(buf), 0);
+		if (n < 0) {
+			if (errno == EAGAIN || errno == EWOULDBLOCK) {
+				continue;
+			}
+			U_LOG_W("phone: config recv() failed: %d", errno);
+			continue;
+		}
+		buf[n] = '\0';
+		U_LOG_I("phone: received config: %s", buf);
+		// Phone sent screen size, update config and restart Monado
+		if (strncmp(buf, "screen ", 7) == 0) {
+			char screen_w[16];
+			char screen_h[16];
+
+			if (sscanf(buf, "screen %15s %15s", screen_w, screen_h) == 2) {
+				if (strcmp(screen_w, config_get("screen_w")) == 0 &&
+				    strcmp(screen_h, config_get("screen_h")) == 0) {
+					continue;
+				}
+				config_set("screen_w", screen_w);
+				config_set("screen_h", screen_h);
+				U_LOG_E("phone: phone screen size changed, please restart Monado");
+				exit(0);
+			}
 		}
 	}
 	return NULL;
@@ -163,6 +183,8 @@ net_config_create(const struct sockaddr_in *addr)
 	}
 
 	close(server_sock);
+
+	nc->running = true;
 
 	os_thread_helper_init(&nc->thread);
 	if (os_thread_helper_start(&nc->thread, net_config_thread, nc) != 0) {
