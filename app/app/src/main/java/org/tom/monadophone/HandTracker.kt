@@ -54,8 +54,14 @@ class HandTracker(
     private var handLandmarker: HandLandmarker? = null
 
     fun setup() {
-        handLandmarker?.close()
-        handLandmarker = null
+        // Guard against a concurrent processImage() on the GL thread (called
+        // during a restart) closing the landmarker under it -> use-after-free
+        // in MediaPipe (SIGSEGV in nativeCreateCpuImage). The close is done
+        // under the same lock as processImage() so they can never overlap.
+        synchronized(this) {
+            handLandmarker?.close()
+            handLandmarker = null
+        }
 
         val baseOptions = BaseOptions.builder()
             .setDelegate(Delegate.GPU)
@@ -73,20 +79,27 @@ class HandTracker(
                 error.printStackTrace()
             }.build()
         Log.d(TAG, "Initializing Hand Landmarker...")
-        handLandmarker = HandLandmarker.createFromOptions(context, options)
+        val landmarker = HandLandmarker.createFromOptions(context, options)
+        synchronized(this) {
+            handLandmarker = landmarker
+        }
     }
 
     fun processImage(rgba: ByteBuffer, width: Int, height: Int, timestampNs: Long) {
-        val copy = ByteBuffer.allocateDirect(rgba.capacity()).order(ByteOrder.nativeOrder())
-        rgba.position(0)
-        copy.put(rgba)
-        copy.position(0)
-        val mpImage = ByteBufferImageBuilder(copy, width, height, MPImage.IMAGE_FORMAT_RGBA).build()
-        handLandmarker?.detectAsync(mpImage, timestampNs / 1_000_000)
+        synchronized(this) {
+            val copy = ByteBuffer.allocateDirect(rgba.capacity()).order(ByteOrder.nativeOrder())
+            rgba.position(0)
+            copy.put(rgba)
+            copy.position(0)
+            val mpImage = ByteBufferImageBuilder(copy, width, height, MPImage.IMAGE_FORMAT_RGBA).build()
+            handLandmarker?.detectAsync(mpImage, timestampNs / 1_000_000)
+        }
     }
 
     fun close() {
-        handLandmarker?.close()
-        handLandmarker = null
+        synchronized(this) {
+            handLandmarker?.close()
+            handLandmarker = null
+        }
     }
 }
