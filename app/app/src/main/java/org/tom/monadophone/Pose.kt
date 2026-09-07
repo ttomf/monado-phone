@@ -309,15 +309,12 @@ class ArCorePose(
         if (Settings.enableHandTracking && handFbo != -1 && frame.timestamp - lastHandFrameNs >= handIntervalNs) {
             lastHandFrameNs = frame.timestamp
             val buf = handPixelBuffer ?: return
-            // Flip UVs for the FBO render so that the subsequent glReadPixels
-            // (which reads rows bottom-up) yields a top-down image for
-            // MediaPipe. GL does this flip, no per-frame CPU copy needed.
             val fboUv = fboTexCoords ?: return
             fboUv.position(0)
-            display.position(0)
+            base.position(0)
             for (i in 0 until 4) {
-                fboUv.put(display.get())
-                fboUv.put(1f - display.get())
+                fboUv.put(base.get())
+                fboUv.put(1f - base.get())
             }
             fboUv.position(0)
             GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, handFbo)
