@@ -140,7 +140,7 @@ phone_hmd_get_hand_tracking(struct xrt_device *xdev,
 	// Get pose like in get_tracked_pose to map hand pose to global space
 	struct xrt_space_relation relation = XRT_SPACE_RELATION_ZERO;
 	enum m_relation_history_result history_result =
-	    m_relation_history_get(hmd->relation_hist, packet.timestamp_ns, &relation);
+	    m_relation_history_get(hmd->relation_hist, desired_timestamp_ns, &relation);
 	if (history_result == M_RELATION_HISTORY_RESULT_INVALID) {
 		U_LOG_E("phone: no poses pushed");
 	}

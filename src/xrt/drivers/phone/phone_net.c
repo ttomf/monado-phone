@@ -10,6 +10,8 @@
 #include "phone_config.h"
 #include "phone_internals.h"
 
+#include <signal.h>
+
 
 // Fast socket options setter
 static void
@@ -117,6 +119,12 @@ net_config_thread(void *ptr)
 			U_LOG_W("phone: config recv() failed: %d", errno);
 			continue;
 		}
+		if (n == 0) {
+			U_LOG_E("phone: config connection closed, shutting down");
+			nc->running = false;
+			kill(getpid(), SIGTERM);
+			break;
+		}
 		buf[n] = '\0';
 		U_LOG_I("phone: received config: %s", buf);
 		// Phone sent screen size, update config and restart Monado
@@ -131,8 +139,10 @@ net_config_thread(void *ptr)
 				}
 				config_set("screen_w", screen_w);
 				config_set("screen_h", screen_h);
-				U_LOG_E("phone: phone screen size changed, please restart Monado");
-				exit(0);
+				U_LOG_I("phone: phone screen size changed, shutting down for restart");
+				nc->running = false;
+				kill(getpid(), SIGTERM);
+				break;
 			}
 		}
 	}
