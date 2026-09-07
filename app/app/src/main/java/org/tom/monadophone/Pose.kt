@@ -306,7 +306,7 @@ class ArCorePose(
         display.position(0)
 
         drawQuad(surfaceW, surfaceH, display)
-        if (handFbo != -1 && frame.timestamp - lastHandFrameNs >= handIntervalNs) {
+        if (Settings.enableHandTracking && handFbo != -1 && frame.timestamp - lastHandFrameNs >= handIntervalNs) {
             lastHandFrameNs = frame.timestamp
             val buf = handPixelBuffer ?: return
             // Flip UVs for the FBO render so that the subsequent glReadPixels
