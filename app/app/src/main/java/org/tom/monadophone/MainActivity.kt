@@ -248,28 +248,53 @@ fun App(driver: MonadoDriver, modifier: Modifier = Modifier) {
                     )
                     TextField(
                         value = Settings.port.toString(),
-                        onValueChange = { Settings.port = it.toInt() },
-                        label = { Text("Discovery port") }
+                        onValueChange = { v ->
+                            v.toIntOrNull()?.let {
+                                if (it in 1..65535) Settings.port = it
+                            }
+                        },
+                        label = { Text("Discovery port") },
+                        singleLine = true
                     )
                     TextField(
                         value = Settings.configPort.toString(),
-                        onValueChange = { Settings.configPort = it.toInt() },
-                        label = { Text("Config port") }
+                        onValueChange = { v ->
+                            v.toIntOrNull()?.let {
+                                if (it in 1..65535) Settings.configPort = it
+                            }
+                        },
+                        label = { Text("Config port") },
+                        singleLine = true
                     )
                     TextField(
                         value = Settings.streamPort.toString(),
-                        onValueChange = { Settings.streamPort = it.toInt() },
-                        label = { Text("Stream port") }
+                        onValueChange = { v ->
+                            v.toIntOrNull()?.let {
+                                if (it in 1..65535) Settings.streamPort = it
+                            }
+                        },
+                        label = { Text("Stream port") },
+                        singleLine = true
                     )
                     TextField(
                         value = Settings.posePort.toString(),
-                        onValueChange = { Settings.posePort = it.toInt() },
-                        label = { Text("Pose port") }
+                        onValueChange = { v ->
+                            v.toIntOrNull()?.let {
+                                if (it in 1..65535) Settings.posePort = it
+                            }
+                        },
+                        label = { Text("Pose port") },
+                        singleLine = true
                     )
                     TextField(
                         value = Settings.handsPort.toString(),
-                        onValueChange = { Settings.handsPort = it.toInt() },
-                        label = { Text("Hands port") }
+                        onValueChange = { v ->
+                            v.toIntOrNull()?.let {
+                                if (it in 1..65535) Settings.handsPort = it
+                            }
+                        },
+                        label = { Text("Hands port") },
+                        singleLine = true
                     )
                 }
             },

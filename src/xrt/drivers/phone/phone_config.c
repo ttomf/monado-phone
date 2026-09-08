@@ -9,6 +9,13 @@
 
 #include "phone_config.h"
 
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+
 static char *path;
 
 // Create config file if it doesn't exist and set its path

@@ -125,8 +125,8 @@ stream_create(struct vk_bundle *vk, VkExtent2D extent, struct xrt_frame_sink *xf
 	// Host-visible pool that the GPU copies the rendered images into
 	char *sw = config_get("stream_w");
 	char *sh = config_get("stream_h");
-	ps->stream_w = atoi(sw);
-	ps->stream_h = atoi(sh);
+	ps->stream_w = sw ? atoi(sw) : 1280;
+	ps->stream_h = sh ? atoi(sh) : 720;
 	free(sw);
 	free(sh);
 	VkExtent2D stream_extent = {.width = ps->stream_w, .height = ps->stream_h};

@@ -262,8 +262,12 @@ phone_hmd_create(struct sockaddr_in *phone_addr)
 	// Set screen refresh rate to 60Hz
 	hmd->base.hmd->screens[0].nominal_frame_interval_ns = time_s_to_ns(1.0f / 60.0f);
 
-	const int screen_w = atoi(config_get("screen_w"));
-	const int screen_h = atoi(config_get("screen_h"));
+	char *screen_w_str = config_get("screen_w");
+	char *screen_h_str = config_get("screen_h");
+	const int screen_w = screen_w_str ? atoi(screen_w_str) : 2400;
+	const int screen_h = screen_h_str ? atoi(screen_h_str) : 1080;
+	free(screen_w_str);
+	free(screen_h_str);
 
 	hmd->base.hmd->screens[0].w_pixels = screen_w;
 	hmd->base.hmd->screens[0].h_pixels = screen_h;
@@ -287,22 +291,29 @@ phone_hmd_create(struct sockaddr_in *phone_addr)
 	const double vFOV = 100 * (M_PI / 180.0);
 
 	// Distortion information, fills in xdev->compute_distortion().
+	char *k1_str = config_get("k1");
+	char *k2_str = config_get("k2");
+	char *screen_w_m_str = config_get("screen_w_m");
+	char *screen_h_m_str = config_get("screen_h_m");
+	char *inter_lens_str = config_get("inter_lens");
+	char *screen_to_lens_str = config_get("screen_to_lens");
+	char *tray_to_lens_str = config_get("tray_to_lens");
 	const struct u_cardboard_distortion_arguments distortion = {
 	    .distortion_k =
 	        {
-	            atof(config_get("k1")),
-	            atof(config_get("k2")),
+	            k1_str ? atof(k1_str) : 0.12,
+	            k2_str ? atof(k2_str) : 0.12,
 	            0,
 	            0,
 	            0,
 	        },
 	    .screen.w_pixels = screen_w,
 	    .screen.h_pixels = screen_h,
-	    .screen.w_meters = atof(config_get("screen_w_m")),
-	    .screen.h_meters = atof(config_get("screen_h_m")),
-	    .inter_lens_distance_meters = atof(config_get("inter_lens")),
-	    .screen_to_lens_distance_meters = atof(config_get("screen_to_lens")),
-	    .tray_to_lens_distance_meters = atof(config_get("tray_to_lens")),
+	    .screen.w_meters = screen_w_m_str ? atof(screen_w_m_str) : 0.16,
+	    .screen.h_meters = screen_h_m_str ? atof(screen_h_m_str) : 0.07,
+	    .inter_lens_distance_meters = inter_lens_str ? atof(inter_lens_str) : 0.060,
+	    .screen_to_lens_distance_meters = screen_to_lens_str ? atof(screen_to_lens_str) : 0.050,
+	    .tray_to_lens_distance_meters = tray_to_lens_str ? atof(tray_to_lens_str) : 0.035,
 	    .fov =
 	        {
 	            .angle_left = -hFOV / 2,
@@ -313,6 +324,13 @@ phone_hmd_create(struct sockaddr_in *phone_addr)
 	    .vertical_alignment = U_CARDBOARD_VERTICAL_ALIGNMENT_CENTER,
 	};
 	u_distortion_cardboard_calculate(&distortion, &hmd->parts, &hmd->distortion);
+	free(k1_str);
+	free(k2_str);
+	free(screen_w_m_str);
+	free(screen_h_m_str);
+	free(inter_lens_str);
+	free(screen_to_lens_str);
+	free(tray_to_lens_str);
 	u_distortion_mesh_fill_in_compute(&hmd->base);
 
 	// Set fovs from cardboard parameters

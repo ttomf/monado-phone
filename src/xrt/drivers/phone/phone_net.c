@@ -45,7 +45,9 @@ phone_discover(struct sockaddr_in *out_addr)
 	struct sockaddr_in bind_addr = {0};
 	bind_addr.sin_family = AF_INET;
 	bind_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	bind_addr.sin_port = htons(atoi(config_get("port")));
+	char *port_str = config_get("port");
+	bind_addr.sin_port = htons(port_str ? atoi(port_str) : 5500);
+	free(port_str);
 
 	if (bind(sock, (struct sockaddr *)&bind_addr, sizeof(bind_addr)) < 0) {
 		U_LOG_W("phone: bind() failed: %d", errno);
@@ -55,7 +57,9 @@ phone_discover(struct sockaddr_in *out_addr)
 
 	// Join the multicast group.
 	struct ip_mreq mreq = {0};
-	mreq.imr_multiaddr.s_addr = inet_addr(config_get("multicast_addr"));
+	char *maddr_str = config_get("multicast_addr");
+	mreq.imr_multiaddr.s_addr = inet_addr(maddr_str ? maddr_str : "239.1.1.1");
+	free(maddr_str);
 	mreq.imr_interface.s_addr = htonl(INADDR_ANY);
 
 	if (setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0) {
@@ -132,11 +136,15 @@ net_config_thread(void *ptr)
 			char screen_w[16];
 			char screen_h[16];
 
-			if (sscanf(buf, "screen %15s %15s", screen_w, screen_h) == 2) {
-				if (strcmp(screen_w, config_get("screen_w")) == 0 &&
-				    strcmp(screen_h, config_get("screen_h")) == 0) {
-					continue;
-				}
+		if (sscanf(buf, "screen %15s %15s", screen_w, screen_h) == 2) {
+			char *cur_w = config_get("screen_w");
+			char *cur_h = config_get("screen_h");
+			bool same = cur_w && cur_h && strcmp(screen_w, cur_w) == 0 && strcmp(screen_h, cur_h) == 0;
+			free(cur_w);
+			free(cur_h);
+			if (same) {
+				continue;
+			}
 				config_set("screen_w", screen_w);
 				config_set("screen_h", screen_h);
 				U_LOG_I("phone: phone screen size changed, shutting down for restart");
@@ -168,7 +176,9 @@ net_config_create(const struct sockaddr_in *addr)
 	struct sockaddr_in bind_addr = {0};
 	bind_addr.sin_family = AF_INET;
 	bind_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	bind_addr.sin_port = htons(atoi(config_get("config_port")));
+	char *config_port_str = config_get("config_port");
+	bind_addr.sin_port = htons(config_port_str ? atoi(config_port_str) : 5501);
+	free(config_port_str);
 
 	if (bind(server_sock, (struct sockaddr *)&bind_addr, sizeof(bind_addr)) < 0) {
 		U_LOG_W("phone: config bind() failed: %d", errno);
@@ -208,7 +218,9 @@ net_config_create(const struct sockaddr_in *addr)
 
 	g_net_config = nc;
 
-	U_LOG_I("phone: config handler started on port %s", config_get("config_port"));
+	char *config_port_log = config_get("config_port");
+	U_LOG_I("phone: config handler started on port %s", config_port_log ? config_port_log : "5501");
+	free(config_port_log);
 	return true;
 }
 
@@ -252,6 +264,9 @@ net_stream_create(const struct sockaddr_in *addr, struct xrt_frame_sink **out_xf
 	inet_ntop(AF_INET, &addr->sin_addr, ip_str, sizeof(ip_str));
 
 	char pipeline[1024];
+	char *stream_w_str = config_get("stream_w");
+	char *stream_h_str = config_get("stream_h");
+	char *stream_port_str = config_get("stream_port");
 	snprintf(pipeline, sizeof(pipeline),
 	         "appsrc name=xr_src format=time is-live=true do-timestamp=true ! "
 	         "videoconvert ! "
@@ -263,11 +278,17 @@ net_stream_create(const struct sockaddr_in *addr, struct xrt_frame_sink **out_xf
 	         "video/x-h265,stream-format=byte-stream,alignment=nal ! "
 	         "rtph265pay config-interval=1 ! "
 	         "udpsink host=%s port=%s sync=false async=false",
-	         config_get("stream_w"), config_get("stream_h"), ip_str, config_get("stream_port"));
+	         stream_w_str ? stream_w_str : "1280", stream_h_str ? stream_h_str : "720", ip_str,
+	         stream_port_str ? stream_port_str : "5502");
 	U_LOG_I("phone: stream pipeline: %s", pipeline);
 
 	gstreamer_pipeline_create_from_string(&ns->xfctx, pipeline, &ns->gp);
-	gstreamer_sink_create_with_pipeline(ns->gp, atoi(config_get("stream_w")), atoi(config_get("stream_h")),
+	int stream_w = stream_w_str ? atoi(stream_w_str) : 1280;
+	int stream_h = stream_h_str ? atoi(stream_h_str) : 720;
+	free(stream_w_str);
+	free(stream_h_str);
+	free(stream_port_str);
+	gstreamer_sink_create_with_pipeline(ns->gp, stream_w, stream_h,
 	                                    XRT_FORMAT_R8G8B8A8, "xr_src", &ns->gs, &ns->xfs);
 	gstreamer_pipeline_play(ns->gp);
 	g_net_stream = ns;
@@ -392,7 +413,9 @@ net_hand_create(struct hand_packet *out_packet, struct os_mutex *hand_lock)
 	struct sockaddr_in bind_addr = {0};
 	bind_addr.sin_family = AF_INET;
 	bind_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	bind_addr.sin_port = htons(atoi(config_get("hand_port")));
+	char *hand_port_str = config_get("hand_port");
+	bind_addr.sin_port = htons(hand_port_str ? atoi(hand_port_str) : 5504);
+	free(hand_port_str);
 
 	if (bind(ht->sock, (struct sockaddr *)&bind_addr, sizeof(bind_addr)) < 0) {
 		U_LOG_W("phone: hand bind() failed: %d", errno);
@@ -417,7 +440,9 @@ net_hand_create(struct hand_packet *out_packet, struct os_mutex *hand_lock)
 
 	g_hand = ht;
 
-	U_LOG_I("phone: hand tracker started on port %s", config_get("hand_port"));
+	char *hand_port_log = config_get("hand_port");
+	U_LOG_I("phone: hand tracker started on port %s", hand_port_log ? hand_port_log : "5504");
+	free(hand_port_log);
 
 	return true;
 }
@@ -532,7 +557,9 @@ net_pose_create(struct m_relation_history *rh)
 	struct sockaddr_in bind_addr = {0};
 	bind_addr.sin_family = AF_INET;
 	bind_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	bind_addr.sin_port = htons(atoi(config_get("pose_port")));
+	char *pose_port_str = config_get("pose_port");
+	bind_addr.sin_port = htons(pose_port_str ? atoi(pose_port_str) : 5503);
+	free(pose_port_str);
 
 	if (bind(pr->sock, (struct sockaddr *)&bind_addr, sizeof(bind_addr)) < 0) {
 		U_LOG_W("phone: pose bind() failed: %d", errno);
@@ -556,7 +583,9 @@ net_pose_create(struct m_relation_history *rh)
 
 	g_pose = pr;
 
-	U_LOG_I("phone: pose receiver started on port %s", config_get("pose_port"));
+	char *pose_port_log = config_get("pose_port");
+	U_LOG_I("phone: pose receiver started on port %s", pose_port_log ? pose_port_log : "5503");
+	free(pose_port_log);
 
 	return true;
 }
