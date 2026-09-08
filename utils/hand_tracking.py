@@ -12,6 +12,7 @@ Usage:
     python hand_tracking.py
 """
 
+import argparse
 import socket
 import struct
 import time
@@ -61,7 +62,7 @@ def send(landmarks):
     if landmarks["right"] is not None:
         data += struct.pack("<63f", *landmarks["right"])
 
-    sock.sendto(data, ("127.0.0.1", 5504))  # TODO: change to config
+    sock.sendto(data, ("127.0.0.1", args.port))
 
 
 def on_result(
@@ -107,30 +108,51 @@ def on_result(
     send(landmarks)
 
 
-cap = cv2.VideoCapture(0)
-sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Monado Phone Driver hand tracking script from PC camera, sends the results in the same format as app."
+    )
+    parser.add_argument(
+        "-p",
+        "--port",
+        type=int,
+        default=5504,
+        help="UDP port to send the data to (default: 5504)",
+    )
+    parser.add_argument(
+        "-v",
+        "--video",
+        type=int,
+        default=0,
+        help="Video device to use (default: 0)",
+    )
 
-options = HolisticLandmarkerOptions(
-    base_options=BaseOptions(
-        model_asset_path="holistic_landmarker.task",
-        delegate=BaseOptions.Delegate.CPU,  # GPU throws error STRIDED_SLICE: Slice does not support shrink_axis_mask parameter.
-    ),
-    running_mode=VisionRunningMode.LIVE_STREAM,
-    min_face_detection_confidence=0.5,
-    min_pose_detection_confidence=0.5,
-    min_hand_landmarks_confidence=0.5,
-    result_callback=on_result,
-)
+    args = parser.parse_args()
 
-with HolisticLandmarker.create_from_options(options) as landmarker:
-    while True:
-        ret, frame = cap.read()
-        if not ret:
-            break
+    cap = cv2.VideoCapture(args.video)
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-        rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    options = HolisticLandmarkerOptions(
+        base_options=BaseOptions(
+            model_asset_path="holistic_landmarker.task",
+            delegate=BaseOptions.Delegate.CPU,  # GPU throws error STRIDED_SLICE: Slice does not support shrink_axis_mask parameter.
+        ),
+        running_mode=VisionRunningMode.LIVE_STREAM,
+        min_face_detection_confidence=0.5,
+        min_pose_detection_confidence=0.5,
+        min_hand_landmarks_confidence=0.5,
+        result_callback=on_result,
+    )
 
-        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
-        timestamp_ms = time.monotonic_ns() // 1_000_000
+    with HolisticLandmarker.create_from_options(options) as landmarker:
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                break
 
-        result = landmarker.detect_async(mp_image, timestamp_ms)
+            rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+            mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
+            timestamp_ms = time.monotonic_ns() // 1_000_000
+
+            result = landmarker.detect_async(mp_image, timestamp_ms)
