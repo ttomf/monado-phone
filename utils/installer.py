@@ -153,10 +153,25 @@ if __name__ == "__main__":
         info("Created openxr_monado-dev.json")
         print()
 
+        pc_hand = ask(
+            "Do you want to use hand tracking from PC camera (better FOV and performance)?",
+            False,
+        )
+        if pc_hand:
+            info("Downloading hand_tracking.py...")
+            urlretrieve(
+                "https://github.com/ttomf/monado-phone/releases/latest/download/hand_tracking.py",
+                "hand_tracking.py",
+            )
+            print()
+
         if ask("Do you want to install the apk using adb?", False):
             info("Installing MonadoPhone.apk...")
             result = subprocess.run(
-                ["adb", "install", "MonadoPhone.apk"], capture_output=True, text=True
+                ["adb", "install", "MonadoPhone.apk"],
+                capture_output=True,
+                text=True,
+                check=False,
             )
             if result.returncode != 0:
                 warn("Failed to install MonadoPhone.apk: " + result.stderr)
@@ -182,6 +197,11 @@ if __name__ == "__main__":
             info(
                 "     or create a symlink to openxr_monado-dev.json in ~/.config/openxr/1/active_runtime.json"
             )
+        if pc_hand:
+            info(
+                "Tip: if you want to use hand tracking from PC camera, disable hand tracking in the app and run the following command:"
+            )
+            info("     python hand_tracking.py")
     except KeyboardInterrupt:
         print()
         err("Aborted")
