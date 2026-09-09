@@ -162,15 +162,15 @@ phone_hmd_get_hand_tracking(struct xrt_device *xdev,
 
 		// Do not apply rotation correction if the flag is set
 		if (!(packet.flags & (1 << 2))) {
-			math_quat_rotate_vec3(&relation.pose.orientation, &hand_pos, &joint->relation.pose.position);
+			math_quat_rotate_vec3(&relation.pose.orientation, &hand_pos, &hand_pos);
 		}
 
+		joint->relation.pose.position = hand_pos;
 		joint->relation.pose.position.x += relation.pose.position.x / 2.f;
 		joint->relation.pose.position.y += relation.pose.position.y / 2.f;
 		joint->relation.pose.position.z += relation.pose.position.z / 2.f;
 
-		joint->relation.relation_flags = (enum xrt_space_relation_flags)(
-		    XRT_SPACE_RELATION_ORIENTATION_VALID_BIT | XRT_SPACE_RELATION_POSITION_VALID_BIT);
+		joint->relation.relation_flags = (enum xrt_space_relation_flags)(XRT_SPACE_RELATION_POSITION_VALID_BIT);
 	}
 
 	// Anatomic joints width
