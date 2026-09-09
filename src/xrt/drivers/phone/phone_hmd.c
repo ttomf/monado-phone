@@ -151,8 +151,6 @@ phone_hmd_get_hand_tracking(struct xrt_device *xdev,
 
 	const float *lm = (name == XRT_INPUT_HT_UNOBSTRUCTED_LEFT) ? packet.left : packet.right;
 
-	bool is_active = false;
-
 	for (int i = 0; i < XRT_HAND_JOINT_COUNT; ++i) {
 		struct xrt_hand_joint_value *joint = &out_value->values.hand_joint_set_default[i];
 		int mi = mp_idx[i];
@@ -162,7 +160,10 @@ phone_hmd_get_hand_tracking(struct xrt_device *xdev,
 		    .z = lm[3 * mi + 2],
 		};
 
-		math_quat_rotate_vec3(&relation.pose.orientation, &hand_pos, &joint->relation.pose.position);
+		// Do not apply rotation correction if the flag is set
+		if (!(packet.flags & (1 << 2))) {
+			math_quat_rotate_vec3(&relation.pose.orientation, &hand_pos, &joint->relation.pose.position);
+		}
 
 		joint->relation.pose.position.x += relation.pose.position.x / 2.f;
 		joint->relation.pose.position.y += relation.pose.position.y / 2.f;
@@ -170,10 +171,6 @@ phone_hmd_get_hand_tracking(struct xrt_device *xdev,
 
 		joint->relation.relation_flags = (enum xrt_space_relation_flags)(
 		    XRT_SPACE_RELATION_ORIENTATION_VALID_BIT | XRT_SPACE_RELATION_POSITION_VALID_BIT);
-
-		if (hand_pos.x != 0.f || hand_pos.y != 0.f || hand_pos.z != 0.f) {
-			is_active = true;
-		}
 	}
 
 	// Anatomic joints width
@@ -181,7 +178,8 @@ phone_hmd_get_hand_tracking(struct xrt_device *xdev,
 
 	// Root = wrist
 	out_value->hand_pose = out_value->values.hand_joint_set_default[XRT_HAND_JOINT_WRIST].relation;
-	out_value->is_active = is_active;
+	out_value->is_active =
+	    (name == XRT_INPUT_HT_UNOBSTRUCTED_LEFT) ? packet.flags & (1 << 0) : packet.flags & (1 << 1);
 
 	*out_timestamp_ns = packet.timestamp_ns;
 

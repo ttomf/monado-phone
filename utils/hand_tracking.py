@@ -30,9 +30,9 @@ VisionRunningMode = mp.tasks.vision.RunningMode
 def flatten_world_relative(world_lm, head):
     out = [0.0] * 63
     for i in range(21):
-        out[i * 3 + 0] = float(world_lm[i].x - head.x)
+        out[i * 3 + 0] = float(-(world_lm[i].x - head.x))
         out[i * 3 + 1] = float(-(world_lm[i].y - head.y))
-        out[i * 3 + 2] = float((world_lm[i].z - head.z) - 0.05)
+        out[i * 3 + 2] = float(world_lm[i].z - head.z)
     return out
 
 
@@ -53,6 +53,8 @@ def send(landmarks):
         flags |= 1
     if landmarks["right"] is not None:
         flags |= 2
+
+    flags |= 1 << 2  # Do not apply rotation correction on these landmarks
 
     data += struct.pack("<b", flags)
 

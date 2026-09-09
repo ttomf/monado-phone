@@ -53,6 +53,10 @@
 struct hand_packet
 {
 	int64_t timestamp_ns;
+	// Flags:
+	// bit 0 = left hand sent
+	// bit 1 = right hand sent
+	// bit 2 = external tracking, do not rotate
 	int8_t flags;
 	float left[63];
 	float right[63];
