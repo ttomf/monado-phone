@@ -42,6 +42,56 @@ LAST_RIGHT = None
 LAST_RIGHT_TS = 0
 HOLD_NS = 150_000_000
 
+VIZ_RESULT = None
+
+HAND_CONNECTIONS = (
+    (0, 1),
+    (1, 2),
+    (2, 3),
+    (3, 4),
+    (0, 5),
+    (5, 6),
+    (6, 7),
+    (7, 8),
+    (5, 9),
+    (9, 10),
+    (10, 11),
+    (11, 12),
+    (9, 13),
+    (13, 14),
+    (14, 15),
+    (15, 16),
+    (13, 17),
+    (17, 18),
+    (18, 19),
+    (19, 20),
+    (0, 17),
+)
+
+
+def draw_hand(frame, hand_lm, color):
+    h, w = frame.shape[:2]
+    pts = []
+    for lm in hand_lm:
+        pts.append((int(lm.x * w), int(lm.y * h)))
+    for a, b in HAND_CONNECTIONS:
+        cv2.line(frame, pts[a], pts[b], color, 1)
+    for p in pts:
+        cv2.circle(frame, p, 2, color, -1)
+
+
+def draw_viz(frame, result):
+    if result.pose_landmarks:
+        for i, lm in enumerate(result.pose_landmarks):
+            x = int(lm.x * frame.shape[1])
+            y = int(lm.y * frame.shape[0])
+            color = (0, 0, 255) if i == 0 else (200, 200, 200)
+            cv2.circle(frame, (x, y), 2 if i else 4, color, -1)
+    if result.left_hand_landmarks:
+        draw_hand(frame, result.left_hand_landmarks, (0, 255, 0))
+    if result.right_hand_landmarks:
+        draw_hand(frame, result.right_hand_landmarks, (255, 0, 0))
+
 
 def send(landmarks):
     data = bytearray()
@@ -70,7 +120,8 @@ def send(landmarks):
 def on_result(
     result: HolisticLandmarkerResult, output_image: mp.Image, timestamp_ms: int
 ):
-    global LAST_LEFT, LAST_LEFT_TS, LAST_RIGHT, LAST_RIGHT_TS
+    global LAST_LEFT, LAST_LEFT_TS, LAST_RIGHT, LAST_RIGHT_TS, VIZ_RESULT
+    VIZ_RESULT = result
     now_ns = timestamp_ms * 1_000_000
     landmarks = {
         "timestamp": now_ns,
@@ -128,6 +179,11 @@ if __name__ == "__main__":
         default=0,
         help="Video device to use (default: 0)",
     )
+    parser.add_argument(
+        "--no-viz",
+        action="store_true",
+        help="Disable OpenCV visualization window",
+    )
 
     args = parser.parse_args()
 
@@ -158,3 +214,15 @@ if __name__ == "__main__":
             timestamp_ms = time.monotonic_ns() // 1_000_000
 
             result = landmarker.detect_async(mp_image, timestamp_ms)
+
+            if not args.no_viz:
+                if VIZ_RESULT is not None:
+                    draw_viz(frame, VIZ_RESULT)
+                cv2.imshow("hand_tracking", frame)
+
+                key = cv2.waitKey(1) & 0xFF
+                if key == ord("q") or key == 27:
+                    break
+
+    cap.release()
+    cv2.destroyAllWindows()
