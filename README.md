@@ -186,10 +186,10 @@ To run hand tracking on PC, you need to install Python [MediaPipe](https://devel
 pip install mediapipe cv2
 ```
 
-Then, run `python hand_tracking.py` in the `utils` directory.
+Then, run `python hand_tracking.py` in the `utils` directory. Run `python hand_tracking.py --help` to see all possible options.
 
 > [!IMPORTANT]
-> You will first need to disable the phone's hand tracking in Android app settings.
+> You must first disable hand tracking on the phone in the Android app settings; otherwise, packets from the phone will collide with packets from the PC, causing random flickering.
 
 ## Architecture
 
@@ -212,6 +212,8 @@ The stream is taken when Monado draws on Vulkan image owned by the driver. Then 
 Pose receiving thread listens on UDP port, decodes the pose and pushes it to the relation history.
 
 Hand tracking thread listens on UDP port and decodes the hand landmarks. When Monado wants hand poses, it takes the landmarks and combines them with the pose to get world space hand poses, and pushes them into Monado.
+
+If you run `hand_tracking.py` script, it will send the hand landmarks like the phone to `127.0.0.1`, but with "no rotate" flag set, because the PC looks at the hands from third person view.
 
 ### Diagram
 
