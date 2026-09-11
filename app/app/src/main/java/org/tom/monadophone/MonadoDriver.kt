@@ -312,7 +312,7 @@ class MonadoDriver(
     private suspend fun receiveVideo(surf: Surface) {
         val codec = try {
             MediaCodec.createDecoderByType("video/hevc").apply {
-                configure(MediaFormat.createVideoFormat("video/hevc", 1920, 1080).apply {
+                configure(MediaFormat.createVideoFormat("video/hevc", Settings.streamW, Settings.streamW).apply {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                         setInteger(MediaFormat.KEY_LOW_LATENCY, 1)
                     }

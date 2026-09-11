@@ -216,7 +216,9 @@ fun App(driver: MonadoDriver, modifier: Modifier = Modifier) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { Settings.enableHandTracking = !Settings.enableHandTracking },
+                            .clickable {
+                                Settings.enableHandTracking = !Settings.enableHandTracking
+                            },
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Checkbox(
@@ -228,7 +230,9 @@ fun App(driver: MonadoDriver, modifier: Modifier = Modifier) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { Settings.enable6DOFTracking = !Settings.enable6DOFTracking },
+                            .clickable {
+                                Settings.enable6DOFTracking = !Settings.enable6DOFTracking
+                            },
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Checkbox(
@@ -238,7 +242,7 @@ fun App(driver: MonadoDriver, modifier: Modifier = Modifier) {
                         Text("Enable 6DOF tracking")
                     }
                     Text(
-                        "Network configuration",
+                        "Network",
                         fontSize = MaterialTheme.typography.titleMedium.fontSize
                     )
                     TextField(
@@ -294,6 +298,30 @@ fun App(driver: MonadoDriver, modifier: Modifier = Modifier) {
                             }
                         },
                         label = { Text("Hands port") },
+                        singleLine = true
+                    )
+                    Text(
+                        "Stream",
+                        fontSize = MaterialTheme.typography.titleMedium.fontSize
+                    )
+                    TextField(
+                        value = Settings.streamW.toString(),
+                        onValueChange = { v ->
+                            v.toIntOrNull()?.let {
+                                Settings.streamW = it
+                            }
+                        },
+                        label = { Text("Stream width") },
+                        singleLine = true
+                    )
+                    TextField(
+                        value = Settings.streamH.toString(),
+                        onValueChange = { v ->
+                            v.toIntOrNull()?.let {
+                                Settings.streamH = it
+                            }
+                        },
+                        label = { Text("Stream height") },
                         singleLine = true
                     )
                 }
