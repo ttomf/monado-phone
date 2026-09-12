@@ -685,6 +685,7 @@ if(XRT_BUILD_DRIVER_PHONE)
 	add_library(
 		drv_phone STATIC
 		phone/phone_hmd.c
+		phone/phone_controller.c
 		phone/phone_config.c
 		phone/phone_interface.h
 		phone/phone_internals.h

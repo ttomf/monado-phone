@@ -111,3 +111,6 @@ net_pose_create(struct m_relation_history *rh);
 
 void
 net_pose_destroy(void);
+
+struct xrt_device *
+phone_controller_create(struct phone_hmd *hmd, enum xrt_hand hand);

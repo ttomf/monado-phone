@@ -203,8 +203,8 @@ phone_hmd_destroy(struct xrt_device *xdev)
 }
 
 
-struct xrt_device *
-phone_hmd_create(struct sockaddr_in *phone_addr)
+uint32_t
+phone_hmd_create(struct sockaddr_in *phone_addr, struct xrt_device **out_xdevs)
 {
 	// Create hmd
 	struct phone_hmd *hmd =
@@ -344,5 +344,9 @@ phone_hmd_create(struct sockaddr_in *phone_addr)
 
 	U_LOG_I("phone: HMD created");
 
-	return &hmd->base;
+	out_xdevs[0] = &hmd->base;
+	out_xdevs[1] = phone_controller_create(hmd, XRT_HAND_LEFT);
+	out_xdevs[2] = phone_controller_create(hmd, XRT_HAND_RIGHT);
+
+	return 3;
 }

@@ -53,8 +53,7 @@ phone_probe(struct xrt_auto_prober *xap,
 	inet_ntop(AF_INET, &phone_addr.sin_addr, ip_str, sizeof(ip_str));
 	U_LOG_I("phone: found phone at %s", ip_str);
 
-	out_xdevs[0] = phone_hmd_create(&phone_addr);
-	return 1;
+	return phone_hmd_create(&phone_addr, out_xdevs);
 }
 
 // Create autoprober
