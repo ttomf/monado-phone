@@ -156,7 +156,7 @@ If the game doesn't support OpenXR, I sugest using `opencomposite` with same env
 
 ### Configuration file
 
-Monado Phone Driver uses `~/.config/monado-phone/config.cfg` file to load configuration. After every change, you need to restart monado-service to apply changes. The file is in `key=value` format, must end with newline and cannot have comments.
+Monado Phone Driver uses `~/.config/monado-phone/config.cfg` file to load configuration. After every change, you need to restart monado-service to apply changes. The file is in `key=value` format, must end with newline and cannot have comments. To find your headset properties, go to https://wwgc.firebaseapp.com/.
 
 | key | initial value | description |
 | --- | --- | --- |

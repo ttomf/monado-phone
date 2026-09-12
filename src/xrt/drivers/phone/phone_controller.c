@@ -42,6 +42,13 @@ phone_controller_get_tracked_pose(struct xrt_device *xdev,
 	packet = *ctrl->hmd->hand_packet;
 	os_mutex_unlock(&ctrl->hmd->hand_lock);
 
+	bool active = (ctrl->hand == XRT_HAND_LEFT) ? (packet.flags & (1 << 0)) : (packet.flags & (1 << 1));
+	if (!active) {
+		out_relation->pose = (struct xrt_pose)XRT_POSE_IDENTITY;
+		out_relation->relation_flags = 0;
+		return XRT_SUCCESS;
+	}
+
 	// Get head relation
 	struct xrt_space_relation head = XRT_SPACE_RELATION_ZERO;
 	enum m_relation_history_result result =
@@ -66,21 +73,14 @@ phone_controller_get_tracked_pose(struct xrt_device *xdev,
 	if (!(packet.flags & (1 << 2))) {
 		math_quat_rotate_vec3(&head.pose.orientation, &wrist, &wrist);
 	}
-	wrist.x += head.pose.position.x / 2.f;
-	wrist.y += head.pose.position.y / 2.f;
-	wrist.z += head.pose.position.z / 2.f;
+	wrist.x += head.pose.position.x;
+	wrist.y += head.pose.position.y;
+	wrist.z += head.pose.position.z;
 
 	out_relation->pose.position = wrist;
 
 	if (name == XRT_INPUT_SIMPLE_GRIP_POSE) {
-		// Grip: orientation from hand joints
-		// Right = wrist -> index metacarpal (5)
-		// Forward = wrist -> middle metacarpal (9)
-		struct xrt_vec3 index_pos = {
-		    .x = lm[3 * 5 + 0],
-		    .y = lm[3 * 5 + 1],
-		    .z = lm[3 * 5 + 2],
-		};
+		// Grip: forward = wrist -> middle metacarpal (9)
 		struct xrt_vec3 middle_pos = {
 		    .x = lm[3 * 9 + 0],
 		    .y = lm[3 * 9 + 1],
@@ -88,16 +88,21 @@ phone_controller_get_tracked_pose(struct xrt_device *xdev,
 		};
 
 		if (!(packet.flags & (1 << 2))) {
-			math_quat_rotate_vec3(&head.pose.orientation, &index_pos, &index_pos);
 			math_quat_rotate_vec3(&head.pose.orientation, &middle_pos, &middle_pos);
 		}
 
-		struct xrt_vec3 right = m_vec3_sub(index_pos, wrist);
 		struct xrt_vec3 forward = m_vec3_sub(middle_pos, wrist);
-		math_vec3_normalize(&right);
 		math_vec3_normalize(&forward);
 
-		math_quat_from_plus_x_z(&right, &forward, &out_relation->pose.orientation);
+		// Right = cross(forward, up_hint)
+		struct xrt_vec3 up_hint = {0.f, 1.f, 0.f};
+		struct xrt_vec3 right;
+		math_vec3_cross(&forward, &up_hint, &right);
+		math_vec3_normalize(&right);
+
+		struct xrt_vec3 neg_forward = {-forward.x, -forward.y, -forward.z};
+
+		math_quat_from_plus_x_z(&right, &neg_forward, &out_relation->pose.orientation);
 	} else {
 		// Aim: orientation from index finger direction
 		struct xrt_vec3 proximal = {
@@ -119,13 +124,15 @@ phone_controller_get_tracked_pose(struct xrt_device *xdev,
 		struct xrt_vec3 forward = m_vec3_sub(tip, proximal);
 		math_vec3_normalize(&forward);
 
+		struct xrt_vec3 neg_forward = {-forward.x, -forward.y, -forward.z};
+
 		// Right = cross(forward, up_hint), where up_hint = (0,1,0)
 		struct xrt_vec3 up_hint = {0.f, 1.f, 0.f};
 		struct xrt_vec3 right;
 		math_vec3_cross(&forward, &up_hint, &right);
 		math_vec3_normalize(&right);
 
-		math_quat_from_plus_x_z(&right, &forward, &out_relation->pose.orientation);
+		math_quat_from_plus_x_z(&right, &neg_forward, &out_relation->pose.orientation);
 	}
 
 	out_relation->relation_flags = (enum xrt_space_relation_flags)(
