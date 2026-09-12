@@ -44,6 +44,11 @@ HOLD_NS = 150_000_000
 
 VIZ_RESULT = None
 
+# Smoothing: alpha=0 means no change, alpha=1 means no smoothing
+SMOOTH_ALPHA = 0.4  # default, overridden by --smooth
+smooth_left = None
+smooth_right = None
+
 HAND_CONNECTIONS = (
     (0, 1),
     (1, 2),
@@ -93,6 +98,12 @@ def draw_viz(frame, result):
         draw_hand(frame, result.right_hand_landmarks, (255, 0, 0))
 
 
+def smooth_landmarks(prev, current, alpha):
+    if prev is None:
+        return current
+    return [alpha * c + (1 - alpha) * p for p, c in zip(prev, current)]
+
+
 def send(landmarks):
     data = bytearray()
 
@@ -121,6 +132,7 @@ def on_result(
     result: HolisticLandmarkerResult, output_image: mp.Image, timestamp_ms: int
 ):
     global LAST_LEFT, LAST_LEFT_TS, LAST_RIGHT, LAST_RIGHT_TS, VIZ_RESULT
+    global smooth_left, smooth_right
     VIZ_RESULT = result
     now_ns = timestamp_ms * 1_000_000
     landmarks = {
@@ -133,16 +145,16 @@ def on_result(
 
     if head is not None:
         if result.left_hand_world_landmarks:
-            landmarks["left"] = flatten_world_relative(
-                result.left_hand_world_landmarks, head
-            )
-            LAST_LEFT = landmarks["left"]
+            raw = flatten_world_relative(result.left_hand_world_landmarks, head)
+            smooth_left = smooth_landmarks(smooth_left, raw, SMOOTH_ALPHA)
+            landmarks["left"] = smooth_left
+            LAST_LEFT = smooth_left
             LAST_LEFT_TS = now_ns
         if result.right_hand_world_landmarks:
-            landmarks["right"] = flatten_world_relative(
-                result.right_hand_world_landmarks, head
-            )
-            LAST_RIGHT = landmarks["right"]
+            raw = flatten_world_relative(result.right_hand_world_landmarks, head)
+            smooth_right = smooth_landmarks(smooth_right, raw, SMOOTH_ALPHA)
+            landmarks["right"] = smooth_right
+            LAST_RIGHT = smooth_right
             LAST_RIGHT_TS = now_ns
 
     if (
@@ -182,10 +194,18 @@ if __name__ == "__main__":
     parser.add_argument(
         "--no-viz",
         action="store_true",
-        help="Disable OpenCV visualization window",
+        help="Disable OpenCV visualization window (default: False)",
+    )
+    parser.add_argument(
+        "-s",
+        "--smooth",
+        type=float,
+        default=0.4,
+        help="Smoothing alpha (0=max smooth, 1=no smooth, default: 0.4)",
     )
 
     args = parser.parse_args()
+    SMOOTH_ALPHA = args.smooth
 
     cap = cv2.VideoCapture(args.video)
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
