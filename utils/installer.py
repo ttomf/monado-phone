@@ -118,7 +118,7 @@ if __name__ == "__main__":
     "file_format_version": "1.0.0",
     "runtime": {
         "name": "Monado",
-        "library_path": "libopenxr_monado.so"
+        "library_path": "./libopenxr_monado.so"
     }
 }
 """
