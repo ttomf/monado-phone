@@ -177,6 +177,8 @@ Monado Phone Driver uses `~/.config/monado-phone/config.cfg` file to load config
 | inter_lens | 0.060 | inter-lens distance in meters |
 | screen_to_lens | 0.050 | distance between phone screen and lens in meters |
 | tray_to_lens | 0.035 | vertical distance from bottom of the phone tray to lens in meters |
+| controller_emulation | true | enable controller emulation from hand pose |
+| hand_emulation | true | enable hand tracking emulation from hand pose |
 
 ### PC camera hand tracking
 
