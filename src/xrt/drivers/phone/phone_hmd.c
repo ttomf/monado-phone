@@ -206,9 +206,16 @@ phone_hmd_destroy(struct xrt_device *xdev)
 uint32_t
 phone_hmd_create(struct sockaddr_in *phone_addr, struct xrt_device **out_xdevs)
 {
+	bool hand_emulation = false;
+	char *hand_emulation_str = config_get("hand_emulation");
+	if (hand_emulation_str && strcmp(hand_emulation_str, "true") == 0) {
+		hand_emulation = true;
+	}
+	free(hand_emulation_str);
+
 	// Create hmd
-	struct phone_hmd *hmd =
-	    U_DEVICE_ALLOCATE(struct phone_hmd, (U_DEVICE_ALLOC_HMD | U_DEVICE_ALLOC_TRACKING_NONE), 3, 0);
+	struct phone_hmd *hmd = U_DEVICE_ALLOCATE(struct phone_hmd, (U_DEVICE_ALLOC_HMD | U_DEVICE_ALLOC_TRACKING_NONE),
+	                                          hand_emulation ? 3 : 1, 0);
 
 	// Initialize blend modes
 	hmd->base.hmd->blend_modes[0] = XRT_BLEND_MODE_OPAQUE;
@@ -249,13 +256,17 @@ phone_hmd_create(struct sockaddr_in *phone_addr, struct xrt_device **out_xdevs)
 	// Setup device properties
 	hmd->base.supported.orientation_tracking = true;
 	hmd->base.supported.position_tracking = true;
-	hmd->base.supported.hand_tracking = true;
+	if (hand_emulation) {
+		hmd->base.supported.hand_tracking = true;
+	}
 
 	hmd->base.name = XRT_DEVICE_GENERIC_HMD;
 	hmd->base.device_type = XRT_DEVICE_TYPE_HMD;
 	hmd->base.inputs[0].name = XRT_INPUT_GENERIC_HEAD_POSE;
-	hmd->base.inputs[1].name = XRT_INPUT_HT_UNOBSTRUCTED_LEFT;
-	hmd->base.inputs[2].name = XRT_INPUT_HT_UNOBSTRUCTED_RIGHT;
+	if (hand_emulation) {
+		hmd->base.inputs[1].name = XRT_INPUT_HT_UNOBSTRUCTED_LEFT;
+		hmd->base.inputs[2].name = XRT_INPUT_HT_UNOBSTRUCTED_RIGHT;
+	}
 
 	// Set screen refresh rate to 60Hz
 	hmd->base.hmd->screens[0].nominal_frame_interval_ns = time_s_to_ns(1.0f / 60.0f);
@@ -344,9 +355,16 @@ phone_hmd_create(struct sockaddr_in *phone_addr, struct xrt_device **out_xdevs)
 
 	U_LOG_I("phone: HMD created");
 
-	out_xdevs[0] = &hmd->base;
-	out_xdevs[1] = phone_controller_create(hmd, XRT_HAND_LEFT);
-	out_xdevs[2] = phone_controller_create(hmd, XRT_HAND_RIGHT);
+	int xdevs = 1;
 
-	return 3;
+	out_xdevs[0] = &hmd->base;
+	char *controller_emulation_str = config_get("controller_emulation");
+	if (controller_emulation_str && strcmp(controller_emulation_str, "true") == 0) {
+		out_xdevs[1] = phone_controller_create(hmd, XRT_HAND_LEFT);
+		out_xdevs[2] = phone_controller_create(hmd, XRT_HAND_RIGHT);
+		xdevs += 2;
+	}
+	free(controller_emulation_str);
+
+	return xdevs;
 }

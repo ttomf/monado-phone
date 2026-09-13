@@ -80,7 +80,9 @@ config_init(void)
 	        "k2=0.12\n"
 	        "inter_lens=0.060\n"
 	        "screen_to_lens=0.050\n"
-	        "tray_to_lens=0.035\n");
+	        "tray_to_lens=0.035\n"
+	        "controller_emulation=true\n"
+	        "hand_emulation=true\n");
 	fclose(tmp);
 }
 
