@@ -192,6 +192,7 @@ if __name__ == "__main__":
         help="Video device to use (default: 0)",
     )
     parser.add_argument(
+        "-n",
         "--no-viz",
         action="store_true",
         help="Disable OpenCV visualization window (default: False)",

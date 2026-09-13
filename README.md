@@ -188,7 +188,15 @@ To run hand tracking on PC, you need to install Python [MediaPipe](https://devel
 pip install mediapipe cv2
 ```
 
-Then, run `python hand_tracking.py` in the `utils` directory. Run `python hand_tracking.py --help` to see all possible options.
+Then, run `python hand_tracking.py` in the `utils` directory. Here are all possible options:
+
+| option | default | description |
+| --- | --- | --- |
+| `-p`, `--port` | 5504 | UDP port to send the data to |
+| `-v`, `--video` | 0 | video device to use (see all with `ls /dev/video*`) |
+| `-n`, `--no-viz` | off | disable OpenCV visualization window |
+| `-s`, `--smooth` | 0.4 | smoothing alpha (0=max smooth, 1=no smooth) |
+
 
 > [!IMPORTANT]
 > You must first disable hand tracking on the phone in the Android app settings; otherwise, packets from the phone will collide with packets from the PC, causing random flickering.
@@ -213,7 +221,7 @@ The stream is taken when Monado draws on Vulkan image owned by the driver. Then 
 
 Pose receiving thread listens on UDP port, decodes the pose and pushes it to the relation history.
 
-Hand tracking thread listens on UDP port and decodes the hand landmarks. When Monado wants hand poses, it takes the landmarks and combines them with the pose to get world space hand poses, and pushes them into Monado.
+Hand tracking thread listens on UDP port and decodes the hand landmarks. When Monado wants hand poses, it takes the landmarks and combines them with the pose to get world space hand poses, and pushes them into Monado. It also emulates controllers from hand data. Both can be disabled with config file.
 
 If you run `hand_tracking.py` script, it will send the hand landmarks like the phone to `127.0.0.1`, but with "no rotate" flag set, because the PC looks at the hands from third person view.
 
