@@ -204,7 +204,7 @@ rift_parse_distortion_report(struct rift_lens_distortion_report *report, struct 
 		data.max_r = rift_decode_fixed_point_uint16(report_data.max_r, 0, 14);
 		data.meters_per_tan_angle_at_center =
 		    rift_decode_fixed_point_uint16(report_data.meters_per_tan_angle_at_center, 0, 19);
-		for (uint16_t i = 0; i < CHROMATIC_ABBERATION_COEFFEICENT_COUNT; i += 1) {
+		for (uint16_t i = 0; i < U_RIFT_CHROMATIC_ABBERATION_COUNT; i += 1) {
 			data.chromatic_abberation[i] =
 			    rift_decode_fixed_point_uint16(report_data.chromatic_abberation[i], 0x8000, 19);
 		}

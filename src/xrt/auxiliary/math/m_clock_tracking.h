@@ -97,6 +97,8 @@ bool
 m_clock_windowed_skew_tracker_to_remote(struct m_clock_windowed_skew_tracker *t,
                                         const timepoint_ns local_ts,
                                         timepoint_ns *remote_ts);
+bool
+m_clock_windowed_skew_tracker_get_skew(struct m_clock_windowed_skew_tracker *t, time_duration_ns *skew_ns);
 
 #ifdef __cplusplus
 }

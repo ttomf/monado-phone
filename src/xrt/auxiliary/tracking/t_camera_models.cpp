@@ -60,8 +60,6 @@ interpret_as_rt8(const t_camera_calibration &cc, t_camera_model_params &out_para
 	out_params.rt8.k5 = distortion_tmp[acc_idx++];
 	out_params.rt8.k6 = distortion_tmp[acc_idx++];
 
-
-
 	if (cc.distortion_model == T_DISTORTION_WMR) {
 		out_params.rt8.metric_radius = cc.wmr.rpmax;
 	} else {
@@ -91,8 +89,6 @@ t_camera_model_params_from_t_camera_calibration(const t_camera_calibration *cc, 
 
 	out_params->model = cc->distortion_model;
 
-
-
 	switch (cc->distortion_model) {
 	case T_DISTORTION_FISHEYE_KB4: {
 		out_params->fisheye.k1 = (float)cc->kb4.k1;
@@ -104,6 +100,16 @@ t_camera_model_params_from_t_camera_calibration(const t_camera_calibration *cc, 
 	case T_DISTORTION_OPENCV_RADTAN_5:
 	case T_DISTORTION_OPENCV_RADTAN_8:
 	case T_DISTORTION_WMR: interpret_as_rt8(*cc, *out_params); break;
+	case T_DISTORTION_RIFT_CV1: {
+		out_params->cv1.k1 = (float)cc->cv1.k1;
+		out_params->cv1.k2 = (float)cc->cv1.k2;
+		out_params->cv1.k3 = (float)cc->cv1.k3;
+		out_params->cv1.k4 = (float)cc->cv1.k4;
+		out_params->cv1.p1 = (float)cc->cv1.p1;
+		out_params->cv1.p2 = (float)cc->cv1.p2;
+		out_params->cv1.g3 = (float)cc->cv1.g3;
+		out_params->cv1.g4 = (float)cc->cv1.g4;
+	} break;
 	default:
 		U_LOG_E("t_camera_un_projections doesn't support camera model %s yet!",
 		        t_stringify_camera_distortion_model(cc->distortion_model));
@@ -116,6 +122,9 @@ t_camera_models_unproject(
     const t_camera_model_params *dist, const float x, const float y, float *out_x, float *out_y, float *out_z)
 {
 	switch (dist->model) {
+	case T_DISTORTION_PINHOLE: {
+		return pinhole_unproject(*dist, x, y, *out_x, *out_y, *out_z);
+	};
 	case T_DISTORTION_OPENCV_RADTAN_8: {
 		return rt8_unproject(*dist, x, y, *out_x, *out_y, *out_z);
 	}; break;

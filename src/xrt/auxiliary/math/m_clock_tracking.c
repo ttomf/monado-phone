@@ -206,3 +206,14 @@ m_clock_windowed_skew_tracker_to_remote(struct m_clock_windowed_skew_tracker *t,
 	*remote_ts = local_ts - t->current_skew;
 	return true;
 }
+
+bool
+m_clock_windowed_skew_tracker_get_skew(struct m_clock_windowed_skew_tracker *t, time_duration_ns *skew_ns)
+{
+	if (!t->have_skew_estimate) {
+		return false;
+	}
+
+	*skew_ns = t->current_skew;
+	return true;
+}

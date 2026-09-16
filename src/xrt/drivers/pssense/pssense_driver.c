@@ -10,35 +10,35 @@
 
 #include "xrt/xrt_prober.h"
 
-#include "os/os_threading.h"
 #include "os/os_hid.h"
+#include "os/os_threading.h"
 #include "os/os_time.h"
 
 #include "math/m_api.h"
-#include "math/m_vec3.h"
 
-#include "tracking/t_imu.h"
 #include "tracking/t_constellation.h"
+#include "tracking/t_imu.h"
 
 #include "constellation/t_constellation_tracker.h"
 #include "constellation/t_led_sync_refinement.h"
 
-#include "util/u_var.h"
 #include "util/u_debug.h"
 #include "util/u_device.h"
-#include "util/u_logging.h"
-#include "util/u_trace_marker.h"
 #include "util/u_linux.h"
+#include "util/u_logging.h"
 #include "util/u_resampler.h"
+#include "util/u_time.h"
+#include "util/u_trace_marker.h"
+#include "util/u_var.h"
 
-#include "math/m_mathinclude.h"
-#include "math/m_space.h"
+#include "math/m_clock_tracking.h"
 #include "math/m_imu_3dof.h"
 #include "math/m_relation_history.h"
+#include "math/m_space.h"
 
 #include "pssense_interface.h"
-#include "pssense_protocol.h"
 #include "pssense_led_model.h"
+#include "pssense_protocol.h"
 
 #include <stdio.h>
 #include <errno.h>
@@ -56,6 +56,7 @@
 #define PSSENSE_ERROR(p, ...) U_LOG_XDEV_IFL_E(&p->base, p->log_level, __VA_ARGS__)
 
 DEBUG_GET_ONCE_LOG_OPTION(pssense_log, "PSSENSE_LOG", U_LOGGING_INFO)
+DEBUG_GET_ONCE_BOOL_OPTION(pssense_pc_polling_rate, "PSSENSE_SET_PC_POLLING_RATE", true)
 
 static struct xrt_binding_input_pair touch_inputs_pssense[] = {
     {XRT_INPUT_TOUCH_X_CLICK, XRT_INPUT_PSSENSE_SQUARE_CLICK},
@@ -219,15 +220,7 @@ struct pssense_device
 
 	struct
 	{
-		// Follows PSVR2TK's known-good clock tracking for sense controllers
-		// See: PSVR2Toolkit/projects/psvr2_openvr_driver_ex/sense_controller.h, SenseController
-
-		//! Raw max-tracked offset: imu_time_ns - host_receive_time_ns
-		double timestamp_offset_ns;
-		//! Smoothed version of timestamp_offset_ns, updated ±2500ns per sample at most.
-		double filtered_offset_ns;
-		bool has_clock_offset;
-		uint64_t last_clock_sample_ns;
+		struct m_clock_windowed_skew_tracker *clock_tracker;
 
 		timepoint_ns latest_imu_time_ns;
 
@@ -364,43 +357,15 @@ crc32_le(uint32_t crc, uint8_t const *p, size_t len)
 	return crc ^ 0xffffffff;
 }
 
-/*!
- * Update the max-tracking clock filter with a new offset sample.
- * Must be called under the controller_thread lock.
- *
- * Corresponds to SenseController::AddTimestampOffsetSample in:
- * PSVR2Toolkit/projects/psvr2_openvr_driver_ex/sense_controller.h
- */
 static void
-pssense_add_clock_offset_sample(struct pssense_device *pssense, double offset_ns)
+pssense_add_clock_offset_sample_locked(struct pssense_device *pssense, timepoint_ns local_ns, timepoint_ns remote_ns)
 {
-	if (!pssense->timing.has_clock_offset) {
-		pssense->timing.timestamp_offset_ns = offset_ns;
-		pssense->timing.filtered_offset_ns = offset_ns;
-		pssense->timing.has_clock_offset = true;
-	} else {
-		uint64_t now_ns = os_monotonic_get_ns();
-		double elapsed_ns = (double)(now_ns - pssense->timing.last_clock_sample_ns);
+	m_clock_windowed_skew_tracker_push(pssense->timing.clock_tracker, local_ns, remote_ns);
 
-		// Counter drift at 5e-5 per ns elapsed.
-		// See: PSVR2Toolkit/projects/psvr2_openvr_driver_ex/libpad_hooks.cpp
-		pssense->timing.timestamp_offset_ns -= elapsed_ns * 5.0e-5;
-
-		// Max-tracking: keep the largest (least-negative) observed offset.
-		if (pssense->timing.timestamp_offset_ns < offset_ns) {
-			pssense->timing.timestamp_offset_ns = offset_ns;
-		}
-
-		// Smooth: limit rate of change to ±2500ns (±2.5µs) per sample.
-		double delta = pssense->timing.timestamp_offset_ns - pssense->timing.filtered_offset_ns;
-		delta = CLAMP(delta, -2500.0, 2500.0);
-
-		pssense->timing.filtered_offset_ns += delta;
-
-		t_led_sync_push_host_device_clock_offset(&pssense->tracking.led_sync_refinement,
-		                                         (time_duration_ns)(pssense->timing.filtered_offset_ns));
+	time_duration_ns skew_ns;
+	if (m_clock_windowed_skew_tracker_get_skew(pssense->timing.clock_tracker, &skew_ns)) {
+		t_led_sync_push_host_device_clock_offset(&pssense->tracking.led_sync_refinement, -skew_ns);
 	}
-	pssense->timing.last_clock_sample_ns = os_monotonic_get_ns();
 }
 
 static bool
@@ -408,15 +373,16 @@ pssense_host_ts_to_device(struct pssense_device *pssense,
                           timepoint_ns host_timestamp_ns,
                           timepoint_ns *out_device_timestamp_ns)
 {
-	if (!pssense->timing.has_clock_offset) {
-		return false;
-	}
-
 	switch (pssense->tracking.latest_led_sync_sample.timestamp_mode) {
 	case T_LED_SYNC_SAMPLE_TIMESTAMP_MODE_INVALID:
 	case T_LED_SYNC_SAMPLE_TIMESTAMP_MODE_DEVICE_HOST_LATENCY: {
-		*out_device_timestamp_ns = host_timestamp_ns + (timepoint_ns)(pssense->timing.filtered_offset_ns) +
-		                           pssense->tracking.latest_led_sync_sample.timestamp.device_host_latency_ns;
+		if (!m_clock_windowed_skew_tracker_to_remote(pssense->timing.clock_tracker, host_timestamp_ns,
+		                                             out_device_timestamp_ns)) {
+			return false;
+		}
+		// The refinement routine only reports the device->host transfer latency in this mode, the driver
+		// has to apply it on top of its own clock tracking.
+		*out_device_timestamp_ns += pssense->tracking.latest_led_sync_sample.timestamp.device_host_latency_ns;
 		return true;
 	}
 	case T_LED_SYNC_SAMPLE_TIMESTAMP_MODE_HOST_DEVICE_CLOCK_OFFSET: {
@@ -434,15 +400,14 @@ pssense_device_ts_to_host(struct pssense_device *pssense,
                           timepoint_ns device_timestamp_ns,
                           timepoint_ns *out_host_timestamp_ns)
 {
-	if (!pssense->timing.has_clock_offset) {
-		return false;
-	}
-
 	switch (pssense->tracking.latest_led_sync_sample.timestamp_mode) {
 	case T_LED_SYNC_SAMPLE_TIMESTAMP_MODE_INVALID:
 	case T_LED_SYNC_SAMPLE_TIMESTAMP_MODE_DEVICE_HOST_LATENCY: {
-		*out_host_timestamp_ns = device_timestamp_ns - (timepoint_ns)(pssense->timing.filtered_offset_ns) -
-		                         pssense->tracking.latest_led_sync_sample.timestamp.device_host_latency_ns;
+		if (!m_clock_windowed_skew_tracker_to_local(pssense->timing.clock_tracker, device_timestamp_ns,
+		                                            out_host_timestamp_ns)) {
+			return false;
+		}
+		*out_host_timestamp_ns -= pssense->tracking.latest_led_sync_sample.timestamp.device_host_latency_ns;
 		return true;
 	}
 	case T_LED_SYNC_SAMPLE_TIMESTAMP_MODE_HOST_DEVICE_CLOCK_OFFSET: {
@@ -542,6 +507,15 @@ pssense_handle_packet(struct pssense_device *pssense,
 	struct pssense_input_state input = {
 	    .timestamp_ns = recv_time_ns,
 	};
+
+#if 0 // IMU rate test
+	static timepoint_ns last[2] = {0};
+	static double rate[2] = {133, 133};
+	rate[pssense->hand] =
+	    (rate[pssense->hand] * 0.999) + ((1 / time_ns_to_s(recv_time_ns - last[pssense->hand])) * 0.001);
+	printf("%d\trate: %lfhz\n", pssense->hand, rate[pssense->hand]);
+	last[pssense->hand] = recv_time_ns;
+#endif
 
 	uint32_t seq_no = __le32_to_cpu(data->seq_no);
 	if (input.seq_no != 0 && seq_no != input.seq_no + 1) {
@@ -662,10 +636,8 @@ pssense_handle_packet(struct pssense_device *pssense,
 		pssense->tracking.led_sync_sample_needs_marking = false;
 	}
 
-	// Update the clock offset from accumulated IMU time vs host receive time.
-	// Corresponds to PSVR2TK's libpad_deviceToHostHook + SenseController::AddTimestampOffsetSample.
-	// See: PSVR2Toolkit/projects/psvr2_openvr_driver_ex/libpad_hooks.cpp, sense_controller.h
-	pssense_add_clock_offset_sample(pssense, (double)pssense->timing.latest_device_time_ns - (double)recv_time_ns);
+	// Update the clock offset
+	pssense_add_clock_offset_sample_locked(pssense, recv_time_ns, pssense->timing.latest_device_time_ns);
 
 	pssense->state = input;
 	pssense_update_fusion(pssense);
@@ -871,6 +843,30 @@ pssense_send_output_report_locked(struct pssense_device *pssense)
 
 	assert(!"unreachable");
 	return -EINVAL;
+}
+
+//! Sets the controller to use the lower 133hz polling rate
+static bool
+pssense_set_pc_polling_rate(struct pssense_device *pssense)
+{
+	struct pssense_set_polling_rate_feature_report report = {
+	    .report_id = SET_POLLING_RATE_FEATURE_REPORT_ID,
+	    .unk = 0x0E,
+	    .rate_1 = __cpu_to_le16(0x000C),
+	    .rate_2 = __cpu_to_le16(0x0002),
+	};
+
+	uint32_t crc = crc32_le(0, &SET_FEATURE_REPORT_CRC32_SEED, 1);
+	crc = crc32_le(crc, (uint8_t *)&report, sizeof(struct pssense_set_polling_rate_feature_report) - 4);
+	report.crc = __cpu_to_le32(crc);
+
+	int ret = os_hid_set_feature(pssense->hid, (uint8_t *)&report, sizeof report);
+	if (ret < 0) {
+		PSSENSE_ERROR(pssense, "Failed to set PC polling rate, reason %d", ret);
+		return false;
+	}
+
+	return true;
 }
 
 static void *
@@ -1165,7 +1161,7 @@ pssense_timing_event_sink_push(struct t_timing_event_sink *sink, const struct t_
 
 	struct t_timing_event_camera_exposure_start camera_exposure = event->camera_exposure_start;
 
-	PSSENSE_TRACE(pssense, "Received timing event: %d, seq id: %u, timestamp: %" PRId64 "ns", event->type,
+	PSSENSE_TRACE(pssense, "Received timing event: %d, seq id: %" PRIu64 ", timestamp: %" PRId64 "ns", event->type,
 	              camera_exposure.sequence_id, camera_exposure.timestamp_ns);
 
 	if (pssense->tracking.received_frames++ == 0) {
@@ -1209,7 +1205,7 @@ pssense_timing_event_sink_push(struct t_timing_event_sink *sink, const struct t_
 	os_thread_helper_lock(&pssense->controller_thread);
 
 	// update the LED settings
-	if (pssense->tracking.received_frames > 10 && pssense->timing.has_clock_offset) {
+	if (pssense->tracking.received_frames > 10) {
 		// Update the sample from the LED sync routine
 		if (t_led_sync_get_sample(&pssense->tracking.led_sync_refinement,
 		                          &pssense->tracking.latest_led_sync_sample)) {
@@ -1221,15 +1217,14 @@ pssense_timing_event_sink_push(struct t_timing_event_sink *sink, const struct t_
 
 		uint8_t period_id = pssense->tracking.period_id;
 
-		// We don't need the = 0 in theory but the assert going away in release confuses the compiler. It will
-		// always be initialized.
+		// Convert the timestamp, latency offset will be applied within here. Must happen after fetching the
+		// sample above, so the latency and the fudge offset below come from the same sample.
 		timepoint_ns next_blink_time = 0;
-		// Convert the timestamp, latency offset will be applied within here
-		bool ts_valid = pssense_host_ts_to_device(pssense, pssense->tracking.last_exposure_local_timestamp_ns,
-		                                          &next_blink_time);
-		// We check if we have a clock offset above, so this will always return true
-		assert(ts_valid);
-		(void)ts_valid; // Silence unused variable in release
+		if (!pssense_host_ts_to_device(pssense, pssense->tracking.last_exposure_local_timestamp_ns,
+		                               &next_blink_time)) {
+			os_thread_helper_unlock(&pssense->controller_thread);
+			return;
+		}
 
 		next_blink_time += (int64_t)pssense->tracking.timing_fudge_100us * 100 * U_TIME_1US_IN_NS;
 		// Apply the fudge offset, which will line up the blink center with exposure center
@@ -1354,8 +1349,14 @@ pssense_device_update_inputs(struct xrt_device *xdev)
 	// Lock the data.
 	os_thread_helper_lock(&pssense->controller_thread);
 
-	for (uint32_t i = 0; i < (uint32_t)sizeof(enum pssense_input_index); i++) {
-		pssense->base.inputs[i].timestamp = (int64_t)pssense->state.timestamp_ns;
+	timepoint_ns host_update_time_ns;
+	if (!pssense_device_ts_to_host(pssense, pssense->timing.latest_device_time_ns, &host_update_time_ns)) {
+		host_update_time_ns = pssense->state.timestamp_ns;
+	}
+
+	// Update all the inputs to the correct timestamp
+	for (uint32_t i = 0; i < ((uint32_t)PSSENSE_INPUT_COUNT); i++) {
+		pssense->base.inputs[i].timestamp = (int64_t)host_update_time_ns;
 	}
 	pssense->base.inputs[PSSENSE_INDEX_PS_CLICK].value.boolean = pssense->state.ps_click;
 	pssense->base.inputs[PSSENSE_INDEX_SHARE_CLICK].value.boolean = pssense->state.share_click;
@@ -1510,6 +1511,17 @@ pssense_get_output_limits(struct xrt_device *xdev, struct xrt_output_limits *lim
 	return XRT_SUCCESS;
 }
 
+static struct xrt_quat
+quat_from_x_rot(float x)
+{
+	return (struct xrt_quat){
+	    .x = sinf(x * 0.5f),
+	    .y = 0,
+	    .z = 0,
+	    .w = cosf(x * 0.5f),
+	};
+}
+
 static xrt_result_t
 pssense_get_tracked_pose(struct xrt_device *xdev,
                          enum xrt_input_name name,
@@ -1525,6 +1537,48 @@ pssense_get_tracked_pose(struct xrt_device *xdev,
 
 	struct xrt_relation_chain xrc = {0};
 	struct xrt_pose pose_correction = XRT_POSE_IDENTITY;
+
+	float sx = pssense->hand == XRT_HAND_LEFT ? 1.0f : -1.0f;
+	struct xrt_pose T_steamvrroot_model = {
+	    .orientation = quat_from_x_rot(DEG_TO_RAD(-39)),
+	    .position = {.x = -sx * .01432f, .y = .007713f, .z = .10399f},
+	};
+	struct xrt_pose T_steamvrroot_xrgrip = {
+	    .orientation = quat_from_x_rot(DEG_TO_RAD(20.6)),
+	    .position = {.x = sx * .007, .y = -.00182941, .z = .1019482},
+	};
+	struct xrt_pose T_steamvrroot_xraim = {
+	    .orientation = quat_from_x_rot(DEG_TO_RAD(-39.4)),
+	    .position = {.x = sx * .007, .y = -.03894766, .z = .00949694},
+	};
+
+	switch (name) {
+	case XRT_INPUT_PSSENSE_AIM_POSE: {
+		m_relation_chain_push_pose(&xrc, &T_steamvrroot_xraim);
+		break;
+	}
+	case XRT_INPUT_PSSENSE_GRIP_POSE: {
+		m_relation_chain_push_pose(&xrc, &T_steamvrroot_xrgrip);
+		break;
+	}
+	default: assert(!"Unreachable");
+	}
+	m_relation_chain_push_inverted_pose_if_not_identity(&xrc, &T_steamvrroot_model);
+
+#if 0 // Presently unused OpenVR poses, but might be useful if we need to expose more stuff for st/openvr
+	struct xrt_pose T_steamvrroot_xrhandmodel = {
+	    .orientation = quat_from_x_rot(DEG_TO_RAD(39.4)),
+	    .position = {.x = -sx * 11.25, .y = -1.82941, .z = 101.9482},
+	};
+	struct xrt_pose T_steamvrroot_handgrip = {
+	    .orientation = quat_from_x_rot(DEG_TO_RAD(5.037)),
+	    .position = {.x = 0, .y = 3, .z = 97},
+	};
+	struct xrt_pose T_steamvrroot_tip = {
+	    .orientation = quat_from_x_rot(DEG_TO_RAD(37.4)),
+	    .position = {.x = sx * 16.694, .y = -25.22, .z = 24.687},
+	};
+#endif
 
 	// If we aren't using constellation tracking, rotate the IMU orientation so that it's facing the same direction
 	// as the LED model is facing
@@ -1637,6 +1691,7 @@ pssense_create(struct xrt_prober *xp,
 
 	// pssense->tracking.timing_fudge_100us = 20; // 2.0ms fudge
 	pssense->tracking.increment_sequence_num = true;
+	pssense->timing.clock_tracker = m_clock_windowed_skew_tracker_alloc(2048);
 
 	m_relation_history_create(&pssense->tracking.imu_relation_history);
 	m_relation_history_create(&pssense->tracking.constellation_relation_history);
@@ -1645,17 +1700,13 @@ pssense_create(struct xrt_prober *xp,
 	pssense->hid = hid;
 
 	// Initialize the IMU orientation to be correct
-	struct xrt_quat imu_orientation_quat = {
-	    .x = sinf(pssense_imu_angle * 0.5f),
-	    .y = 0,
-	    .z = 0,
-	    .w = cosf(pssense_imu_angle * 0.5f),
-	};
+	struct xrt_quat imu_orientation_quat = quat_from_x_rot(pssense_imu_angle);
 
 	if (xpdev->product_id == PSSENSE_PID_LEFT) {
 		pssense->base.device_type = XRT_DEVICE_TYPE_LEFT_HAND_CONTROLLER;
 		pssense->hand = XRT_HAND_LEFT;
 
+		pssense->led_model.match_parameters = DEFAULT_MATCH_PARAMETERS;
 		pssense->led_model.leds = pssense_left_leds;
 		pssense->led_model.led_count = ARRAY_SIZE(pssense_left_leds);
 
@@ -1667,6 +1718,7 @@ pssense_create(struct xrt_prober *xp,
 		pssense->base.device_type = XRT_DEVICE_TYPE_RIGHT_HAND_CONTROLLER;
 		pssense->hand = XRT_HAND_RIGHT;
 
+		pssense->led_model.match_parameters = DEFAULT_MATCH_PARAMETERS;
 		pssense->led_model.leds = pssense_right_leds;
 		pssense->led_model.led_count = ARRAY_SIZE(pssense_right_leds);
 
@@ -1722,8 +1774,9 @@ pssense_create(struct xrt_prober *xp,
 	//       offset as it goes and produces a worse result with the current implementation.
 	struct t_led_sync_refinement_options led_sync_refinement_options = {
 	    // @todo Once LED blink refinement is fixed, enable that again
-	    .flags = T_LED_SYNC_REFINEMENT_FLAGS_OPTICAL_DRIVEN_OFFSET | T_LED_SYNC_REFINEMENT_FLAGS_HAS_LATENCY_CAP,
-	    .initial_blink_duration_ns = PERIOD_ID_TO_DURATION_NS(9),
+	    // @todo Once optical clock sync is implemented in full, enable that here
+	    .flags = T_LED_SYNC_REFINEMENT_FLAGS_HAS_LATENCY_CAP,
+	    .initial_blink_duration_ns = PERIOD_ID_TO_DURATION_NS(30),
 	    .min_blink_duration_ns = PERIOD_ID_TO_DURATION_NS(1),
 	    .max_blink_duration_ns = PERIOD_ID_TO_DURATION_NS(MAX_PERIOD_ID),
 	    .time_to_resync_ns = T_LED_SYNC_DEFAULT_RESYNC_TIME,
@@ -1752,6 +1805,12 @@ pssense_create(struct xrt_prober *xp,
 		PSSENSE_ERROR(pssense, "Failed to start thread!");
 		pssense_device_destroy(&pssense->base);
 		return NULL;
+	}
+
+	// Try to set the PC polling rate if the user requested it.
+	if (debug_get_bool_option_pssense_pc_polling_rate() && //
+	    !pssense_set_pc_polling_rate(pssense)) {
+		PSSENSE_ERROR(pssense, "PC polling rate requested, but got error when attempting to apply.");
 	}
 
 	if (!pssense_get_calibration_data(pssense)) {
@@ -1791,8 +1850,6 @@ pssense_create(struct xrt_prober *xp,
 	u_var_add_bool(pssense, &pssense->state.thumbstick_touch, "Thumbstick Touch");
 
 	u_var_add_gui_header(pssense, &pssense->gui.timing, "Timing");
-	u_var_add_ro_f64(pssense, &pssense->timing.timestamp_offset_ns, "Clock Timestamp Offset (ns)");
-	u_var_add_ro_f64(pssense, &pssense->timing.filtered_offset_ns, "Clock Filtered Offset (ns)");
 	u_var_add_ro_i64_ns(pssense, &pssense->timing.latest_imu_time_ns, "Latest IMU Time (ns)");
 	u_var_add_ro_u64(pssense, &pssense->timing.imu_ticks_total, "Latest IMU Time (ticks)");
 	u_var_add_ro_i64_ns(pssense, &pssense->timing.latest_device_time_ns, "Latest Device Time (ns)");

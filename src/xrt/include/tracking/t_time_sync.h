@@ -32,11 +32,11 @@ struct t_timing_event_camera_exposure_start
 	 * device with a SLAM/CONTROLLER/CONTROLLER cadence, `sequence_id % 3` will indicate which type of frame is
 	 * being exposed.
 	 *
-	 * This is intentionally left as a generic uint32_t, and not an enum to allow for matching source/sync types to
+	 * This is intentionally left as a generic uint64_t, and not an enum to allow for matching source/sync types to
 	 * smuggle this data through while keeping the interface generic to any sink that wants to listen anyway, since
 	 * WMR controllers sync to each SLAM frame, and blink on their own for the next two frames.
 	 */
-	uint32_t sequence_id;
+	uint64_t sequence_id;
 	//! The timestamp of the event, in local monotonic domain. See @ref os_monotonic_get_ns.
 	int64_t timestamp_ns;
 	//! Estimated frame period. May be 0 if unknown.

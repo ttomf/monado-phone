@@ -7,6 +7,7 @@
  * @ingroup gui
  */
 
+#include "xrt/xrt_config_build.h"
 #include "xrt/xrt_defines.h"
 #include "xrt/xrt_tracking.h"
 
@@ -21,15 +22,17 @@
 #include "util/u_time.h"
 #include "util/u_var.h"
 
-// @note If you're trying to use this as a template for how to interface with the constellation tracker, do not!
-//       Please look at target_builder_rift.c instead. This uses internal APIs for debugging.
-#include "constellation/t_constellation_tracker_internal.hpp"
-#include "constellation/t_constellation_tracker_dataset.hpp"
-
 #include "b_system_devices.h"
 
 #include "gui_common.h"
 #include "gui_imgui.h"
+
+#ifdef XRT_MODULE_CONSTELLATION_TRACKING
+
+// @note If you're trying to use this as a template for how to interface with the constellation tracker, do not!
+//       Please look at target_builder_rift.c instead. This uses internal APIs for debugging.
+#include "constellation/t_constellation_tracker_internal.hpp"
+#include "constellation/t_constellation_tracker_dataset.hpp"
 
 
 namespace xrt::tracking::constellation {
@@ -227,3 +230,13 @@ gui_scene_constellation_tracker_test(gui_program *p)
 
 	gui_scene_debug(p);
 }
+
+#else
+
+void
+gui_scene_constellation_tracker_test(gui_program *p)
+{
+	(void)p;
+}
+
+#endif // XRT_MODULE_CONSTELLATION_TRACKING

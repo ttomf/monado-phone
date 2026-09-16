@@ -213,6 +213,63 @@ u_compute_distortion_bounds_poly_3k(const struct xrt_matrix_3x3 *inv_affine_xfor
 
 /*
  *
+ * Rift-style distortion
+ *
+ */
+
+#define U_RIFT_CHROMATIC_ABBERATION_COUNT 4
+
+struct u_rift_panel
+{
+	//! Size of the display, in meters.
+	struct xrt_vec2 size_m;
+	//! The gap in meters between the two viewports. Zero in all real hardware.
+	float eye_gap_m;
+
+	//! Size of the display, in pixels.
+	struct xrt_vec2 size_px;
+
+	//! The distance between the lens centers, in meters.
+	float lens_center_separation_m;
+	//! The distance from the top of the panel to lens centers, in meters.
+	float lens_center_from_panel_top;
+
+	//! The diameter of the lens
+	float lens_diameter_m;
+};
+
+struct u_rift_eye_profile
+{
+	//! Distance from the lens surface
+	float eye_relief_m;
+
+	//! The catmull-rom coeffecients.
+	const float *k;
+	//! The amount of coeffecients in use.
+	int k_count;
+
+	//! Color fringing correction
+	float chromatic_abberation[U_RIFT_CHROMATIC_ABBERATION_COUNT];
+	//! The tan-angle radius the last entry of @ref k corresponds to.
+	float max_r;
+	//! How many metres across the panel one unit of tan-gent covers, measured at the centre of the lens.
+	float meters_per_tan_angle;
+};
+
+/*!
+ * Oculus Rift distortion implementation.
+ */
+void
+u_compute_distortion_rift(const struct u_rift_panel *panel,
+                          const struct u_rift_eye_profile *profile,
+                          uint32_t view,
+                          float u,
+                          float v,
+                          struct xrt_uv_triplet *result);
+
+
+/*
+ *
  * None distortion
  *
  */

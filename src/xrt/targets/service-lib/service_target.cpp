@@ -183,8 +183,16 @@ Java_org_freedesktop_monado_ipc_MonadoImpl_nativeStartServer(JNIEnv *env, jobjec
 {
 	JavaVM *jvm = nullptr;
 	jint result = env->GetJavaVM(&jvm);
+
 	assert(result == JNI_OK);
+	if (result != JNI_OK) {
+		U_LOG_E("service: GetJavaVM failed, got %d. This should never happen.", result);
+	}
+
 	assert(jvm);
+	if (!jvm) {
+		U_LOG_E("service: JavaVM is null? This should never happen.");
+	}
 
 	jni::init(env);
 	jni::Object monadoImpl(thiz);

@@ -538,11 +538,11 @@ make_projection_instructions(t_camera_model_params &dist,
 		out_instructions.rot_quat = direction(new_direction, twist);
 
 
-		if ((old_direction - dir).norm() < 0.0001) {
+		if ((old_direction - new_direction).norm() < 0.0001) {
 			// We converged
 			break;
 		}
-		old_direction = dir;
+		old_direction = new_direction;
 	}
 
 	// This can basically be removed (we will have converged very well in the above), but for correctness's

@@ -637,6 +637,8 @@ wmr_camera_start(struct wmr_camera *cam)
 		goto fail;
 	}
 
+	cam->running = true;
+
 	for (int i = 0; i < NUM_XFERS; i++) {
 		uint8_t *recv_buf = malloc(cam->xfer_size);
 

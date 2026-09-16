@@ -47,7 +47,14 @@ target_link_libraries(
 	)
 
 # t_ht_mercury
-add_library(t_ht_mercury STATIC hg_sync.cpp hg_sync.hpp hg_interface.h kine_common.hpp)
+add_library(
+	t_ht_mercury STATIC
+	hg_sync.cpp
+	hg_sync.hpp
+	hg_hand_size_opt.cpp
+	hg_interface.h
+	kine_common.hpp
+	)
 
 target_link_libraries(
 	t_ht_mercury

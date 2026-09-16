@@ -56,6 +56,8 @@ struct uvc_fs
 	size_t frame_collected;
 	//! true if we're skipping the current frame
 	bool skip_frame;
+	//! The current sequence ID of this stream.
+	uint64_t sequence_id;
 
 	//! Time at which we started skipping frames
 	timepoint_ns skip_frame_start;

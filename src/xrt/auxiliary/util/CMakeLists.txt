@@ -45,6 +45,7 @@ add_library(
 	u_distortion.h
 	u_distortion_mesh.c
 	u_distortion_mesh.h
+	u_distortion_mesh_rift.c
 	u_documentation.h
 	u_file.c
 	u_file.cpp

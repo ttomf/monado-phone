@@ -488,7 +488,7 @@ rift_s_read_devices_list(struct os_hid_device *handle, rift_s_devices_list_t *de
 	for (int i = 0; i < num_records; i++) {
 		dev_list->devices[i] = *(rift_s_device_type_record_t *)(pos);
 		pos += sizeof(rift_s_device_type_record_t);
-		assert(sizeof(rift_s_device_type_record_t) == 28);
+		static_assert(sizeof(rift_s_device_type_record_t) == 28, "sizeof(rift_s_device_type_record_t) != 28");
 	}
 	dev_list->num_devices = num_records;
 

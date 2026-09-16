@@ -2,15 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 /*!
  * @file
- * @brief  Helpers for quatexpmap math for ceres usage.
+ * @brief  Helpers for quatexpmap math for ceres usage. Internal header to be included by one of the wrappers which
+ *         provide the correct Ceres types depending on what the including module is using.
  * @author Beyley Cardellio <ep1cm1n10n123@gmail.com>
  * @ingroup aux_math
  */
 // IWYU pragma: no_include "src/Core/MatrixBase.h"
 
 #pragma once
-
-#include "tinyceres/jet.hpp"
 
 #include "m_quatexpmap.hpp"
 

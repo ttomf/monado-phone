@@ -7,12 +7,13 @@
  * @ingroup drv_rift
  */
 
+#include "xrt/xrt_byte_order.h"
+
 #include "util/u_device.h"
 #include "util/u_var.h"
 #include "util/u_file.h"
 
-#include "xrt/xrt_byte_order.h"
-
+#include "rift_internal.h"
 #include "rift_radio.h"
 #include "rift_bindings.h"
 #include "rift_usb.h"
@@ -850,8 +851,10 @@ rift_touch_controller_handle_radio_input_report(struct rift_hmd *hmd,
 	controller->input.last_device_remote_us = message.touch.timestamp;
 
 	os_mutex_lock(&controller->input.mutex);
-	m_clock_windowed_skew_tracker_push(controller->input.clock_tracker, receive_ns,
-	                                   controller->input.device_remote_ns);
+	m_clock_windowed_skew_tracker_push(       //
+	    controller->input.clock_tracker,      //
+	    receive_ns - RIFT_RADIO_LATENCY_BIAS, //
+	    controller->input.device_remote_ns);  //
 
 	if (!m_clock_windowed_skew_tracker_to_local(controller->input.clock_tracker, controller->input.device_remote_ns,
 	                                            &controller->input.device_local_ns)) {
@@ -914,7 +917,7 @@ rift_radio_handle_read(struct rift_hmd *hmd)
 	// 1ms so the radio thread is ticking at 1khz for haptics.
 	length = os_hid_read(hmd->radio_dev, buf, sizeof(buf), 1);
 
-	timepoint_ns receive_ns = os_monotonic_get_ns();
+	timepoint_ns receive_ns = os_monotonic_get_ns() - RIFT_USB_LATENCY_BIAS;
 
 	if (length < 0) {
 		HMD_ERROR(hmd, "Got error reading from radio device, assuming fatal, reason %d", length);

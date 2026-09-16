@@ -14,6 +14,8 @@
 
 #include "os/os_time.h"
 
+#include "constellation/pose_metrics.h"
+
 #include "lambdatwist/lambdatwist_p3p.h"
 #include "correspondence_search.h"
 #include "led_search_model.h"
@@ -21,7 +23,6 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 #include <stdbool.h>
 #include <assert.h>
 #include <math.h>
@@ -128,10 +129,10 @@ project_led_point(struct xrt_vec3 *led_pos,
 #endif
 
 static void
-dump_pose(struct correspondence_search *cs,
-          struct t_constellation_search_model *model,
-          struct xrt_pose *pose,
-          struct cs_model_info *mi)
+dump_pose(const struct correspondence_search *cs,
+          const struct t_constellation_search_model *model,
+          const struct xrt_pose *pose,
+          const struct cs_model_info *mi)
 {
 #if DUMP_SCENE
 	struct t_constellation_tracker_led_model *leds = model->led_model;
@@ -172,8 +173,8 @@ dump_pose(struct correspondence_search *cs,
 
 static bool
 correspondence_search_project_pose(struct correspondence_search *cs,
-                                   struct t_constellation_search_model *model,
-                                   struct xrt_pose *pose,
+                                   const struct t_constellation_search_model *model,
+                                   const struct xrt_pose *pose,
                                    struct cs_model_info *mi,
                                    int depth)
 {
@@ -226,8 +227,11 @@ correspondence_search_project_pose(struct correspondence_search *cs,
 		                           NULL);
 	}
 
-	// If this pose is any good, test it further
-	if (POSE_HAS_FLAGS(&score, POSE_MATCH_GOOD)) {
+	/*
+	 * If this pose is any good, test it further.
+	 * Block degenerate solves from being considered since those are always "good" or "strong" by construction.
+	 */
+	if (POSE_HAS_FLAGS(&score, POSE_MATCH_GOOD) && !POSE_HAS_FLAGS(&score, POSE_MATCH_DEGENERATE)) {
 		if (pose_metrics_score_is_better_pose(&mi->best_score, &score)) {
 			mi->best_score = score;
 			mi->best_pose = *pose;
@@ -340,7 +344,7 @@ check_led_against_model_subset(struct correspondence_search *cs,
                                struct t_constellation_tracker_led *model_leds[4],
                                int depth)
 {
-	struct t_constellation_search_model *model = mi->model;
+	const struct t_constellation_search_model *model = mi->model;
 	double x[3][3];
 	struct xrt_vec3 *xcheck;
 	double *y1, *y2, *y3;
@@ -765,7 +769,7 @@ generate_led_match_candidates(struct correspondence_search *cs,
 static bool
 search_pose_for_model(struct correspondence_search *cs, struct cs_model_info *mi)
 {
-	struct t_constellation_search_model *model = mi->model;
+	const struct t_constellation_search_model *model = mi->model;
 	int b, l;
 
 	// Clear the info for this model
@@ -840,6 +844,7 @@ search_pose_for_model(struct correspondence_search *cs, struct cs_model_info *mi
 		}
 	}
 
+
 	// Start correspondence search for this model.
 	// At this stage, each image point has a list of the nearest neighbours filtered for this model
 	for (l = 0; l < model->num_points; l++) {
@@ -848,16 +853,13 @@ search_pose_for_model(struct correspondence_search *cs, struct cs_model_info *mi
 
 		generate_led_match_candidates(cs, mi, c);
 
+		// Stop early with a strong match if requested
 		if ((mi->match_flags & POSE_MATCH_STRONG) && (mi->search_flags & CS_FLAG_STOP_FOR_STRONG_MATCH)) {
-			return true;
+			break;
 		}
 	}
 
-	if (mi->match_flags & POSE_MATCH_GOOD) {
-		return true;
-	}
-
-	return false;
+	return (mi->match_flags & POSE_MATCH_GOOD);
 }
 
 /*
@@ -946,17 +948,17 @@ correspondence_search_set_blobs(struct correspondence_search *cs, struct t_blob 
 
 bool
 correspondence_search_find_one_pose(struct correspondence_search *cs,
-                                    struct t_constellation_search_model *model,
+                                    const struct t_constellation_search_model *model,
                                     enum correspondence_search_flags search_flags,
-                                    struct xrt_pose *pose,
-                                    struct xrt_vec3 *pos_error_thresh,
-                                    struct xrt_vec3 *rot_error_thresh,
-                                    struct xrt_vec3 *gravity_vector,
+                                    struct xrt_pose *inout_pose,
+                                    const struct xrt_vec3 *pos_error_thresh,
+                                    const struct xrt_vec3 *rot_error_thresh,
+                                    const struct xrt_vec3 *gravity_vector,
                                     float gravity_tolerance_rad,
-                                    struct pose_metrics *score)
+                                    struct pose_metrics *out_score)
 {
-	assert(pose != NULL);
-	assert(score != NULL);
+	assert(inout_pose != NULL);
+	assert(out_score != NULL);
 
 	// If neither deep nor shallow search was requested, do a full search
 	if ((search_flags & (CS_FLAG_SHALLOW_SEARCH | CS_FLAG_DEEP_SEARCH)) == 0) {
@@ -975,7 +977,7 @@ correspondence_search_find_one_pose(struct correspondence_search *cs,
 		assert(pos_error_thresh != NULL);
 		assert(rot_error_thresh != NULL);
 
-		mi.pose_prior = *pose;
+		mi.pose_prior = *inout_pose;
 		mi.pos_error_thresh = pos_error_thresh;
 		mi.rot_error_thresh = rot_error_thresh;
 	}
@@ -990,13 +992,13 @@ correspondence_search_find_one_pose(struct correspondence_search *cs,
 		mi.gravity_vector = *gravity_vector;
 		mi.gravity_tolerance_rad = gravity_tolerance_rad;
 
-		math_quat_decompose_swing_twist(&pose->orientation, gravity_vector, &mi.gravity_swing,
+		math_quat_decompose_swing_twist(&inout_pose->orientation, gravity_vector, &mi.gravity_swing,
 		                                &pose_gravity_twist);
 	}
 
 	if (search_pose_for_model(cs, &mi) && (mi.match_flags & POSE_MATCH_GOOD)) {
-		*pose = mi.best_pose;
-		*score = mi.best_score;
+		*inout_pose = mi.best_pose;
+		*out_score = mi.best_score;
 
 		CS_TIMING(cs, "# Best %s match for model %d was %d points out of %d with error %f pixels^2",
 		          (search_flags & CS_FLAG_MATCH_GRAVITY) ? "aligned" : "unaligned", mi.id,
@@ -1010,7 +1012,5 @@ correspondence_search_find_one_pose(struct correspondence_search *cs,
 		return true;
 	}
 
-	*pose = mi.best_pose;
-	*score = mi.best_score;
 	return false;
 }

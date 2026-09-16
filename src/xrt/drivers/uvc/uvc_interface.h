@@ -59,7 +59,8 @@ static_assert(sizeof(struct uvc_probe_commit_control) == 0x1F, "bad struct size"
 //! Called to get the timestamp of a specific frame, if a callee has a more precise way of timestamping frames.
 typedef bool (*get_frame_timestamp_t)(
     void *user_data,             //< The user data pointer provided when setting the callback
-    timepoint_ns *timestamp,     //< The output timestamp of the frame
+    timepoint_ns *out_timestamp, //< The output timestamp of the frame
+    uint64_t *out_sequence_id,   //< The output sequence ID of the frame
     timepoint_ns frame_start_ns, //< When the frame's first payload packet arrived, in local monotonic time
     uint32_t pts                 //< The PTS value from the UVC payload header
 );

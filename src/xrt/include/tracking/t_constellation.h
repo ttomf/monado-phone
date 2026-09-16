@@ -263,6 +263,18 @@ struct t_constellation_tracker_led
 	t_constellation_led_id_it id;
 };
 
+struct t_constellation_tracker_led_model_match_parameters
+{
+	//! The minimum number of LEDs required to accept a brute-force solve without a prior.
+	uint32_t min_leds_for_correspondence_search_without_prior;
+	/*!
+	 * The minimum number of LEDs required to accept a brute-force solve with a prior that said solve agrees with.
+	 * If the solve has this many LEDs, but it doesn't agree with the prior, then the solve is only accepted if it
+	 * has @ref min_leds_for_correspondence_search_without_prior LEDs matched.
+	 */
+	uint32_t min_leds_for_correspondence_search_with_prior;
+};
+
 /*!
  * @interface t_constellation_tracker_led_model
  *
@@ -276,6 +288,9 @@ struct t_constellation_tracker_led_model
 	struct t_constellation_tracker_led *leds;
 	//! The number of LEDs in this model.
 	size_t led_count;
+
+	//! The match parameters to tweak how the tracker works.
+	struct t_constellation_tracker_led_model_match_parameters match_parameters;
 
 	/*!
 	 * A function to compute whether a given LED is visible from a given position. This is used

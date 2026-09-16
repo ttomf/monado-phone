@@ -348,6 +348,7 @@ do_post_create_vulkan_setup(struct vk_bundle *vk,
 	}
 
 	VkImageAspectFlagBits image_view_aspect = vk_csci_get_image_view_aspect(image_view_format, info->bits);
+	assert(image_view_aspect != 0);
 
 	VkImageViewType image_view_type = info->face_count == 6 ? VK_IMAGE_VIEW_TYPE_CUBE : VK_IMAGE_VIEW_TYPE_2D;
 

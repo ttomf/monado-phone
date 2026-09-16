@@ -351,3 +351,128 @@ ipc_server_objects_destroy_xht(volatile struct ipc_client_state *ics, uint32_t i
 
 	return XRT_SUCCESS;
 }
+
+
+/*
+ *
+ * App policy functions.
+ *
+ */
+
+xrt_result_t
+ipc_server_objects_get_xainst_and_validate(volatile struct ipc_client_state *ics,
+                                           uint32_t id,
+                                           struct xrt_app_instance **out_xainst)
+{
+	if (id >= IPC_MAX_CLIENT_APP_INSTANCES) {
+		IPC_ERROR(ics->server, "Invalid app instance ID %u (>= IPC_MAX_CLIENT_APP_INSTANCES)", id);
+		return XRT_ERROR_IPC_FAILURE;
+	}
+
+	struct xrt_app_instance *xainst = ics->objects.xainsts[id];
+	if (xainst == NULL) {
+		IPC_ERROR(ics->server, "App instance ID %u not found (NULL)", id);
+		return XRT_ERROR_IPC_FAILURE;
+	}
+
+	*out_xainst = xainst;
+
+	return XRT_SUCCESS;
+}
+
+xrt_result_t
+ipc_server_objects_get_xainst_id_or_add(volatile struct ipc_client_state *ics,
+                                        struct xrt_app_instance *xainst,
+                                        uint32_t *out_id)
+{
+	assert(out_id != NULL);
+	assert(xainst != NULL);
+
+	for (uint32_t index = 0; index < IPC_MAX_CLIENT_APP_INSTANCES; index++) {
+		if (ics->objects.xainsts[index] == NULL) {
+			ics->objects.xainsts[index] = xainst;
+			*out_id = index;
+			return XRT_SUCCESS;
+		}
+	}
+
+	IPC_ERROR(ics->server, "Failed to find available slot for app instance");
+	return XRT_ERROR_IPC_FAILURE;
+}
+
+xrt_result_t
+ipc_server_objects_destroy_xainst(volatile struct ipc_client_state *ics, uint32_t id)
+{
+	if (id >= IPC_MAX_CLIENT_APP_INSTANCES) {
+		IPC_ERROR(ics->server, "Invalid app instance ID %u (>= IPC_MAX_CLIENT_APP_INSTANCES)", id);
+		return XRT_ERROR_IPC_FAILURE;
+	}
+
+	if (ics->objects.xainsts[id] == NULL) {
+		IPC_ERROR(ics->server, "Client tried to destroy non-existent app instance!");
+		return XRT_ERROR_IPC_FAILURE;
+	}
+
+	xrt_app_instance_destroy((struct xrt_app_instance **)&ics->objects.xainsts[id]);
+
+	return XRT_SUCCESS;
+}
+
+xrt_result_t
+ipc_server_objects_get_xasys_and_validate(volatile struct ipc_client_state *ics,
+                                          uint32_t id,
+                                          struct xrt_app_system **out_xasys)
+{
+	if (id >= IPC_MAX_CLIENT_APP_SYSTEMS) {
+		IPC_ERROR(ics->server, "Invalid app system ID %u (>= IPC_MAX_CLIENT_APP_SYSTEMS)", id);
+		return XRT_ERROR_IPC_FAILURE;
+	}
+
+	struct xrt_app_system *xasys = ics->objects.xasys[id];
+	if (xasys == NULL) {
+		IPC_ERROR(ics->server, "App system ID %u not found (NULL)", id);
+		return XRT_ERROR_IPC_FAILURE;
+	}
+
+	*out_xasys = xasys;
+
+	return XRT_SUCCESS;
+}
+
+xrt_result_t
+ipc_server_objects_get_xasys_id_or_add(volatile struct ipc_client_state *ics,
+                                       struct xrt_app_system *xasys,
+                                       uint32_t *out_id)
+{
+	assert(out_id != NULL);
+	assert(xasys != NULL);
+
+	for (uint32_t index = 0; index < IPC_MAX_CLIENT_APP_SYSTEMS; index++) {
+		if (ics->objects.xasys[index] == NULL) {
+			ics->objects.xasys[index] = xasys;
+			*out_id = index;
+			return XRT_SUCCESS;
+		}
+	}
+
+	IPC_ERROR(ics->server, "Failed to find available slot for app system");
+	return XRT_ERROR_IPC_FAILURE;
+}
+
+xrt_result_t
+ipc_server_objects_destroy_xasys(volatile struct ipc_client_state *ics, uint32_t id)
+{
+	if (id >= IPC_MAX_CLIENT_APP_SYSTEMS) {
+		IPC_ERROR(ics->server, "Invalid app system ID %u (>= IPC_MAX_CLIENT_APP_SYSTEMS)", id);
+		return XRT_ERROR_IPC_FAILURE;
+	}
+
+	if (ics->objects.xasys[id] == NULL) {
+		IPC_ERROR(ics->server, "Client tried to destroy non-existent app system!");
+		return XRT_ERROR_IPC_FAILURE;
+	}
+
+	xrt_app_system_destroy((struct xrt_app_system **)&ics->objects.xasys[id]);
+
+	return XRT_SUCCESS;
+}

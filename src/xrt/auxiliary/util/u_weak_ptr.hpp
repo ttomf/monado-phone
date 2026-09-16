@@ -18,7 +18,7 @@
 	do {                                                                                                           \
 		if (!ptr) {                                                                                            \
 			U_LOG_E("Handle " #ptr " has expired unexpectedly! [%s:%d]: " msg, __func__, __LINE__);        \
-			assert(false);                                                                                 \
+			assert(ptr);                                                                                   \
 			return __VA_ARGS__;                                                                            \
 		}                                                                                                      \
 	} while (0)

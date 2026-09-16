@@ -6,13 +6,15 @@ target_include_directories(base PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_link_libraries(
 	base
-	PRIVATE aux_util aux_os
+	PRIVATE aux_util aux_os aux_math
 	PUBLIC xrt-interfaces
 	)
 
 target_sources(
 	base
 	PRIVATE
+		b_app_policy.c
+		b_app_policy.h
 		b_documentation.h
 		b_body_tracker.cpp
 		b_body_tracker.h

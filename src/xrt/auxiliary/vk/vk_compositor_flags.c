@@ -120,7 +120,7 @@ vk_csci_get_barrier_optimal_layout(VkFormat format)
 	switch (format) {
 		VK_CSCI_FORMATS(CASE_COLOR, CASE_DS, CASE_DS, CASE_DS)
 	default: //
-		assert(false && !"Format not supported!");
+		U_LOG_E("Format '%s' is not supported.", vk_format_string(format));
 		return VK_IMAGE_LAYOUT_UNDEFINED;
 	}
 
@@ -141,7 +141,7 @@ vk_csci_get_barrier_aspect_mask(VkFormat format)
 	switch (format) {
 		VK_CSCI_FORMATS(CASE_COLOR, CASE_DS, CASE_D, CASE_S)
 	default: //
-		assert(false && !"Format not supported!");
+		U_LOG_E("Format '%s' is not supported.", vk_format_string(format));
 		return 0;
 	}
 
@@ -164,7 +164,7 @@ vk_csci_get_image_view_aspect(VkFormat format, enum xrt_swapchain_usage_bits bit
 	switch (format) {
 		VK_CSCI_FORMATS(CASE_COLOR, CASE_DS, CASE_D, CASE_S)
 	default: //
-		assert(false && !"Format not supported!");
+		U_LOG_E("Format '%s' is not supported.", vk_format_string(format));
 		return 0;
 	}
 

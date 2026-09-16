@@ -337,10 +337,12 @@ run_hand_detection_unsafe(hand_detection_run_info *info)
 	OrtValue *output_tensors[] = {nullptr, nullptr, nullptr, nullptr};
 	const char *output_names[] = {"hand_exists", "cx", "cy", "size"};
 
+	// Actually run the inference step
 	{
 		XRT_TRACE_IDENT(model);
 		static_assert(ARRAY_SIZE(input_names) == ARRAY_SIZE(inputs));
 		static_assert(ARRAY_SIZE(output_names) == ARRAY_SIZE(output_tensors));
+		// TODO ignoring errors, leaks OrtStatus on error
 		ORT_SAFE(wrap, Run(wrap.session, nullptr, input_names, inputs, ARRAY_SIZE(input_names), output_names,
 		                   ARRAY_SIZE(output_names), output_tensors));
 	}
@@ -355,8 +357,7 @@ run_hand_detection_unsafe(hand_detection_run_info *info)
 	ORT_SAFE(wrap, GetTensorMutableData(output_tensors[2], (void **)&cy));
 	ORT_SAFE(wrap, GetTensorMutableData(output_tensors[3], (void **)&sizee));
 
-
-
+	// transform the output from the way the model returns it, to something useful to us.
 	for (int hand_idx = 0; hand_idx < 2; hand_idx++) {
 		hand_region_of_interest &output = info->outputs[hand_idx];
 
@@ -365,10 +366,12 @@ run_hand_detection_unsafe(hand_detection_run_info *info)
 		if (output.found) {
 			output.hand_detection_confidence = hand_exists[hand_idx];
 
+			// remap from [-1, 1] to [0, 1] for location
 			xrt_vec2 _pt = {};
 			_pt.x = math_map_ranges(cx[hand_idx], -1, 1, 0, kDetectionInputSize);
 			_pt.y = math_map_ranges(cy[hand_idx], -1, 1, 0, kDetectionInputSize);
 
+			// remap size up to "pixels in input image"
 			float size = sizee[hand_idx];
 
 
@@ -380,6 +383,7 @@ run_hand_detection_unsafe(hand_detection_run_info *info)
 
 			cv::Mat &debug_frame = view->debug_out_to_this;
 
+			// further transform location from [0, 1] to pixel in input image
 			_pt = transformVecBy2x3(_pt, go_back);
 
 			output.center_px = _pt;
@@ -401,6 +405,7 @@ run_hand_detection_unsafe(hand_detection_run_info *info)
 		}
 	}
 
+	// Free output values allocated during Run()
 	for (size_t i = 0; i < ARRAY_SIZE(output_tensors); i++) {
 		wrap.api->ReleaseValue(output_tensors[i]);
 	}
@@ -750,14 +755,14 @@ run_keypoint_estimation_unsafe(keypoint_estimation_run_info &info)
 
 	const OrtValue *inputs[] = {state->wraps[0].tensor, state->wraps[1].tensor, state->wraps[2].tensor};
 	const char *input_names[] = {state->wraps[0].name, state->wraps[1].name, state->wraps[2].name};
+	static_assert(ARRAY_SIZE(input_names) == ARRAY_SIZE(inputs));
 
 	OrtValue *output_tensors[] = {nullptr, nullptr, nullptr, nullptr};
 	const char *output_names[] = {"heatmap_xy", "heatmap_depth", "scalar_extras", "curls"};
+	static_assert(ARRAY_SIZE(output_names) == ARRAY_SIZE(output_tensors));
 
 	{
 		XRT_TRACE_IDENT(model);
-		assert(ARRAY_SIZE(input_names) == ARRAY_SIZE(inputs));
-		assert(ARRAY_SIZE(output_names) == ARRAY_SIZE(output_tensors));
 		ORT_SAFE(wrap, Run(wrap.session, nullptr, input_names, inputs, ARRAY_SIZE(input_names), output_names,
 		                   ARRAY_SIZE(output_names), output_tensors));
 	}
@@ -786,7 +791,7 @@ run_keypoint_estimation_unsafe(keypoint_estimation_run_info &info)
 
 		// This will be optimized out if nan checking is disabled in hg_numerics_checker
 		for (size_t x = 0; x < plane_size; x++) {
-			CHECK_NOT_NAN(data[i]);
+			CHECK_NOT_NAN(data[x]);
 		}
 
 
@@ -840,13 +845,13 @@ run_keypoint_estimation_unsafe(keypoint_estimation_run_info &info)
 
 	float is_hand_explicit = out_data_extras[0];
 
-	is_hand_explicit = (1.0) / (1.0 + powf(2.71828182845904523536, -is_hand_explicit));
+	is_hand_explicit = (1.0) / (1.0 + expf(-is_hand_explicit));
 
 	// When the model is sure, it's _really_ sure.
 	// Index was fine with 0.99.
 	// North Star seemed to need 0.97.
 	if (is_hand_explicit < 0.97) {
-		U_LOG_D("Not hand! %f", is_hand_explicit);
+		HG_DEBUG(hgt, "Not hand! %f", is_hand_explicit);
 		is_hand = false;
 	}
 
@@ -867,7 +872,7 @@ run_keypoint_estimation_unsafe(keypoint_estimation_run_info &info)
 		variance += 0.01;
 
 		this_output.curls[i].value = curl;
-		this_output.curls[i].variance = curl;
+		this_output.curls[i].variance = variance;
 	}
 
 

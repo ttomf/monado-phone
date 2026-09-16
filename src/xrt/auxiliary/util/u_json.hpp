@@ -35,7 +35,7 @@ DEBUG_GET_ONCE_LOG_OPTION(json_log, "JSON_LOG", U_LOGGING_WARN)
 		if (!p) {                                                                                              \
 			JSON_ERROR(__VA_ARGS__);                                                                       \
 			if (fatal) {                                                                                   \
-				assert(false && "Assertion failed: " #predicate);                                      \
+				assert(p && "Assertion failed: " #predicate);                                          \
 				exit(EXIT_FAILURE);                                                                    \
 			}                                                                                              \
 		}                                                                                                      \

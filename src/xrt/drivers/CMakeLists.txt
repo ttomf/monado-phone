@@ -315,7 +315,6 @@ if(XRT_BUILD_DRIVER_RIFT)
 		rift/rift_bindings.c
 		rift/rift_bindings.h
 		rift/rift_driver.c
-		rift/rift_distortion.c
 		rift/rift_usb.c
 		rift/rift_usb.h
 		rift/rift_radio.c

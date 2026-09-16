@@ -52,7 +52,6 @@ Checks:       |
     -bugprone-unchecked-optional-access,
     -bugprone-undefined-memory-manipulation,
     -bugprone-unhandled-self-assignment,
-    -cert-dcl03-c,
     -cert-dcl16-c,
     -cert-dcl37-c,
     -cert-dcl50-cpp,
@@ -102,7 +101,6 @@ Checks:       |
     -hicpp-noexcept-move,
     -hicpp-signed-bitwise,
     -hicpp-special-member-functions,
-    -hicpp-static-assert,
     -hicpp-uppercase-literal-suffix,
     -hicpp-use-auto,
     -hicpp-use-emplace,
@@ -113,11 +111,9 @@ Checks:       |
     -misc-const-correctness,
     -misc-header-include-cycle,
     -misc-include-cleaner,
-    -misc-misplaced-const,
     -misc-no-recursion,
     -misc-non-private-member-variables-in-classes,
     -misc-redundant-expression,
-    -misc-static-assert,
     -misc-unused-parameters,
     -misc-unused-using-decls,
     -misc-unusedparameters,
@@ -196,3 +192,8 @@ Checks:       |
 WarningsAsErrors: '*'
 HeaderFilterRegex: 'src/xrt/.*'
 FormatStyle:     file
+
+# We have GCC-only flags enabled for GCC builds, and clang-tidy is 
+# sometimes run on GCC configured build directories.
+ExtraArgs:
+    - -Wno-unknown-warning-option

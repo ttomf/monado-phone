@@ -801,6 +801,7 @@ psvr2_hmd_get_compositor_info(struct xrt_device *xdev,
 	const double scanout_duration = 2040.0 / 2200.0;
 
 	*out_info = (struct xrt_device_compositor_info){
+	    .panel_refresh_type = XRT_PANEL_REFRESH_TYPE_ROLLING,
 	    .scanout_direction = XRT_SCANOUT_DIRECTION_TOP_TO_BOTTOM,
 	    .scanout_time_ns = mode->frame_interval_ns * scanout_duration,
 	};

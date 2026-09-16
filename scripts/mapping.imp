@@ -24,6 +24,7 @@
 { symbol: ["XRT_MODULE_COMPOSITOR", "public", "\"xrt/xrt_config_build.h\"", "public"] },
 { symbol: ["XRT_MODULE_COMPOSITOR_MAIN", "public", "\"xrt/xrt_config_build.h\"", "public"] },
 { symbol: ["XRT_MODULE_COMPOSITOR_NULL", "public", "\"xrt/xrt_config_build.h\"", "public"] },
+{ symbol: ["XRT_MODULE_CONSTELLATION_TRACKING", "public", "\"xrt/xrt_config_build.h\"", "public"] },
 { symbol: ["XRT_MODULE_MERCURY_HANDTRACKING", "public", "\"xrt/xrt_config_build.h\"", "public"] },
 { symbol: ["XRT_MODULE_IPC", "public", "\"xrt/xrt_config_build.h\"", "public"] },
 { symbol: ["XRT_MODULE_MONADO_GUI", "public", "\"xrt/xrt_config_build.h\"", "public"] },

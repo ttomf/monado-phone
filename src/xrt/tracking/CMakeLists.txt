@@ -10,4 +10,6 @@ if(XRT_MODULE_MERCURY_HANDTRACKING)
 	add_subdirectory(hand)
 endif()
 
-add_subdirectory(constellation)
+if(XRT_MODULE_CONSTELLATION_TRACKING)
+	add_subdirectory(constellation)
+endif()

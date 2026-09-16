@@ -45,6 +45,7 @@
 #define OUTPUT_REPORT_TAG 0x10
 
 #define CALIBRATION_DATA_FEATURE_REPORT_ID 0x05
+#define SET_POLLING_RATE_FEATURE_REPORT_ID 0x08
 
 #define CALIBRATION_DATA_PART_ID_1 0
 #define CALIBRATION_DATA_PART_ID_2 0x81
@@ -52,6 +53,7 @@
 const uint8_t INPUT_REPORT_CRC32_SEED = 0xa1;
 const uint8_t OUTPUT_REPORT_CRC32_SEED = 0xa2;
 const uint8_t FEATURE_REPORT_CRC32_SEED = 0xa3;
+const uint8_t SET_FEATURE_REPORT_CRC32_SEED = 0x53;
 
 const uint8_t CHARGE_STATE_DISCHARGING = 0x00;
 const uint8_t CHARGE_STATE_CHARGING = 0x01;
@@ -321,5 +323,18 @@ struct pssense_calibration_data
 };
 static_assert(sizeof(struct pssense_calibration_data) == CALIBRATION_DATA_LENGTH,
               "Incorrect calibration data struct length");
+
+#define SET_POLLING_RATE_FEATURE_REPORT_LENGTH 48
+struct pssense_set_polling_rate_feature_report
+{
+	uint8_t report_id;
+	uint8_t unk;
+	__le16 rate_1;
+	__le16 rate_2;
+	uint8_t padding[38];
+	__le32 crc;
+};
+static_assert(sizeof(struct pssense_set_polling_rate_feature_report) == SET_POLLING_RATE_FEATURE_REPORT_LENGTH,
+              "Incorrect feature report struct length");
 
 #pragma pack(pop)

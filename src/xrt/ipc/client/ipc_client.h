@@ -143,3 +143,6 @@ ipc_client_session_create(struct ipc_connection *ipc_c);
 
 struct xrt_future *
 ipc_client_future_create(struct ipc_connection *ipc_c, uint32_t future_id);
+
+struct xrt_app_instance *
+ipc_client_create_app_instance(struct ipc_connection *ipc_c);

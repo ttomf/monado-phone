@@ -83,7 +83,11 @@ rift_get_radio_id(struct rift_hmd *hmd, uint8_t out_radio_id[5]);
  *         caller should keep whatever timestamp it already had.
  */
 bool
-rift_hmd_frame_timestamp_callback(void *user_data, timepoint_ns *timestamp, timepoint_ns frame_start_ns, uint32_t pts);
+rift_hmd_frame_timestamp_callback(void *user_data,             //
+                                  timepoint_ns *out_timestamp, //
+                                  uint64_t *out_sequence_id,   //
+                                  timepoint_ns frame_start_ns, //
+                                  uint32_t pts);               //
 
 int
 rift_add_to_constellation_tracker(struct rift_hmd *hmd, struct t_constellation_tracker *tracker);

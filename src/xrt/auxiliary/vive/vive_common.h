@@ -70,7 +70,8 @@ bool
 vive_variant_scanout_info(enum VIVE_VARIANT variant,
                           time_duration_ns frame_period_ns,
                           time_duration_ns *out_scanout_time_ns,
-                          enum xrt_scanout_direction *out_scanout_direction);
+                          enum xrt_scanout_direction *out_scanout_direction,
+                          enum xrt_panel_refresh_type *out_panel_refresh_type);
 
 #ifdef __cplusplus
 }

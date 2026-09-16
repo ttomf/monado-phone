@@ -172,6 +172,16 @@ common_shutdown(volatile struct ipc_client_state *ics)
 		xrt_hand_tracker_destroy((struct xrt_hand_tracker **)&ics->objects.xhts[i]);
 	}
 
+	// Destroy app systems owned by this client.
+	for (uint32_t i = 0; i < IPC_MAX_CLIENT_APP_SYSTEMS; i++) {
+		xrt_app_system_destroy((struct xrt_app_system **)&ics->objects.xasys[i]);
+	}
+
+	// Destroy app instances owned by this client.
+	for (uint32_t i = 0; i < IPC_MAX_CLIENT_APP_INSTANCES; i++) {
+		xrt_app_instance_destroy((struct xrt_app_instance **)&ics->objects.xainsts[i]);
+	}
+
 	// Clear the tracking origins array.
 	for (uint32_t i = 0; i < XRT_SYSTEM_MAX_DEVICES; i++) {
 		/*

@@ -1798,15 +1798,18 @@ get_compositor_info_wmr(struct xrt_device *xdev,
 	struct wmr_hmd *wh = wmr_hmd(xdev);
 
 	double scanout_multiplier = 0.0;
+	enum xrt_panel_refresh_type refresh_mode = XRT_PANEL_REFRESH_TYPE_GLOBAL;
 	enum xrt_scanout_direction scanout_direction = XRT_SCANOUT_DIRECTION_NONE;
 
 	if (wh->hmd_desc->hmd_type == WMR_HEADSET_SAMSUNG_800ZAA ||
 	    wh->hmd_desc->hmd_type == WMR_HEADSET_SAMSUNG_XE700X3AI) {
+		refresh_mode = XRT_PANEL_REFRESH_TYPE_ROLLING;
 		scanout_direction = XRT_SCANOUT_DIRECTION_TOP_TO_BOTTOM;
 		scanout_multiplier = 1600.0 / 1624.0;
 	}
 
 	*out_info = (struct xrt_device_compositor_info){
+	    .panel_refresh_type = refresh_mode,
 	    .scanout_direction = scanout_direction,
 	    .scanout_time_ns = (int64_t)(mode->frame_interval_ns * scanout_multiplier),
 	};

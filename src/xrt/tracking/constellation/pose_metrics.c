@@ -288,6 +288,7 @@ pose_metrics_match_pose_to_blobs(const struct xrt_pose *pose,
 	match_info->reprojection_error = 0.0;
 	match_info->matched_blobs = 0;
 	match_info->unmatched_blobs = 0;
+	match_info->degenerate_solution = false;
 
 	get_visible_leds_and_bounds(pose, led_model, calib, match_info->visible_leds, &match_info->num_visible_leds,
 	                            &match_info->bounds);
@@ -296,7 +297,6 @@ pose_metrics_match_pose_to_blobs(const struct xrt_pose *pose,
 
 	// Iterate the blobs and see which ones are within the bounding box and have a matching LED
 	bool all_led_ids_matched = true;
-	int blobs_outside_bounds = 0;
 
 	for (int i = 0; i < num_blobs; i++) {
 		struct t_blob *b = blobs + i;
@@ -310,7 +310,6 @@ pose_metrics_match_pose_to_blobs(const struct xrt_pose *pose,
 		// Ignore blobs that are outside the pose bounding box
 		if (b->center.x < bounds->left || b->center.y < bounds->top || b->center.x > bounds->right ||
 		    b->center.y > bounds->bottom) {
-			blobs_outside_bounds++;
 			continue;
 		}
 
@@ -346,10 +345,9 @@ pose_metrics_match_pose_to_blobs(const struct xrt_pose *pose,
 
 	match_info->all_led_ids_matched = all_led_ids_matched;
 
-	// If blobs were outside the pose bounding box, this is a degenerate P3P solution that doesn't explain all
-	// observations. Penalize it with worst error to prevent selection
-	if (blobs_outside_bounds > 0 && match_info->matched_blobs <= 3) {
-		match_info->reprojection_error = WORST_REPROJECTION_ERROR;
+	// This is a degenerate solution, we have no way to check if this solve is bad within some error.
+	if (match_info->matched_blobs <= 3) {
+		match_info->degenerate_solution = true;
 	}
 }
 
@@ -401,8 +399,12 @@ pose_metrics_evaluate_pose_with_prior(struct pose_metrics *score,
 	score->unmatched_blobs = blob_match_info.unmatched_blobs;
 	score->visible_leds = blob_match_info.num_visible_leds;
 
+	if (blob_match_info.degenerate_solution) {
+		POSE_SET_FLAGS(score, POSE_MATCH_DEGENERATE);
+	}
+
 	if (blob_match_info.all_led_ids_matched) {
-		score->match_flags |= POSE_MATCH_LED_IDS;
+		POSE_SET_FLAGS(score, POSE_MATCH_LED_IDS);
 	}
 
 	double error_per_led = score->reprojection_error / score->matched_blobs;
@@ -414,6 +416,24 @@ pose_metrics_evaluate_pose_with_prior(struct pose_metrics *score,
 		assert(rot_error_thresh != NULL);
 
 		check_pose_prior(score, pose, pose_prior, pos_error_thresh, rot_error_thresh);
+
+		if (POSE_HAS_FLAGS(score, POSE_MATCH_POSITION | POSE_MATCH_ORIENT)) {
+			if (score->matched_blobs <
+			    led_model->match_parameters.min_leds_for_correspondence_search_with_prior) {
+				// The pose had too few LEDs for a with-prior match.
+				POSE_SET_FLAGS(score, POSE_MATCH_DEGENERATE);
+			} else {
+				// The pose matched the prior, and had enough LEDs for a with-prior match.
+			}
+		} else if (score->matched_blobs <
+		           led_model->match_parameters.min_leds_for_correspondence_search_without_prior) {
+			// The pose had too few LEDs for a without-prior match
+			POSE_SET_FLAGS(score, POSE_MATCH_DEGENERATE);
+		}
+	} else if (blob_match_info.matched_blobs <
+	           led_model->match_parameters.min_leds_for_correspondence_search_without_prior) {
+		// Pose had too few LEDs for a without-prior match
+		POSE_SET_FLAGS(score, POSE_MATCH_DEGENERATE);
 	}
 
 	// Don't add GOOD/STRONG flags if matched fewer than 3 blobs
@@ -481,44 +501,86 @@ done:
 bool
 pose_metrics_score_is_better_pose(struct pose_metrics *old_score, struct pose_metrics *new_score)
 {
-	// If our previous best pose was "strong", only take better "strong" poses
-	if (POSE_HAS_FLAGS(old_score, POSE_MATCH_STRONG) && !POSE_HAS_FLAGS(new_score, POSE_MATCH_STRONG)) {
+	/*
+	 * If our previous best pose was "strong", only take better "strong" poses.
+	 * However, don't take that into account with a P3P solve, a strong P3P solve is worse than a good P4P+ solve.
+	 */
+	if (!POSE_HAS_FLAGS(old_score, POSE_MATCH_DEGENERATE) && //
+	    POSE_HAS_FLAGS(old_score, POSE_MATCH_STRONG) &&      //
+	    !POSE_HAS_FLAGS(new_score, POSE_MATCH_STRONG)) {     //
 		return false;
 	}
 
-	// If the old score wasn't any good, but the new one is - take the new one
-	if (!POSE_HAS_FLAGS(old_score, POSE_MATCH_GOOD) && POSE_HAS_FLAGS(new_score, POSE_MATCH_GOOD)) {
+	/*
+	 * If the old score wasn't good, but the new one is, take the new one.
+	 * However, don't allow a good P3P to override a non-good P4P+.
+	 */
+	if (!POSE_HAS_FLAGS(new_score, POSE_MATCH_DEGENERATE) && //
+	    !POSE_HAS_FLAGS(old_score, POSE_MATCH_GOOD) &&       //
+	    POSE_HAS_FLAGS(new_score, POSE_MATCH_GOOD)) {        //
 		return true;
 	}
 
-	double new_error_per_led = new_score->reprojection_error / new_score->matched_blobs;
-	double best_error_per_led = WORST_REPROJECTION_ERROR;
+	/*
+	 * A score that matched nothing has a reprojection error of zero, which would otherwise read as a perfect fit
+	 * rather than as the absence of one. Both forms start at the worst error so that only a score with something
+	 * to say about the blobs can win a comparison below.
+	 */
+	double new_error = WORST_REPROJECTION_ERROR;
+	double new_error_per_led = WORST_REPROJECTION_ERROR;
+	if (new_score->matched_blobs > 0) {
+		new_error = new_score->reprojection_error;
+		new_error_per_led = new_score->reprojection_error / new_score->matched_blobs;
+	}
 
+	double old_error = WORST_REPROJECTION_ERROR;
+	double old_error_per_led = WORST_REPROJECTION_ERROR;
 	if (old_score->matched_blobs > 0) {
-		best_error_per_led = old_score->reprojection_error / old_score->matched_blobs;
+		old_error = old_score->reprojection_error;
+		old_error_per_led = old_score->reprojection_error / old_score->matched_blobs;
+	}
+
+	/*
+	 * If either score is a P3P solve, then the best error per LED is incomputable since a P3P solve inherently has
+	 * mathematically almost no error. Penalize it so that zero reprojection error doesn't overwhelm the fact it's a
+	 * P3P solve and more LEDs is better.
+	 */
+	if (POSE_HAS_FLAGS(new_score, POSE_MATCH_DEGENERATE)) {
+		new_error_per_led = WORST_REPROJECTION_ERROR;
+		new_error = WORST_REPROJECTION_ERROR;
+	}
+	if (POSE_HAS_FLAGS(old_score, POSE_MATCH_DEGENERATE)) {
+		old_error_per_led = WORST_REPROJECTION_ERROR;
+		old_error = WORST_REPROJECTION_ERROR;
 	}
 
 	// Prefer more matched blobs with tighter error/LED
-	if (old_score->matched_blobs < new_score->matched_blobs && (new_error_per_led < best_error_per_led)) {
+	if (old_score->matched_blobs < new_score->matched_blobs && (new_error_per_led < old_error_per_led)) {
 		return true;
 	}
 
-	// Prefer at least 2 more matched blobs with slightly worse error/LED
-	if (old_score->matched_blobs + 1 < new_score->matched_blobs && (new_error_per_led < best_error_per_led * 1.1)) {
+	/*
+	 * Prefer at least 2 more matched blobs with slightly worse error/LED.
+	 *
+	 * This is also the only branch a degenerate solve can win against a score that matched nothing, since both
+	 * sides are then the worst error and it is the 10% slack that separates them. Without it the first degenerate
+	 * pose of a search would never be recorded as the best one at all.
+	 */
+	if (old_score->matched_blobs + 1 < new_score->matched_blobs && (new_error_per_led < old_error_per_led * 1.1)) {
 		return true;
 	}
 
 	// Else, prefer closer reprojection with at least as many matches
-	if (old_score->matched_blobs == new_score->matched_blobs &&
-	    new_score->reprojection_error < old_score->reprojection_error) {
+	if (old_score->matched_blobs == new_score->matched_blobs && new_error < old_error) {
 		return true;
 	}
 
-	// If both scores have pose priors, prefer the one where the orientation better matches the prior
-	// BUT only if reprojection error is comparable (within 20%)
+	/*
+	 * If both scores have pose priors, prefer the one where the orientation better matches the prior
+	 * BUT only if reprojection error is comparable (within 20%)
+	 */
 	if (POSE_HAS_FLAGS(old_score, POSE_HAD_PRIOR) && POSE_HAS_FLAGS(new_score, POSE_HAD_PRIOR)) {
-		if (old_score->matched_blobs == new_score->matched_blobs &&
-		    new_score->reprojection_error < old_score->reprojection_error * 1.2) {
+		if (old_score->matched_blobs == new_score->matched_blobs && new_error < old_error * 1.2) {
 			if (m_vec3_len(new_score->orient_error) < m_vec3_len(old_score->orient_error)) {
 				return true;
 			}

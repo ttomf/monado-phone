@@ -37,7 +37,9 @@ add_library(
 	m_predict.h
 	m_quatexpmap.cpp
 	m_quatexpmap.hpp
-	m_quatexpmap_ceres.hpp
+	m_quatexpmap_bigceres.hpp
+	m_quatexpmap_ceres_internal.hpp
+	m_quatexpmap_tinyceres.hpp
 	m_rational.hpp
 	m_relation_history.cpp
 	m_relation_history.h

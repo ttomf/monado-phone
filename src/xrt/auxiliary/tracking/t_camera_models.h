@@ -38,6 +38,21 @@ struct t_camera_calibration_rt8_params_float
 };
 
 /*!
+ * Floating point parameters for @ref T_DISTORTION_RIFT_CV1.
+ *
+ * @p k1 - @p k4 are the radial polynomial coefficients (Oculus @p d1 - @p d4), @p p1 / @p p2 the
+ * tangential decentering terms, and @p g3 / @p g4 the 4th-order affine gain applied to the
+ * decentering delta.
+ * @ingroup aux_tracking
+ */
+struct t_camera_calibration_cv1_params_float
+{
+	float k1, k2, k3, k4;
+	float p1, p2;
+	float g3, g4;
+};
+
+/*!
  * Floating point calibration data for a single calibrated camera.
  * @note This is basically @ref t_camera_calibration, just without some compatibility stuff and using single floats
  * instead of doubles.
@@ -49,10 +64,12 @@ struct t_camera_model_params
 	union {
 		struct t_camera_calibration_kb4_params_float fisheye;
 		struct t_camera_calibration_rt8_params_float rt8;
+		struct t_camera_calibration_cv1_params_float cv1;
 	};
 	// This model gets reinterpreted from values in the main t_camera_calibration struct to either
 	// * T_DISTORTION_FISHEYE_KB4
 	// * T_DISTORTION_OPENCV_RADTAN_8
+	// * T_DISTORTION_RIFT_CV1
 	enum t_camera_distortion_model model;
 };
 

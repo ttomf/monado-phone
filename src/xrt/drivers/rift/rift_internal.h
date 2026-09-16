@@ -14,6 +14,7 @@
 
 #include "util/u_device.h"
 #include "util/u_logging.h"
+#include "util/u_distortion_mesh.h"
 
 #include "math/m_imu_3dof.h"
 #include "math/m_api.h"
@@ -49,6 +50,8 @@
 #define IMU_SAMPLE_RATE (1000)      // 1000hz
 #define NS_PER_SAMPLE (1000 * 1000) // 1ms (1,000,000 ns) per sample
 #define SERIAL_NUMBER_LENGTH 14
+#define RIFT_USB_LATENCY_BIAS (U_TIME_1US_IN_NS * 200LL) // 200us latency bias over USB
+#define RIFT_RADIO_LATENCY_BIAS (U_TIME_1MS_IN_NS * 4LL) // 4ms bias over radio
 
 #define CALIBRATION_HASH_BYTE_OFFSET 0x1bf0
 #define CALIBRATION_HASH_BYTE_LENGTH 0x10
@@ -205,7 +208,6 @@ struct rift_display_info_report
 SIZE_ASSERT(struct rift_display_info_report, 55);
 
 #define CATMULL_COEFFICIENTS 11
-#define CHROMATIC_ABBERATION_COEFFEICENT_COUNT 4
 
 struct rift_catmull_rom_distortion_report_data
 {
@@ -215,7 +217,7 @@ struct rift_catmull_rom_distortion_report_data
 	uint16_t k[CATMULL_COEFFICIENTS];
 	uint16_t max_r;
 	uint16_t meters_per_tan_angle_at_center;
-	uint16_t chromatic_abberation[CHROMATIC_ABBERATION_COEFFEICENT_COUNT];
+	uint16_t chromatic_abberation[U_RIFT_CHROMATIC_ABBERATION_COUNT];
 	uint8_t unused[14];
 };
 
@@ -627,7 +629,7 @@ struct rift_catmull_rom_distortion_data
 	float k[CATMULL_COEFFICIENTS];
 	float max_r;
 	float meters_per_tan_angle_at_center;
-	float chromatic_abberation[CHROMATIC_ABBERATION_COEFFEICENT_COUNT];
+	float chromatic_abberation[U_RIFT_CHROMATIC_ABBERATION_COUNT];
 };
 
 struct rift_lens_distortion
@@ -640,36 +642,6 @@ struct rift_lens_distortion
 	union {
 		struct rift_catmull_rom_distortion_data lcsv_catmull_rom_10;
 	} data;
-};
-
-struct rift_scale_and_offset
-{
-	struct xrt_vec2 scale;
-	struct xrt_vec2 offset;
-};
-
-struct rift_viewport_fov_tan
-{
-	float up_tan;
-	float down_tan;
-	float left_tan;
-	float right_tan;
-};
-
-struct rift_extra_display_info
-{
-	// gap left between the two eyes
-	float screen_gap_meters;
-	// the diameter of the lenses, may need to be extended to an array
-	float lens_diameter_meters;
-	// ipd of the headset
-	float icd;
-
-	// the fov of the headset
-	struct rift_viewport_fov_tan fov;
-	// mapping from tan-angle space to target NDC space
-	struct rift_scale_and_offset eye_to_source_ndc;
-	struct rift_scale_and_offset eye_to_source_uv;
 };
 
 struct rift_imu_calibration
@@ -894,7 +866,7 @@ union rift_radio_command_data {
 struct rift_exposure_event
 {
 	//! The value of rift_hmd::exposure_counter at this exposure.
-	uint32_t sequence;
+	uint32_t sequence_id;
 	//! When the exposure started, in local monotonic time. This is what frames matched to it are timestamped with.
 	timepoint_ns timestamp_ns;
 	/*!
@@ -969,7 +941,11 @@ struct rift_hmd
 	uint16_t num_lens_distortions;
 	uint16_t distortion_in_use;
 
-	struct rift_extra_display_info extra_display_info;
+	struct u_rift_panel panel;
+	struct u_rift_eye_profile eye_profile;
+
+	//! Interpupillary distance of the headset, in meters.
+	float default_icd;
 	float icd_override_m;
 
 	bool presence;

@@ -1227,7 +1227,7 @@ render_gfx_mesh_draw(struct render_gfx *render, uint32_t mesh_index, VkDescripto
 
 	VkBuffer buffers[1] = {r->mesh.vbo.buffer};
 	VkDeviceSize offsets[1] = {0};
-	assert(ARRAY_SIZE(buffers) == ARRAY_SIZE(offsets));
+	static_assert(ARRAY_SIZE(buffers) == ARRAY_SIZE(offsets), "buffers and offsets array size mismatch");
 
 	vk->vkCmdBindVertexBuffers( //
 	    r->cmd,                 //

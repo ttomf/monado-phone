@@ -11,6 +11,7 @@
 #pragma once
 
 #include "hg_interface.h"
+#include "hg_hand_size_opt.hpp"
 #include "hg_debug_instrumentation.hpp"
 
 #include "tracking/t_hand_tracking.h"
@@ -175,7 +176,7 @@ struct hand_region_of_interest
 	float size_px;
 
 	bool found;
-	bool hand_detection_confidence;
+	float hand_detection_confidence;
 };
 
 
@@ -218,17 +219,6 @@ struct ht_view
 	struct keypoint_estimation_run_info run_info[2];
 };
 
-
-struct hand_size_refinement
-{
-	int num_hands;
-	float out_hand_size;
-	float out_hand_confidence;
-	float hand_size_refinement_schedule_x = 0;
-	float hand_size_refinement_schedule_y = 0;
-	bool optimizing = true;
-};
-
 struct model_output_visualizers
 {
 	// After setup, these reference the same piece of memory.
@@ -269,9 +259,9 @@ public:
 
 	struct model_output_visualizers visualizers;
 
-	u_worker_thread_pool *pool;
+	u_worker_thread_pool *pool = nullptr;
 
-	u_worker_group *group;
+	u_worker_group *group = nullptr;
 
 
 	float baseline = {};
@@ -285,7 +275,7 @@ public:
 
 	enum u_logging_level log_level = U_LOGGING_INFO;
 
-	lm::KinematicHandLM *kinematic_hands[2];
+	lm::KinematicHandLM *kinematic_hands[2] = {nullptr};
 
 	// These are produced by the keypoint estimator and consumed by the nonlinear optimizer
 	// left hand, right hand THEN left view, right view
@@ -320,7 +310,7 @@ public:
 
 	int detection_counter = 0;
 
-	struct hand_size_refinement refinement = {};
+	/// Regularly updated from `hand_size_refinement`.
 	float target_hand_size = STANDARD_HAND_SIZE;
 
 
@@ -337,6 +327,8 @@ public:
 	u_frame_times_widget ft_widget = {};
 
 	struct hg_tuneable_values tuneable_values;
+
+	HandSizeRefinement hand_size_refinement{};
 
 public:
 	explicit HandTracking();

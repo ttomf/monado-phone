@@ -12,6 +12,7 @@
 #pragma once
 
 #include "xrt/xrt_defines.h"
+
 #include "tracking/t_constellation.h"
 
 #include "camera_model.h"
@@ -42,22 +43,33 @@ pose_rect_has_area(struct pose_rect *rect)
 enum pose_match_flags
 {
 	//! A reasonable pose match - most LEDs matched to within a few pixels error
-	POSE_MATCH_GOOD = 0x1,
+	POSE_MATCH_GOOD = 1 << 0,
 	//! A strong pose match is a match with very low error
-	POSE_MATCH_STRONG = 0x2,
+	POSE_MATCH_STRONG = 1 << 1,
 	//! The position of the pose matched the prior well
-	POSE_MATCH_POSITION = 0x10,
+	POSE_MATCH_POSITION = 1 << 2,
 	//! The orientation of the pose matched the prior well
-	POSE_MATCH_ORIENT = 0x20,
+	POSE_MATCH_ORIENT = 1 << 3,
 	//! If a pose prior was supplied when calculating the score, then rot/trans_error are set
-	POSE_HAD_PRIOR = 0x100,
+	POSE_HAD_PRIOR = 1 << 4,
 	//! The LED IDs on the blobs all matched the LEDs we thought (or were unassigned)
-	POSE_MATCH_LED_IDS = 0x200,
+	POSE_MATCH_LED_IDS = 1 << 5,
+	/*!
+	 * Set when the pose cannot explain the device entirely on it's own. One case is when too few blobs matched for
+	 * the reprojection error to say anything about the fit, a P3P solve or fewer. Such a solve reproduces its own
+	 * points by construction, so its error is near zero whether or not the pose is right.
+	 *
+	 * Another case this may be triggered is when the amount of blobs is too low for the LED model in question to be
+	 * confident about a slow solve. See @ref t_constellation_tracker_led_model_match_parameters.
+	 */
+	POSE_MATCH_DEGENERATE = 1 << 6,
 };
 
-#define POSE_SET_FLAG(score, f) ((score)->match_flags |= (f))
-#define POSE_CLEAR_FLAG(score, f) ((score)->match_flags &= ~(f))
+#define POSE_SET_FLAGS(score, f) ((score)->match_flags |= (f))
+#define POSE_CLEAR_FLAGS(score, f) ((score)->match_flags &= ~(f))
 #define POSE_HAS_FLAGS(score, f) (((score)->match_flags & (f)) == (f))
+
+#define POSE_CLEAR_VALID(score) POSE_CLEAR_FLAGS(score, POSE_MATCH_GOOD | POSE_MATCH_STRONG)
 
 struct pose_metrics
 {
@@ -96,6 +108,8 @@ struct pose_metrics_blob_match_info
 
 	double reprojection_error;
 	struct pose_rect bounds;
+
+	bool degenerate_solution;
 };
 
 void

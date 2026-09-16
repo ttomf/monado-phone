@@ -148,11 +148,12 @@ if(XRT_HAVE_OPENGL)
 	add_subdirectory(imgui)
 endif()
 
-# tinyceres
-add_library(xrt-external-tinyceres INTERFACE)
-target_include_directories(
-	xrt-external-tinyceres SYSTEM INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/tinyceres/include
-	)
+# Ceres, from the system if we have it
+if(XRT_HAVE_BIGCERES)
+	add_subdirectory(bigceres)
+endif()
+
+add_subdirectory(tinyceres)
 
 # Tracy
 if(XRT_HAVE_TRACY)

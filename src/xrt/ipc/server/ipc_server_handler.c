@@ -1084,117 +1084,100 @@ ipc_handle_compositor_set_performance_level(volatile struct ipc_client_state *ic
 	return xrt_comp_set_performance_level(ics->xc, domain, level);
 }
 
-static bool
+static xrt_result_t
 _update_projection_layer(struct xrt_compositor *xc,
                          volatile struct ipc_client_state *ics,
                          volatile struct ipc_layer_entry *layer,
                          uint32_t i)
 {
-	// xdev
-	uint32_t device_id = layer->xdev_id;
 	struct xrt_device *xdev = NULL;
-	GET_XDEV_OR_RETURN(ics, device_id, xdev);
+	GET_XDEV_OR_RETURN(ics, layer->xdev_id, xdev);
 
 	if (xdev == NULL) {
 		U_LOG_E("Invalid xdev for projection layer!");
-		return false;
+		return XRT_ERROR_IPC_FAILURE;
 	}
 
-	uint32_t view_count = xdev->hmd->view_count;
+	struct xrt_layer_data *data = (struct xrt_layer_data *)&layer->data;
 
-	struct xrt_swapchain *xcs[XRT_MAX_VIEWS];
-	for (uint32_t k = 0; k < view_count; k++) {
+	struct xrt_swapchain *xcs[XRT_MAX_VIEWS] = {0};
+
+	for (uint32_t k = 0; k < data->view_count; k++) {
 		const uint32_t xsci = layer->swapchain_ids[k];
 		xcs[k] = ics->xscs[xsci];
 		if (xcs[k] == NULL) {
 			U_LOG_E("Invalid swap chain for projection layer!");
-			return false;
+			return XRT_ERROR_IPC_FAILURE;
 		}
 	}
 
 
-	// Cast away volatile.
-	struct xrt_layer_data *data = (struct xrt_layer_data *)&layer->data;
-
-	xrt_comp_layer_projection(xc, xdev, xcs, data);
-
-	return true;
+	return xrt_comp_layer_projection(xc, xdev, xcs, data);
 }
 
-static bool
+static xrt_result_t
 _update_projection_layer_depth(struct xrt_compositor *xc,
                                volatile struct ipc_client_state *ics,
                                volatile struct ipc_layer_entry *layer,
                                uint32_t i)
 {
-	// xdev
-	uint32_t xdevi = layer->xdev_id;
-
-	// Cast away volatile.
-	struct xrt_layer_data *data = (struct xrt_layer_data *)&layer->data;
-
 	struct xrt_device *xdev = NULL;
-	GET_XDEV_OR_RETURN(ics, xdevi, xdev);
+	GET_XDEV_OR_RETURN(ics, layer->xdev_id, xdev);
+
 	if (xdev == NULL) {
-		U_LOG_E("Invalid xdev for projection layer #%u!", i);
-		return false;
+		U_LOG_E("Invalid xdev for projection layer!");
+		return XRT_ERROR_IPC_FAILURE;
 	}
 
-	struct xrt_swapchain *xcs[XRT_MAX_VIEWS];
-	struct xrt_swapchain *d_xcs[XRT_MAX_VIEWS];
+	struct xrt_layer_data *data = (struct xrt_layer_data *)&layer->data;
+
+	struct xrt_swapchain *xcs[XRT_MAX_VIEWS] = {0};
+	struct xrt_swapchain *d_xcs[XRT_MAX_VIEWS] = {0};
 
 	for (uint32_t j = 0; j < data->view_count; j++) {
-		int xsci = layer->swapchain_ids[j];
-		int d_xsci = layer->swapchain_ids[j + data->view_count];
+		const uint32_t xsci = layer->swapchain_ids[j];
+		const uint32_t d_xsci = layer->swapchain_ids[j + data->view_count];
 
 		xcs[j] = ics->xscs[xsci];
 		d_xcs[j] = ics->xscs[d_xsci];
 		if (xcs[j] == NULL || d_xcs[j] == NULL) {
 			U_LOG_E("Invalid swap chain for projection layer #%u!", i);
-			return false;
+			return XRT_ERROR_IPC_FAILURE;
 		}
 	}
 
-	xrt_comp_layer_projection_depth(xc, xdev, xcs, d_xcs, data);
-
-	return true;
+	return xrt_comp_layer_projection_depth(xc, xdev, xcs, d_xcs, data);
 }
 
-static bool
+static xrt_result_t
 do_single(struct xrt_compositor *xc,
           volatile struct ipc_client_state *ics,
           volatile struct ipc_layer_entry *layer,
           uint32_t i,
           const char *name,
           struct xrt_device **out_xdev,
-          struct xrt_swapchain **out_xcs,
-          struct xrt_layer_data **out_data)
+          struct xrt_swapchain **out_xcs)
 {
-	uint32_t device_id = layer->xdev_id;
-	uint32_t sci = layer->swapchain_ids[0];
-
 	struct xrt_device *xdev = NULL;
-	GET_XDEV_OR_RETURN(ics, device_id, xdev);
+	GET_XDEV_OR_RETURN(ics, layer->xdev_id, xdev);
+
+	if (xdev == NULL) {
+		U_LOG_E("Invalid xdev for layer #%u, '%s'!", i, name);
+		return XRT_ERROR_IPC_FAILURE;
+	}
+
+	const uint32_t sci = layer->swapchain_ids[0];
 	struct xrt_swapchain *xcs = ics->xscs[sci];
 
 	if (xcs == NULL) {
 		U_LOG_E("Invalid swapchain for layer #%u, '%s'!", i, name);
-		return false;
+		return XRT_ERROR_IPC_FAILURE;
 	}
-
-	if (xdev == NULL) {
-		U_LOG_E("Invalid xdev for layer #%u, '%s'!", i, name);
-		return false;
-	}
-
-	// Cast away volatile.
-	struct xrt_layer_data *data = (struct xrt_layer_data *)&layer->data;
 
 	*out_xdev = xdev;
 	*out_xcs = xcs;
-	*out_data = data;
 
-	return true;
+	return XRT_SUCCESS;
 }
 
 static bool
@@ -1203,17 +1186,14 @@ _update_quad_layer(struct xrt_compositor *xc,
                    volatile struct ipc_layer_entry *layer,
                    uint32_t i)
 {
-	struct xrt_device *xdev;
-	struct xrt_swapchain *xcs;
-	struct xrt_layer_data *data;
+	struct xrt_device *xdev = NULL;
+	struct xrt_swapchain *xcs = NULL;
 
-	if (!do_single(xc, ics, layer, i, "quad", &xdev, &xcs, &data)) {
-		return false;
-	}
+	xrt_result_t xret = do_single(xc, ics, layer, i, "quad", &xdev, &xcs);
+	IPC_CHK_AND_RET(ics->server, xret, "_update_quad_layer");
 
-	xrt_comp_layer_quad(xc, xdev, xcs, data);
-
-	return true;
+	struct xrt_layer_data *data = (struct xrt_layer_data *)&layer->data;
+	return xrt_comp_layer_quad(xc, xdev, xcs, data);
 }
 
 static bool
@@ -1222,17 +1202,14 @@ _update_cube_layer(struct xrt_compositor *xc,
                    volatile struct ipc_layer_entry *layer,
                    uint32_t i)
 {
-	struct xrt_device *xdev;
-	struct xrt_swapchain *xcs;
-	struct xrt_layer_data *data;
+	struct xrt_device *xdev = NULL;
+	struct xrt_swapchain *xcs = NULL;
 
-	if (!do_single(xc, ics, layer, i, "cube", &xdev, &xcs, &data)) {
-		return false;
-	}
+	xrt_result_t xret = do_single(xc, ics, layer, i, "cube", &xdev, &xcs);
+	IPC_CHK_AND_RET(ics->server, xret, "_update_cube_layer");
 
-	xrt_comp_layer_cube(xc, xdev, xcs, data);
-
-	return true;
+	struct xrt_layer_data *data = (struct xrt_layer_data *)&layer->data;
+	return xrt_comp_layer_cube(xc, xdev, xcs, data);
 }
 
 static bool
@@ -1241,17 +1218,14 @@ _update_cylinder_layer(struct xrt_compositor *xc,
                        volatile struct ipc_layer_entry *layer,
                        uint32_t i)
 {
-	struct xrt_device *xdev;
-	struct xrt_swapchain *xcs;
-	struct xrt_layer_data *data;
+	struct xrt_device *xdev = NULL;
+	struct xrt_swapchain *xcs = NULL;
 
-	if (!do_single(xc, ics, layer, i, "cylinder", &xdev, &xcs, &data)) {
-		return false;
-	}
+	xrt_result_t xret = do_single(xc, ics, layer, i, "cylinder", &xdev, &xcs);
+	IPC_CHK_AND_RET(ics->server, xret, "_update_cylinder_layer");
 
-	xrt_comp_layer_cylinder(xc, xdev, xcs, data);
-
-	return true;
+	struct xrt_layer_data *data = (struct xrt_layer_data *)&layer->data;
+	return xrt_comp_layer_cylinder(xc, xdev, xcs, data);
 }
 
 static bool
@@ -1260,17 +1234,14 @@ _update_equirect1_layer(struct xrt_compositor *xc,
                         volatile struct ipc_layer_entry *layer,
                         uint32_t i)
 {
-	struct xrt_device *xdev;
-	struct xrt_swapchain *xcs;
-	struct xrt_layer_data *data;
+	struct xrt_device *xdev = NULL;
+	struct xrt_swapchain *xcs = NULL;
 
-	if (!do_single(xc, ics, layer, i, "equirect1", &xdev, &xcs, &data)) {
-		return false;
-	}
+	xrt_result_t xret = do_single(xc, ics, layer, i, "equirect1", &xdev, &xcs);
+	IPC_CHK_AND_RET(ics->server, xret, "_update_equirect1_layer");
 
-	xrt_comp_layer_equirect1(xc, xdev, xcs, data);
-
-	return true;
+	struct xrt_layer_data *data = (struct xrt_layer_data *)&layer->data;
+	return xrt_comp_layer_equirect1(xc, xdev, xcs, data);
 }
 
 static bool
@@ -1279,99 +1250,86 @@ _update_equirect2_layer(struct xrt_compositor *xc,
                         volatile struct ipc_layer_entry *layer,
                         uint32_t i)
 {
-	struct xrt_device *xdev;
-	struct xrt_swapchain *xcs;
-	struct xrt_layer_data *data;
+	struct xrt_device *xdev = NULL;
+	struct xrt_swapchain *xcs = NULL;
 
-	if (!do_single(xc, ics, layer, i, "equirect2", &xdev, &xcs, &data)) {
-		return false;
-	}
+	xrt_result_t xret = do_single(xc, ics, layer, i, "equirect2", &xdev, &xcs);
+	IPC_CHK_AND_RET(ics->server, xret, "_update_equirect2_layer");
 
-	xrt_comp_layer_equirect2(xc, xdev, xcs, data);
-
-	return true;
+	struct xrt_layer_data *data = (struct xrt_layer_data *)&layer->data;
+	return xrt_comp_layer_equirect2(xc, xdev, xcs, data);
 }
 
-static bool
+static xrt_result_t
 _update_passthrough_layer(struct xrt_compositor *xc,
                           volatile struct ipc_client_state *ics,
                           volatile struct ipc_layer_entry *layer,
                           uint32_t i)
 {
-	// xdev
-	uint32_t xdevi = layer->xdev_id;
-
 	struct xrt_device *xdev = NULL;
-	GET_XDEV_OR_RETURN(ics, xdevi, xdev);
+	GET_XDEV_OR_RETURN(ics, layer->xdev_id, xdev);
 
 	if (xdev == NULL) {
-		U_LOG_E("Invalid xdev for passthrough layer #%u!", i);
-		return false;
+		U_LOG_E("Invalid swapchain for layer #%u, 'passthrough'!", i);
+		return XRT_ERROR_IPC_FAILURE;
 	}
 
-	// Cast away volatile.
 	struct xrt_layer_data *data = (struct xrt_layer_data *)&layer->data;
-
-	xrt_comp_layer_passthrough(xc, xdev, data);
-
-	return true;
+	return xrt_comp_layer_passthrough(xc, xdev, data);
 }
 
 static bool
-_update_layers(volatile struct ipc_client_state *ics, struct xrt_compositor *xc, struct ipc_layer_slot *slot)
+_update_layers(volatile struct ipc_client_state *ics, struct ipc_layer_slot *slot)
 {
 	IPC_TRACE_MARKER();
+
+	struct xrt_compositor *xc = ics->xc;
+
+	xrt_result_t xret = XRT_SUCCESS;
 
 	for (uint32_t i = 0; i < slot->layer_count; i++) {
 		volatile struct ipc_layer_entry *layer = &slot->layers[i];
 
 		switch (layer->data.type) {
 		case XRT_LAYER_PROJECTION:
-			if (!_update_projection_layer(xc, ics, layer, i)) {
-				return false;
-			}
+			xret = _update_projection_layer(xc, ics, layer, i);
+			IPC_CHK_AND_RET(ics->server, xret, "_update_projection_layer");
 			break;
 		case XRT_LAYER_PROJECTION_DEPTH:
-			if (!_update_projection_layer_depth(xc, ics, layer, i)) {
-				return false;
-			}
+			xret = _update_projection_layer_depth(xc, ics, layer, i);
+			IPC_CHK_AND_RET(ics->server, xret, "_update_projection_depth_layer");
 			break;
 		case XRT_LAYER_QUAD:
-			if (!_update_quad_layer(xc, ics, layer, i)) {
-				return false;
-			}
+			xret = _update_quad_layer(xc, ics, layer, i);
+			IPC_CHK_AND_RET(ics->server, xret, "_update_quad_layer");
 			break;
 		case XRT_LAYER_CUBE:
-			if (!_update_cube_layer(xc, ics, layer, i)) {
-				return false;
-			}
+			xret = _update_cube_layer(xc, ics, layer, i);
+			IPC_CHK_AND_RET(ics->server, xret, "_update_cube_layer");
 			break;
 		case XRT_LAYER_CYLINDER:
-			if (!_update_cylinder_layer(xc, ics, layer, i)) {
-				return false;
-			}
+			xret = _update_cylinder_layer(xc, ics, layer, i);
+			IPC_CHK_AND_RET(ics->server, xret, "_update_cylinder_layer");
 			break;
 		case XRT_LAYER_EQUIRECT1:
-			if (!_update_equirect1_layer(xc, ics, layer, i)) {
-				return false;
-			}
+			xret = _update_equirect1_layer(xc, ics, layer, i);
+			IPC_CHK_AND_RET(ics->server, xret, "_update_equirect1_layer");
 			break;
 		case XRT_LAYER_EQUIRECT2:
-			if (!_update_equirect2_layer(xc, ics, layer, i)) {
-				return false;
-			}
+			xret = _update_equirect2_layer(xc, ics, layer, i);
+			IPC_CHK_AND_RET(ics->server, xret, "_update_equirect2_layer");
 			break;
 		case XRT_LAYER_PASSTHROUGH:
-			if (!_update_passthrough_layer(xc, ics, layer, i)) {
-				return false;
-			}
+			xret = _update_passthrough_layer(xc, ics, layer, i);
+			IPC_CHK_AND_RET(ics->server, xret, "_update_passthrough_layer");
 			break;
-		default: U_LOG_E("Unhandled layer type '%i'!", layer->data.type); break;
+		default: U_LOG_E("Unhandled layer type '%i'!", layer->data.type); return XRT_ERROR_IPC_FAILURE;
 		}
 	}
 
-	return true;
+	return xret;
 }
+
 
 xrt_result_t
 ipc_handle_compositor_layer_sync(volatile struct ipc_client_state *ics,
@@ -1386,8 +1344,6 @@ ipc_handle_compositor_layer_sync(volatile struct ipc_client_state *ics,
 		return XRT_ERROR_IPC_SESSION_NOT_CREATED;
 	}
 
-	struct ipc_shared_memory *ism = get_ism(ics);
-	struct ipc_layer_slot *slot = &ism->slots[slot_id];
 	xrt_graphics_sync_handle_t sync_handle = XRT_GRAPHICS_SYNC_HANDLE_INVALID;
 
 	// If we have one or more save the first handle.
@@ -1402,17 +1358,19 @@ ipc_handle_compositor_layer_sync(volatile struct ipc_client_state *ics,
 		u_graphics_sync_unref(&tmp);
 	}
 
-	// Copy current slot data.
-	struct ipc_layer_slot copy = *slot;
+	struct ipc_shared_memory *ism = get_ism(ics);
 
+	// Copy the layer slot in case the shared memory gets overwritten during update
+	struct ipc_layer_slot slot = ism->slots[slot_id];
 
 	/*
 	 * Transfer data to underlying compositor.
 	 */
 
-	xrt_comp_layer_begin(ics->xc, &copy.data);
+	xrt_comp_layer_begin(ics->xc, &slot.data);
 
-	_update_layers(ics, ics->xc, &copy);
+	xrt_result_t xret = _update_layers(ics, &slot);
+	IPC_CHK_AND_RET(ics->server, xret, "_update_layers");
 
 	xrt_comp_layer_commit(ics->xc, sync_handle);
 
@@ -1428,7 +1386,7 @@ ipc_handle_compositor_layer_sync(volatile struct ipc_client_state *ics,
 
 	os_mutex_unlock(&ics->server->global_state.lock);
 
-	return XRT_SUCCESS;
+	return xret;
 }
 
 xrt_result_t
@@ -1455,20 +1413,18 @@ ipc_handle_compositor_layer_sync_with_semaphore(volatile struct ipc_client_state
 	struct xrt_compositor_semaphore *xcsem = ics->xcsems[semaphore_id];
 
 	struct ipc_shared_memory *ism = get_ism(ics);
-	struct ipc_layer_slot *slot = &ism->slots[slot_id];
 
-	// Copy current slot data.
-	struct ipc_layer_slot copy = *slot;
-
-
+	// Copy the layer slot in case the shared memory gets overwritten during update
+	struct ipc_layer_slot slot = ism->slots[slot_id];
 
 	/*
 	 * Transfer data to underlying compositor.
 	 */
 
-	xrt_comp_layer_begin(ics->xc, &copy.data);
+	xrt_comp_layer_begin(ics->xc, &slot.data);
 
-	_update_layers(ics, ics->xc, &copy);
+	xrt_result_t xret = _update_layers(ics, &slot);
+	IPC_CHK_AND_RET(ics->server, xret, "_update_layers");
 
 	xrt_comp_layer_commit_with_semaphore(ics->xc, xcsem, semaphore_value);
 

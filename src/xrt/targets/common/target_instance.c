@@ -21,6 +21,7 @@
 #include "util/u_system_helpers.h"
 
 #include "b_system.h"
+#include "b_app_policy.h"
 
 #ifdef XRT_MODULE_COMPOSITOR_MAIN
 #include "main/comp_main_interface.h"
@@ -168,6 +169,27 @@ err_destroy:
 	return xret;
 }
 
+static xrt_result_t
+t_instance_create_app_instance(struct xrt_instance *xinst, struct xrt_app_instance **out_xainst)
+{
+	XRT_TRACE_MARKER();
+
+	assert(out_xainst != NULL);
+	assert(*out_xainst == NULL);
+
+	struct b_app_instance *bainst = b_app_instance_create();
+	if (bainst == NULL) {
+		return XRT_ERROR_ALLOCATION;
+	}
+
+	*out_xainst = &bainst->base;
+
+	// @note: We don't keep track of it internally, instead relying on external things to properly destroy their
+	//        app instances before calling xrt_instance_destroy.
+
+	return XRT_SUCCESS;
+}
+
 
 /*
  *
@@ -193,6 +215,7 @@ xrt_instance_create(struct xrt_instance_info *ii, struct xrt_instance **out_xins
 	tinst->base.is_system_available = t_instance_is_system_available;
 	tinst->base.create_system = t_instance_create_system;
 	tinst->base.get_prober = t_instance_get_prober;
+	tinst->base.create_app_instance = t_instance_create_app_instance;
 	tinst->base.destroy = t_instance_destroy;
 	tinst->xp = xp;
 

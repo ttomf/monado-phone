@@ -378,9 +378,19 @@ Camera::tryDeviceBlobRecovery(std::unique_ptr<Device> &device,
 		                           &device->params.led_model, device->id, &this->model, NULL);
 	}
 
-	if (POSE_HAS_FLAGS(&score, POSE_MATCH_GOOD)) {
-		CT_DEBUG(tracker, "Camera %p RANSAC-PnP recovered pose for device %d from %u blobs", (void *)this,
-		         device->id, sample.blob_count);
+	/*
+	 * @note I saw some cases where an otherwise valid solve was dropped because we didn't trust the RANSAC solve.
+	 *       I don't think this will make things *worse*, but it seems to at least get some more valid solves
+	 *       through, so this is fine for now, set as a constexpr bool for easy tweaking purposes.
+	 *       Since a RANSAC has already made an assessment over the validity of the pose, and we already trust that
+	 *       assessment, this shouldn't cause many problems.
+	 */
+	constexpr bool kAlwaysTrustRansac = true;
+
+	if (kAlwaysTrustRansac || POSE_HAS_FLAGS(&score, POSE_MATCH_GOOD)) {
+		CT_DEBUG(tracker, "Camera %p RANSAC-PnP recovered pose was good enough for device %d from %u blobs",
+		         (void *)this, device->id, sample.blob_count);
+
 		this->pushPose(sample,         //
 		               device_state,   //
 		               device,         //

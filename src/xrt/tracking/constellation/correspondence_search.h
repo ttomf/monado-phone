@@ -57,7 +57,7 @@ struct cs_model_info
 {
 	t_constellation_device_id_t id;
 
-	struct t_constellation_search_model *model;
+	const struct t_constellation_search_model *model;
 
 	double best_pose_found_time; /* Time (in secs) at which the best pose was found */
 	int best_pose_blob_depth;    /* Blob neighbor depth the best pose is from */
@@ -79,8 +79,8 @@ struct cs_model_info
 
 	/* Valid when CS_FLAG_HAVE_POSE_PRIOR is set */
 	struct xrt_pose pose_prior;
-	struct xrt_vec3 *pos_error_thresh;
-	struct xrt_vec3 *rot_error_thresh;
+	const struct xrt_vec3 *pos_error_thresh;
+	const struct xrt_vec3 *rot_error_thresh;
 
 	/* Used when CS_FLAG_MATCH_GRAVITY is set */
 	struct xrt_vec3 gravity_vector;
@@ -115,16 +115,21 @@ correspondence_search_free(struct correspondence_search *cs);
 void
 correspondence_search_set_blobs(struct correspondence_search *cs, struct t_blob *blobs, int num_blobs);
 
+/*!
+ * Does a brute-force search for a device's pose.
+ *
+ * @note The `pose` and `score` parameters are only written on success.
+ */
 bool
 correspondence_search_find_one_pose(struct correspondence_search *cs,
-                                    struct t_constellation_search_model *model,
+                                    const struct t_constellation_search_model *model,
                                     enum correspondence_search_flags search_flags,
-                                    struct xrt_pose *pose,
-                                    struct xrt_vec3 *pos_error_thresh,
-                                    struct xrt_vec3 *rot_error_thresh,
-                                    struct xrt_vec3 *gravity_vector,
+                                    struct xrt_pose *inout_pose,
+                                    const struct xrt_vec3 *pos_error_thresh,
+                                    const struct xrt_vec3 *rot_error_thresh,
+                                    const struct xrt_vec3 *gravity_vector,
                                     float gravity_tolerance_rad,
-                                    struct pose_metrics *score);
+                                    struct pose_metrics *out_score);
 
 #ifdef __cplusplus
 }

@@ -62,6 +62,11 @@ struct xrt_tracked_slam;
 enum t_camera_distortion_model
 {
 	/*!
+	 * A perfect pinhole camera with no distortion.
+	 */
+	T_DISTORTION_PINHOLE,
+
+	/*!
 	 * OpenCV's radial-tangential distortion model. Exactly equivalent to the distortion model from OpenCV's calib3d
 	 * module with just the first five parameters. This may be reinterpreted as RT8 with the last three parameters
 	 * zeroed out, which is 100% valid and results in exactly equivalent (un)projections.
@@ -129,6 +134,19 @@ enum t_camera_distortion_model
 	 * \f[(k_1, k_2, p_1, p_2, k_3, k_4, k_5, k_6, cod_x, cod_y, rpmax)\f]
 	 */
 	T_DISTORTION_WMR,
+
+	/*!
+	 * The Oculus Rift CV1 constellation sensor's lens model (LensModel "type 6" in Oculus'
+	 * runtime). Despite superficially resembling Kannala-Brandt, it is a distinct model: the
+	 * normalized image radius @p r is used *directly* as the field angle and passed through
+	 * @p tan, rather than KB's \f$\theta = \operatorname{atan}(r)\f$. It also carries tangential
+	 * decentering and a 4th-order affine gain on that decentering, which KB4 lacks.
+	 *
+	 * Parameters:
+	 *
+	 * \f[(k_1, k_2, k_3, k_4, p_1, p_2, g_3, g_4)\f]
+	 */
+	T_DISTORTION_RIFT_CV1,
 };
 
 
@@ -141,11 +159,13 @@ static inline const char *
 t_stringify_camera_distortion_model(const enum t_camera_distortion_model model)
 {
 	switch (model) {
+	case T_DISTORTION_PINHOLE: return "T_DISTORTION_PINHOLE"; break;
 	case T_DISTORTION_OPENCV_RADTAN_5: return "T_DISTORTION_OPENCV_RADTAN_5"; break;
 	case T_DISTORTION_OPENCV_RADTAN_8: return "T_DISTORTION_OPENCV_RADTAN_8"; break;
 	case T_DISTORTION_OPENCV_RADTAN_14: return "T_DISTORTION_OPENCV_RADTAN_14"; break;
 	case T_DISTORTION_WMR: return "T_DISTORTION_WMR"; break;
 	case T_DISTORTION_FISHEYE_KB4: return "T_DISTORTION_FISHEYE_KB4"; break;
+	case T_DISTORTION_RIFT_CV1: return "T_DISTORTION_RIFT_CV1"; break;
 	default: U_LOG_E("Invalid distortion_model! %d", model); return "INVALID";
 	}
 }
@@ -161,11 +181,13 @@ static inline size_t
 t_num_params_from_distortion_model(const enum t_camera_distortion_model model)
 {
 	switch (model) {
+	case T_DISTORTION_PINHOLE: return 0; break;
 	case T_DISTORTION_OPENCV_RADTAN_5: return 5; break;
 	case T_DISTORTION_OPENCV_RADTAN_8: return 8; break;
 	case T_DISTORTION_OPENCV_RADTAN_14: return 14; break;
 	case T_DISTORTION_WMR: return 11; break;
 	case T_DISTORTION_FISHEYE_KB4: return 4; break;
+	case T_DISTORTION_RIFT_CV1: return 8; break; // k1..k4, p1, p2, g3, g4
 	default: U_LOG_E("Invalid distortion_model! %d", model); return 0;
 	}
 }
@@ -174,7 +196,9 @@ static inline bool
 t_camera_distortion_model_is_fisheye(enum t_camera_distortion_model model)
 {
 	switch (model) {
-	case T_DISTORTION_FISHEYE_KB4: return true;
+	case T_DISTORTION_FISHEYE_KB4:
+	case T_DISTORTION_RIFT_CV1: return true;
+	case T_DISTORTION_PINHOLE:
 	case T_DISTORTION_OPENCV_RADTAN_5:
 	case T_DISTORTION_OPENCV_RADTAN_8:
 	case T_DISTORTION_OPENCV_RADTAN_14:
@@ -229,6 +253,15 @@ struct t_camera_calibration_wmr_params
 };
 
 /*!
+ * Parameters for @ref T_DISTORTION_RIFT_CV1
+ * @ingroup aux_tracking
+ */
+struct t_camera_calibration_cv1_params
+{
+	double k1, k2, k3, k4, p1, p2, g3, g4;
+};
+
+/*!
  * @brief Essential calibration data for a single camera, or single lens/sensor
  * of a stereo camera.
  */
@@ -246,9 +279,9 @@ struct t_camera_calibration
 		struct t_camera_calibration_rt14_params rt14;
 		struct t_camera_calibration_kb4_params kb4;
 		struct t_camera_calibration_wmr_params wmr;
+		struct t_camera_calibration_cv1_params cv1;
 		double distortion_parameters_as_array[XRT_DISTORTION_MAX_DIM];
 	};
-
 
 	//! Distortion model that this camera uses.
 	enum t_camera_distortion_model distortion_model;

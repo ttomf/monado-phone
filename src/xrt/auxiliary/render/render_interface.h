@@ -1326,8 +1326,8 @@ struct render_compute_layer_ubo_data
 		 * For projection layers
 		 */
 
-		//! Timewarp matrices
-		struct xrt_matrix_4x4 transforms_timewarp;
+		//! FOV and timewarp matrix
+		struct xrt_matrix_4x4 transforms;
 
 		//! Chroma key parameters (per layer)
 		struct render_chroma_key_info chroma_key;

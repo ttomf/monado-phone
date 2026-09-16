@@ -264,6 +264,59 @@ calc_vertex_rot_data(struct comp_renderer *r, struct xrt_matrix_2x2 out_vertex_r
 	}
 }
 
+/*!
+ * How long to spread the begin/end scanout poses over, in nanoseconds.
+ *
+ * This is not @ref xrt_device_compositor_info::scanout_time_ns: a globally
+ * refreshing panel lights every pixel at once, so it gets 0 here even when it
+ * reports a large scanout time. Returns 0 whenever no compensation applies,
+ * which is not an error.
+ */
+static inline int64_t
+calc_scanout_compensation_ns(struct comp_renderer *r)
+{
+	struct xrt_device *xdev = r->c->xdev;
+
+	if (xdev == NULL || !xdev->supported.compositor_info) {
+		return 0;
+	}
+
+	struct xrt_device_compositor_mode compositor_mode = {
+	    .frame_interval_ns = r->c->frame_interval_ns,
+	};
+	struct xrt_device_compositor_info device_compositor_info = {0};
+	xrt_result_t xret = xrt_device_get_compositor_info( //
+	    xdev,                                           //
+	    &compositor_mode,                               //
+	    &device_compositor_info);                       //
+
+	if (xret != XRT_SUCCESS) {
+		COMP_WARN(r->c, "xrt_device_get_compositor_info failed, assuming 0 scanout time");
+		return 0;
+	}
+
+	switch (device_compositor_info.panel_refresh_type) {
+	case XRT_PANEL_REFRESH_TYPE_ROLLING:
+		if (device_compositor_info.scanout_direction == XRT_SCANOUT_DIRECTION_TOP_TO_BOTTOM) {
+			return device_compositor_info.scanout_time_ns;
+		} else {
+			COMP_SPEW(r->c,
+			          "Unable to apply rolling scanout compensation, only "
+			          "DIRECTION_TOP_TO_BOTTOM is supported");
+			return 0;
+		}
+	case XRT_PANEL_REFRESH_TYPE_GLOBAL:
+		/*!
+		 * The entire panel refreshes at once, so there is no scanout
+		 * spread to compensate for and the begin/end poses coincide.
+		 */
+		return 0;
+	}
+
+	//! No default case above, so a new refresh type warns at compile time.
+	return 0;
+}
+
 static void
 calc_pose_data(struct comp_renderer *r,
                enum comp_target_fov_source fov_source,
@@ -288,26 +341,7 @@ calc_pose_data(struct comp_renderer *r,
 	// Determine view type based on view count
 	enum xrt_view_type view_type = (view_count == 1) ? XRT_VIEW_TYPE_MONO : XRT_VIEW_TYPE_STEREO;
 
-	int64_t scanout_time_ns = 0;
-	if (r->c->xdev->supported.compositor_info) {
-		struct xrt_device_compositor_mode compositor_mode = {
-		    .frame_interval_ns = r->c->frame_interval_ns,
-		};
-		struct xrt_device_compositor_info device_compositor_info;
-		xrt_result_t xret = xrt_device_get_compositor_info( //
-		    r->c->xdev,                                     //
-		    &compositor_mode,                               //
-		    &device_compositor_info);                       //
-
-		if (xret != XRT_SUCCESS) {
-			COMP_WARN(r->c, "xrt_device_get_compositor_info failed, assuming 0 scanout time");
-		} else if (device_compositor_info.scanout_direction == XRT_SCANOUT_DIRECTION_TOP_TO_BOTTOM) {
-			scanout_time_ns = device_compositor_info.scanout_time_ns;
-		} else {
-			COMP_SPEW(r->c,
-			          "Unable to apply scanout compensation as only DIRECTION_TOP_TO_BOTTOM is supported");
-		}
-	}
+	const int64_t scanout_time_ns = calc_scanout_compensation_ns(r);
 
 	int64_t begin_timestamp_ns = r->c->frame.rendering.predicted_display_time_ns;
 	int64_t end_timestamp_ns = begin_timestamp_ns + scanout_time_ns;

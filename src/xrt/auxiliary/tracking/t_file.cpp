@@ -29,7 +29,7 @@ DEBUG_GET_ONCE_LOG_OPTION(calib_log, "CALIB_LOG", U_LOGGING_INFO)
 		bool p = predicate;                                                                                    \
 		if (!p) {                                                                                              \
 			U_LOG(U_LOGGING_ERROR, __VA_ARGS__);                                                           \
-			assert(false && "CALIB_ASSERT failed: " #predicate);                                           \
+			assert(p && "CALIB_ASSERT failed: " #predicate);                                               \
 			exit(EXIT_FAILURE);                                                                            \
 		}                                                                                                      \
 	} while (false);

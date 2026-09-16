@@ -108,6 +108,22 @@ struct xrt_view
  */
 struct xrt_device_compositor_info
 {
+	/*!
+	 * @brief The type of panel refresh the screen uses.
+	 *
+	 * This affects how scanout poses are queried for rolling refresh
+	 * compensation: if the mode is @ref XRT_PANEL_REFRESH_TYPE_GLOBAL,
+	 * the start and end scanout world poses will be identical; otherwise,
+	 * separate start and end poses are queried using different predicted
+	 * timestamps derived from the other members of
+	 * @ref xrt_device_compositor_info.
+	 *
+	 * The transmission direction (if known) should be specified via
+	 * @ref scanout_direction. Some features may require this information
+	 * even for global-refresh panels, e.g. beam racing.
+	 */
+	enum xrt_panel_refresh_type panel_refresh_type;
+
 	//! The direction scanout on the display occurs.
 	enum xrt_scanout_direction scanout_direction;
 	/*!

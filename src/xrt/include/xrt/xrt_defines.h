@@ -173,6 +173,17 @@ enum xrt_distortion_model
 };
 
 /*!
+ * The type of panel refresh the device has.
+ */
+enum xrt_panel_refresh_type
+{
+	//! entire panel refreshes simultaneously
+	XRT_PANEL_REFRESH_TYPE_GLOBAL = 0,
+	//! panel refreshes progressively along scanout direction, e.g. OLED panels
+	XRT_PANEL_REFRESH_TYPE_ROLLING,
+};
+
+/*!
  * Screen scanout direction
  */
 enum xrt_scanout_direction

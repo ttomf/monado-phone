@@ -638,8 +638,8 @@ comp_render_cs_layer(struct render_compute *render,
                      const struct xrt_pose *world_pose_scanout_begin,
                      const struct xrt_pose *world_pose_scanout_end,
                      const struct xrt_pose *eye_pose,
-                     const VkImage target_image,
-                     const VkImageView target_image_view,
+                     VkImage target_image,
+                     VkImageView target_image_view,
                      const struct render_viewport_data *target_view,
                      bool do_timewarp);
 

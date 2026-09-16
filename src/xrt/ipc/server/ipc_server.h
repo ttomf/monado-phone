@@ -61,6 +61,8 @@ extern "C" {
 
 #define IPC_MAX_CLIENT_BODY_TRACKERS 16
 #define IPC_MAX_CLIENT_HAND_TRACKERS 16
+#define IPC_MAX_CLIENT_APP_INSTANCES 4
+#define IPC_MAX_CLIENT_APP_SYSTEMS (IPC_MAX_CLIENT_APP_INSTANCES * 4)
 #define IPC_MAX_CLIENT_SEMAPHORES 8
 #define IPC_MAX_CLIENT_SWAPCHAINS (XRT_MAX_LAYERS * 2)
 #define IPC_MAX_CLIENT_SPACES 128
@@ -131,6 +133,16 @@ struct ipc_client_state
 		 * Hand trackers owned by this client.
 		 */
 		struct xrt_hand_tracker *xhts[IPC_MAX_CLIENT_HAND_TRACKERS];
+
+		/*!
+		 * Array of app instances owned by this client.
+		 */
+		struct xrt_app_instance *xainsts[IPC_MAX_CLIENT_APP_INSTANCES];
+
+		/*!
+		 * Array of app systems owned by this client.
+		 */
+		struct xrt_app_system *xasys[IPC_MAX_CLIENT_APP_SYSTEMS];
 	} objects;
 
 	//! Session for this client.

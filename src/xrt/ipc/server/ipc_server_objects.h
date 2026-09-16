@@ -209,3 +209,36 @@ ipc_server_objects_get_xht_id_or_add(volatile struct ipc_client_state *ics,
  */
 xrt_result_t
 ipc_server_objects_destroy_xht(volatile struct ipc_client_state *ics, uint32_t id);
+
+
+/*
+ *
+ * App policy functions.
+ *
+ */
+
+xrt_result_t
+ipc_server_objects_get_xainst_and_validate(volatile struct ipc_client_state *ics,
+                                           uint32_t id,
+                                           struct xrt_app_instance **out_xainst);
+
+xrt_result_t
+ipc_server_objects_get_xainst_id_or_add(volatile struct ipc_client_state *ics,
+                                        struct xrt_app_instance *xainst,
+                                        uint32_t *out_id);
+
+xrt_result_t
+ipc_server_objects_destroy_xainst(volatile struct ipc_client_state *ics, uint32_t id);
+
+xrt_result_t
+ipc_server_objects_get_xasys_and_validate(volatile struct ipc_client_state *ics,
+                                          uint32_t id,
+                                          struct xrt_app_system **out_xasys);
+
+xrt_result_t
+ipc_server_objects_get_xasys_id_or_add(volatile struct ipc_client_state *ics,
+                                       struct xrt_app_system *xasys,
+                                       uint32_t *out_id);
+
+xrt_result_t
+ipc_server_objects_destroy_xasys(volatile struct ipc_client_state *ics, uint32_t id);

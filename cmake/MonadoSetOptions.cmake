@@ -168,9 +168,8 @@ function(monado_set_options)
 		XRT_FEATURE_OPENXR_XDEV_SPACE
 	)
 
-	# Define all known Monado options
 	set(
-		_ALL_XRT_OPTIONS
+		_DEPENDENCY_XRT_OPTIONS
 		# XRT_HAVE_* - Graphics APIs and system dependencies
 		XRT_HAVE_BASALT
 		XRT_HAVE_BLUETOOTH
@@ -207,6 +206,12 @@ function(monado_set_options)
 		XRT_HAVE_XCB
 		XRT_HAVE_XLIB
 		XRT_HAVE_XRANDR
+	)
+
+	# Define all known Monado options
+	set(
+		_ALL_XRT_OPTIONS
+		${_DEPENDENCY_XRT_OPTIONS}
 		# XRT_MODULE_* - Core modules
 		XRT_MODULE_AUX_RENDER
 		XRT_MODULE_AUX_SHADERS
@@ -218,6 +223,7 @@ function(monado_set_options)
 		XRT_MODULE_COMPOSITOR_MULTI
 		XRT_MODULE_COMPOSITOR_NULL
 		XRT_MODULE_COMPOSITOR_UTIL
+		XRT_MODULE_CONSTELLATION_TRACKING
 		XRT_MODULE_IPC
 		XRT_MODULE_MERCURY_HANDTRACKING
 		XRT_MODULE_MONADO_CLI
@@ -260,6 +266,8 @@ function(monado_set_options)
 			list(APPEND _keep_options ${_OPENXR_FEATURE_XRT_OPTIONS})
 		elseif(_set STREQUAL "DRIVERS")
 			list(APPEND _keep_options ${_DRIVER_XRT_OPTIONS})
+		elseif(_set STREQUAL "DEPENDENCIES")
+			list(APPEND _keep_options ${_DEPENDENCY_XRT_OPTIONS})
 		else()
 			message(FATAL_ERROR "Attempted to keep option set ${_set} that does not exist!")
 		endif()

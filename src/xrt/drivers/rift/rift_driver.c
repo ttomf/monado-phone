@@ -24,7 +24,6 @@
 #include "math/m_relation_history.h"
 #include "math/m_clock_tracking.h"
 #include "math/m_api.h"
-#include "math/m_vec2.h"
 #include "math/m_space.h"
 #include "math/m_vec3.h"
 #include "math/m_mathinclude.h" // IWYU pragma: keep
@@ -49,7 +48,6 @@
 #include <assert.h>
 #include <inttypes.h>
 
-#include "rift_distortion.h"
 #include "rift_internal.h"
 #include "rift_usb.h"
 #include "rift_radio.h"
@@ -115,7 +113,7 @@ rift_sensor_thread_tick(struct rift_hmd *hmd)
 	}
 
 	result = os_hid_read(hmd->hmd_dev, buf, sizeof(buf), IMU_SAMPLE_RATE);
-	timepoint_ns recv_time_ns = os_monotonic_get_ns();
+	timepoint_ns recv_time_ns = os_monotonic_get_ns() - RIFT_USB_LATENCY_BIAS;
 
 	if (result < 0) {
 		HMD_ERROR(hmd, "Got error reading from device, assuming fatal, reason %d", result);
@@ -163,7 +161,7 @@ rift_sensor_thread_tick(struct rift_hmd *hmd)
 			iad_mm = roundf(iad_mm * 2.0f) / 2.0f;
 
 			// convert to meters
-			hmd->extra_display_info.icd = iad_mm / 1000.0f;
+			hmd->default_icd = iad_mm / 1000.0f;
 		}
 
 		// if there's no samples, just do nothing.
@@ -176,7 +174,10 @@ rift_sensor_thread_tick(struct rift_hmd *hmd)
 		hmd->last_remote_sample_time_us = report.sample_timestamp;
 		hmd->last_remote_sample_time_ns += (timepoint_ns)remote_sample_delta_us * OS_NS_PER_USEC;
 
-		m_clock_windowed_skew_tracker_push(hmd->clock_tracker, recv_time_ns, hmd->last_remote_sample_time_ns);
+		m_clock_windowed_skew_tracker_push(   //
+		    hmd->clock_tracker,               //
+		    recv_time_ns,                     //
+		    hmd->last_remote_sample_time_ns); //
 
 		int64_t local_timestamp_ns;
 		// if we haven't synchronized our clocks, just do nothing
@@ -207,7 +208,7 @@ rift_sensor_thread_tick(struct rift_hmd *hmd)
 			if (have_local_exposure_time) {
 				hmd->exposure_history[hmd->exposure_history_pushed % RIFT_EXPOSURE_HISTORY_SIZE] =
 				    (struct rift_exposure_event){
-				        .sequence = hmd->exposure_counter,
+				        .sequence_id = hmd->exposure_counter,
 				        .timestamp_ns = hmd->last_local_exposure_time_ns,
 				        .recv_timestamp_ns = recv_time_ns,
 				    };
@@ -453,6 +454,11 @@ rift_read_led_model(struct rift_hmd *hmd)
 		return result;
 	}
 
+	hmd->led_model.match_parameters = (struct t_constellation_tracker_led_model_match_parameters){
+	    .min_leds_for_correspondence_search_without_prior = 5,
+	    .min_leds_for_correspondence_search_with_prior = 5,
+	};
+
 	// minus one to get rid of the IMU, which is also in here
 	hmd->led_model.leds = U_TYPED_ARRAY_CALLOC(struct t_constellation_tracker_led, position_report.position_count);
 
@@ -614,6 +620,171 @@ get_raw_pose(struct rift_hmd *hmd, timepoint_ns when_ns, struct xrt_relation_cha
 
 /*
  *
+ * Distortion
+ *
+ */
+
+// @todo remove clang-format off when CI is updated
+// clang-format off
+static const struct rift_lens_distortion DK2_DISTORTIONS[] = {
+    {
+        .distortion_version = RIFT_LENS_DISTORTION_LCSV_CATMULL_ROM_10_VERSION_1,
+        .eye_relief = 0.008f,
+        .data =
+            {
+                .lcsv_catmull_rom_10 =
+                    {
+                        .meters_per_tan_angle_at_center = 0.036f,
+                        .max_r = 1.0f,
+                        .chromatic_abberation = {-0.0112f, -0.015f, 0.0187f, 0.015f},
+                        .k =
+                            {
+                                1.003f,
+                                1.02f,
+                                1.042f,
+                                1.066f,
+                                1.094f,
+                                1.126f,
+                                1.162f,
+                                1.203f,
+                                1.25f,
+                                1.31f,
+                                1.38f,
+                            },
+                    },
+            },
+    },
+    {
+        .distortion_version = RIFT_LENS_DISTORTION_LCSV_CATMULL_ROM_10_VERSION_1,
+        .eye_relief = 0.018f,
+        .data =
+            {
+                .lcsv_catmull_rom_10 =
+                    {
+                        .meters_per_tan_angle_at_center = 0.036f,
+                        .max_r = 1.0f,
+                        .chromatic_abberation = {-0.015f, -0.02f, 0.025f, 0.02f},
+                        .k =
+                            {
+                                1.003f,
+                                1.02f,
+                                1.042f,
+                                1.066f,
+                                1.094f,
+                                1.126f,
+                                1.162f,
+                                1.203f,
+                                1.25f,
+                                1.31f,
+                                1.38f,
+                            },
+                    },
+            },
+    }};
+
+static const struct rift_lens_distortion CV1_DISTORTIONS[] = {{
+    .distortion_version = RIFT_LENS_DISTORTION_LCSV_CATMULL_ROM_10_VERSION_1,
+    .eye_relief = 0.015f,
+    .data =
+        {
+            .lcsv_catmull_rom_10 =
+                {
+                    .meters_per_tan_angle_at_center = 0.0438f,
+                    .max_r = 1.0f,
+                    .chromatic_abberation = {-0.008f, -0.005f, 0.015f, 0.005f},
+                    .k =
+                        {
+                            1.000f,
+                            1.0312999f,
+                            1.0698f,
+                            1.1155f,
+                            1.173f,
+                            1.2460001f,
+                            1.336f,
+                            1.457f,
+                            1.630f,
+                            1.900f,
+                            2.3599999f,
+                        },
+                },
+        },
+}};
+// clang-format on
+
+static void
+rift_fill_in_default_distortions(struct rift_hmd *hmd)
+{
+	switch (hmd->variant) {
+	case RIFT_VARIANT_DK2: {
+		hmd->num_lens_distortions = ARRAY_SIZE(DK2_DISTORTIONS);
+		hmd->lens_distortions = DK2_DISTORTIONS;
+
+		// TODO: let the user specify which distortion is in use with an env var,
+		//       and interpolate the distortions for the user's specific eye relief setting
+		hmd->distortion_in_use = 1;
+
+		break;
+	}
+	case RIFT_VARIANT_CV1: {
+		hmd->num_lens_distortions = ARRAY_SIZE(CV1_DISTORTIONS);
+		hmd->lens_distortions = CV1_DISTORTIONS;
+
+		// TODO: let the user specify which distortion is in use with an env var,
+		//       and interpolate the distortions for the user's specific eye relief setting
+		hmd->distortion_in_use = 0;
+
+		break;
+	}
+	}
+}
+
+static void
+rift_fill_in_distortion_inputs(struct rift_hmd *hmd)
+{
+	assert(hmd->lens_distortions != NULL);
+	assert(hmd->distortion_in_use < hmd->num_lens_distortions);
+
+	float lens_diameter_m = 0.0f;
+	switch (hmd->variant) {
+	// TODO: figure out the *real* value for CV1 by dumping it from LibOVR somehow
+	case RIFT_VARIANT_CV1: lens_diameter_m = 0.05f; break;
+	case RIFT_VARIANT_DK2: lens_diameter_m = 0.04f; break;
+	}
+
+	hmd->panel = XRT_C11_COMPOUND(struct u_rift_panel){
+	    .size_m =
+	        {
+	            MICROMETERS_TO_METERS(hmd->display_info.display_width),
+	            MICROMETERS_TO_METERS(hmd->display_info.display_height),
+	        },
+	    // No headset seen so far reports a nonzero gap.
+	    .eye_gap_m = 0.0f,
+	    .size_px =
+	        {
+	            (float)hmd->display_info.resolution_x,
+	            (float)hmd->display_info.resolution_y,
+	        },
+	    .lens_center_separation_m = MICROMETERS_TO_METERS(hmd->display_info.lens_separation),
+	    .lens_center_from_panel_top = MICROMETERS_TO_METERS(hmd->display_info.center_v),
+	    .lens_diameter_m = lens_diameter_m,
+	};
+
+	const struct rift_lens_distortion *distortion = &hmd->lens_distortions[hmd->distortion_in_use];
+	const struct rift_catmull_rom_distortion_data *data = &distortion->data.lcsv_catmull_rom_10;
+
+	hmd->eye_profile = XRT_C11_COMPOUND(struct u_rift_eye_profile){
+	    .eye_relief_m = distortion->eye_relief,
+	    .k = data->k,
+	    .k_count = CATMULL_COEFFICIENTS,
+	    .chromatic_abberation = {data->chromatic_abberation[0], data->chromatic_abberation[1],
+	                             data->chromatic_abberation[2], data->chromatic_abberation[3]},
+	    .max_r = data->max_r,
+	    .meters_per_tan_angle = data->meters_per_tan_angle_at_center,
+	};
+}
+
+/*
+ *
  * Driver functions
  *
  */
@@ -692,7 +863,7 @@ rift_hmd_get_view_poses(struct xrt_device *xdev,
 	if (hmd->icd_override_m >= 0.0f) {
 		eye_relation.x = hmd->icd_override_m;
 	} else {
-		eye_relation.x = hmd->extra_display_info.icd;
+		eye_relation.x = hmd->default_icd;
 	}
 
 	return u_device_get_view_poses( //
@@ -714,6 +885,16 @@ rift_hmd_get_visibility_mask(struct xrt_device *xdev,
 {
 	struct xrt_fov fov = xdev->hmd->distortion.fov[view_index];
 	u_visibility_mask_get_default(type, &fov, out_mask);
+	return XRT_SUCCESS;
+}
+
+static xrt_result_t
+rift_hmd_compute_distortion(struct xrt_device *xdev, uint32_t view, float u, float v, struct xrt_uv_triplet *out_result)
+{
+	struct rift_hmd *hmd = rift_hmd(xdev);
+
+	u_compute_distortion_rift(&hmd->panel, &hmd->eye_profile, view, u, v, out_result);
+
 	return XRT_SUCCESS;
 }
 
@@ -1071,25 +1252,6 @@ rift_devices_create(struct os_hid_device *hmd_dev,
 
 	// fill in extra display info about the headset
 
-	switch (hmd->variant) {
-	case RIFT_VARIANT_CV1: // TODO: figure out the *real* values for CV1 by dumping them from LibOVR somehow
-		hmd->extra_display_info.lens_diameter_meters = 0.05f;
-		hmd->extra_display_info.screen_gap_meters = 0.0f;
-		break;
-	case RIFT_VARIANT_DK2:
-		hmd->extra_display_info.lens_diameter_meters = 0.04f;
-		hmd->extra_display_info.screen_gap_meters = 0.0f;
-		break;
-	}
-
-	// hardcode left eye, probably not ideal, but sure, why not
-	struct rift_distortion_render_info distortion_render_info = rift_get_distortion_render_info(hmd, 0);
-	hmd->extra_display_info.fov = rift_calculate_fov_from_hmd(hmd, &distortion_render_info, 0);
-	hmd->extra_display_info.eye_to_source_ndc =
-	    rift_calculate_ndc_scale_and_offset_from_fov(&hmd->extra_display_info.fov);
-	hmd->extra_display_info.eye_to_source_uv =
-	    rift_calculate_uv_scale_and_offset_from_ndc_scale_and_offset(hmd->extra_display_info.eye_to_source_ndc);
-
 	size_t idx = 0;
 	hmd->base.hmd->blend_modes[idx++] = XRT_BLEND_MODE_OPAQUE;
 	hmd->base.hmd->blend_mode_count = idx;
@@ -1099,6 +1261,9 @@ rift_devices_create(struct os_hid_device *hmd_dev,
 	hmd->base.get_view_poses = rift_hmd_get_view_poses;
 	hmd->base.get_visibility_mask = rift_hmd_get_visibility_mask;
 	hmd->base.destroy = rift_hmd_destroy;
+
+	// Has to happen before the mesh is filled in below, which calls straight into compute_distortion.
+	rift_fill_in_distortion_inputs(hmd);
 
 	hmd->base.hmd->distortion.models = XRT_DISTORTION_MODEL_COMPUTE;
 	hmd->base.hmd->distortion.preferred = XRT_DISTORTION_MODEL_COMPUTE;
@@ -1131,13 +1296,13 @@ rift_devices_create(struct os_hid_device *hmd_dev,
 	case RIFT_VARIANT_CV1: hmd->base.hmd->screens[0].nominal_frame_interval_ns = time_s_to_ns(1.0f / 90.0f); break;
 	}
 
-	hmd->extra_display_info.icd = MICROMETERS_TO_METERS(hmd->display_info.lens_separation);
+	hmd->default_icd = MICROMETERS_TO_METERS(hmd->display_info.lens_separation);
 
 	hmd->icd_override_m = debug_get_float_option_rift_override_icd_mm() / 1000.0f;
 	if (hmd->icd_override_m >= 0.0f) {
 		HMD_INFO(hmd, "Applying ICD override of %f", hmd->icd_override_m);
 	} else {
-		HMD_DEBUG(hmd, "Using default ICD of %f", hmd->extra_display_info.icd);
+		HMD_DEBUG(hmd, "Using default ICD of %f", hmd->default_icd);
 	}
 
 	switch (hmd->variant) {
@@ -1145,7 +1310,7 @@ rift_devices_create(struct os_hid_device *hmd_dev,
 		hmd->base.hmd->screens[0].w_pixels = hmd->display_info.resolution_x;
 		hmd->base.hmd->screens[0].h_pixels = hmd->display_info.resolution_y;
 
-		// TODO: properly apply using rift_extra_display_info.screen_gap_meters, but this isn't necessary, as
+		// TODO: properly apply using u_rift_panel::eye_gap_m, but this isn't necessary, as
 		//       observed gap is always zero
 		uint16_t view_width = hmd->display_info.resolution_x / 2;
 		uint16_t view_height = hmd->display_info.resolution_y;
@@ -1181,7 +1346,7 @@ rift_devices_create(struct os_hid_device *hmd_dev,
 		hmd->base.hmd->screens[0].h_pixels = hmd->display_info.resolution_x;
 		hmd->base.hmd->screens[0].w_pixels = hmd->display_info.resolution_y;
 
-		// TODO: properly apply using rift_extra_display_info.screen_gap_meters, but this isn't necessary, as
+		// TODO: properly apply using u_rift_panel::eye_gap_m, but this isn't necessary, as
 		//       observed gap is always zero
 		uint16_t view_width = hmd->display_info.resolution_x / 2;
 		uint16_t view_height = hmd->display_info.resolution_y;
@@ -1258,7 +1423,7 @@ rift_devices_create(struct os_hid_device *hmd_dev,
 	u_var_add_root(hmd, "Rift HMD", true);
 	u_var_add_log_level(hmd, &hmd->log_level, "log_level");
 	u_var_add_ro_i32(hmd, (int32_t *)&hmd->variant, "variant");
-	u_var_add_f32(hmd, &hmd->extra_display_info.icd, "ICD");
+	u_var_add_f32(hmd, &hmd->default_icd, "default_icd");
 	u_var_add_ro_i64_ns(hmd, &hmd->last_remote_sample_time_ns, "last_remote_sample_time_ns");
 	u_var_add_ro_i64_ns(hmd, &hmd->last_sample_local_timestamp_ns, "last_sample_local_timestamp_ns");
 	u_var_add_ro_i64_ns(hmd, &hmd->last_remote_exposure_time_ns, "last_remote_exposure_time_ns");
@@ -1312,7 +1477,11 @@ rift_get_radio_id(struct rift_hmd *hmd, uint8_t out_radio_id[5])
 }
 
 bool
-rift_hmd_frame_timestamp_callback(void *user_data, timepoint_ns *timestamp, timepoint_ns frame_start_ns, uint32_t pts)
+rift_hmd_frame_timestamp_callback(void *user_data,             //
+                                  timepoint_ns *out_timestamp, //
+                                  uint64_t *out_sequence_id,   //
+                                  timepoint_ns frame_start_ns, //
+                                  uint32_t pts)                //
 {
 	struct rift_hmd *hmd = (struct rift_hmd *)user_data;
 
@@ -1361,13 +1530,14 @@ rift_hmd_frame_timestamp_callback(void *user_data, timepoint_ns *timestamp, time
 		return false;
 	}
 
-	*timestamp = match.timestamp_ns + interval_ns;
+	*out_timestamp = match.timestamp_ns + interval_ns;
+	*out_sequence_id = match.sequence_id + 1;
 
 	HMD_TRACE(hmd,
-	          "Frame with PTS %u matched exposure %u, taken at %" PRId64 " ns, report %" PRId64
-	          " ns before frame, %" PRId64 " ns from window centre",
-	          pts, match.sequence + 1, *timestamp, frame_start_ns - match.recv_timestamp_ns,
-	          frame_start_ns - match.recv_timestamp_ns - interval_ns);
+	          "Frame with PTS %u matched exposure %u, taken at %" PRId64 " ns (sequence ID %" PRIu64
+	          "), report %" PRId64 " ns before frame, %" PRId64 " ns from window centre",
+	          pts, match.sequence_id + 1, *out_timestamp, *out_sequence_id,
+	          frame_start_ns - match.recv_timestamp_ns, frame_start_ns - match.recv_timestamp_ns - interval_ns);
 
 	return true;
 }

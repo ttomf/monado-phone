@@ -825,11 +825,14 @@ survive_get_compositor_info(struct xrt_device *xdev,
 	struct survive_device *d = (struct survive_device *)xdev;
 
 	time_duration_ns scanout_time_ns;
+	enum xrt_panel_refresh_type panel_refresh_type;
 	enum xrt_scanout_direction scanout_direction;
 
-	vive_variant_scanout_info(d->hmd.config.variant, mode->frame_interval_ns, &scanout_time_ns, &scanout_direction);
+	vive_variant_scanout_info(d->hmd.config.variant, mode->frame_interval_ns, &scanout_time_ns, &scanout_direction,
+	                          &panel_refresh_type);
 
 	(*out_info) = (struct xrt_device_compositor_info){
+	    .panel_refresh_type = panel_refresh_type,
 	    .scanout_time_ns = scanout_time_ns,
 	    .scanout_direction = scanout_direction,
 	};

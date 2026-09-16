@@ -50,22 +50,27 @@ bool
 vive_variant_scanout_info(enum VIVE_VARIANT variant,
                           time_duration_ns frame_period_ns,
                           time_duration_ns *out_scanout_time_ns,
-                          enum xrt_scanout_direction *out_scanout_direction)
+                          enum xrt_scanout_direction *out_scanout_direction,
+                          enum xrt_panel_refresh_type *out_panel_refresh_type)
 {
 	switch (variant) {
 	case VIVE_VARIANT_PRO:
+		*out_panel_refresh_type = XRT_PANEL_REFRESH_TYPE_ROLLING;
 		*out_scanout_direction = XRT_SCANOUT_DIRECTION_TOP_TO_BOTTOM;
 		*out_scanout_time_ns = frame_period_ns * 1600.0 / 1624.0;
 		return true;
 	case VIVE_VARIANT_BEYOND:
+		*out_panel_refresh_type = XRT_PANEL_REFRESH_TYPE_ROLLING;
 		*out_scanout_direction = XRT_SCANOUT_DIRECTION_TOP_TO_BOTTOM;
 		*out_scanout_time_ns = frame_period_ns * 2544.0 / 2568.0;
 		return true;
 	case VIVE_VARIANT_PRO2:
+		*out_panel_refresh_type = XRT_PANEL_REFRESH_TYPE_ROLLING;
 		*out_scanout_direction = XRT_SCANOUT_DIRECTION_TOP_TO_BOTTOM;
 		*out_scanout_time_ns = frame_period_ns * 2448.0 / 2574.0;
 		return true;
 	default:
+		*out_panel_refresh_type = XRT_PANEL_REFRESH_TYPE_GLOBAL;
 		*out_scanout_direction = XRT_SCANOUT_DIRECTION_NONE;
 		*out_scanout_time_ns = 0;
 		return false;

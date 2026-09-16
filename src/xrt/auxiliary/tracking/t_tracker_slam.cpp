@@ -67,7 +67,7 @@
 		bool p = predicate;                                                                                    \
 		if (!p) {                                                                                              \
 			U_LOG(U_LOGGING_ERROR, __VA_ARGS__);                                                           \
-			assert(false && "SLAM_ASSERT failed: " #predicate);                                            \
+			assert(p && "SLAM_ASSERT failed: " #predicate);                                                \
 			exit(EXIT_FAILURE);                                                                            \
 		}                                                                                                      \
 	} while (false);

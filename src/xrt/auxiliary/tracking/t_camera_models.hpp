@@ -74,6 +74,52 @@ public: // Methods
 };
 
 /*
+ * Functions for @ref T_DISTORTION_PINHOLE
+ */
+
+template <typename T>
+static inline bool
+pinhole_project(const t_camera_model_params &dist, //
+                const T x,                         //
+                const T y,                         //
+                const T z,                         //
+                T &out_x,                          //
+                T &out_y)
+{
+	out_x = ((CAST(dist.fx) * x / z) + CAST(dist.cx));
+	out_y = ((CAST(dist.fy) * y / z) + CAST(dist.cy));
+
+	bool is_valid = z >= kSqrtEpsilon;
+	return is_valid;
+}
+
+template <typename T>
+static inline bool
+pinhole_unproject(const t_camera_model_params &dist, //
+                  const T x,                         //
+                  const T y,                         //
+                  T &out_x,                          //
+                  T &out_y,                          //
+                  T &out_z)
+{
+	const T mx = (x - CAST(dist.cx)) / CAST(dist.fx);
+	const T my = (y - CAST(dist.cy)) / CAST(dist.fy);
+
+	const T r2 = mx * mx + my * my;
+
+	const T norm = sqrt(CAST(1.0) + r2);
+
+	const T norm_inv = CAST(1.0) / norm;
+
+	out_x = mx * norm_inv;
+	out_y = my * norm_inv;
+	out_z = norm_inv;
+
+	// Pinhole unprojection is always valid :)
+	return true;
+}
+
+/*
  * Functions for @ref T_DISTORTION_FISHEYE_KB4 (un)projections
  */
 
@@ -375,49 +421,77 @@ rt8_unproject(const t_camera_model_params &params, const T &u, const T &v, T &ou
 	return is_valid;
 }
 
-#if 1
-template <typename T>
-static inline bool
-zero_distortion_pinhole_project(const t_camera_model_params &dist, //
-                                const T x,                         //
-                                const T y,                         //
-                                const T z,                         //
-                                T &out_x,                          //
-                                T &out_y)
-{
-	out_x = ((CAST(dist.fx) * x / z) + CAST(dist.cx));
-	out_y = ((CAST(dist.fy) * y / z) + CAST(dist.cy));
+/*
+ * Functions for @ref T_DISTORTION_RIFT_CV1 (un)projections
+ */
 
-	bool is_valid = z >= kSqrtEpsilon;
-	return is_valid;
+//! Radial undistortion scale s = |ray| / |p| for a distorted normalized image point of radius @p r.
+template <typename T>
+static inline T
+cv1_radial_undistort_scale(const t_camera_model_params &dist, const T &r)
+{
+	if (r == CAST(0.0)) {
+		return CAST(1.0);
+	}
+
+	// The image radius r is used directly as the field angle: t = tan(r). (KB4 would use atan(r).)
+	const T t = tan(r);
+	const T t2 = t * t;
+
+	// P(t) = 1 + k1 t^2 + k2 t^4 + k3 t^6 + k4 t^8 (Oculus d1..d4), Horner form.
+	T poly = CAST(dist.cv1.k4) * t2;
+	poly += CAST(dist.cv1.k3);
+	poly *= t2;
+	poly += CAST(dist.cv1.k2);
+	poly *= t2;
+	poly += CAST(dist.cv1.k1);
+	poly *= t2;
+	poly += CAST(1.0);
+
+	return (t / r) / poly;
 }
 
+//! Tangential ("decentering") delta with the CV1 4th-order affine gain (p1, p2, g3, g4), for a scaled point @p q.
 template <typename T>
-static inline bool
-zero_distortion_pinhole_unproject(const t_camera_model_params &dist, //
-                                  const T x,                         //
-                                  const T y,                         //
-                                  T &out_x,                          //
-                                  T &out_y,                          //
-                                  T &out_z)
+static inline void
+cv1_decentering_delta(const t_camera_model_params &dist, const T &qx, const T &qy, T &out_dx, T &out_dy)
 {
-	const T mx = (x - CAST(dist.cx)) / CAST(dist.fx);
-	const T my = (y - CAST(dist.cy)) / CAST(dist.fy);
+	const T p1 = CAST(dist.cv1.p1);
+	const T p2 = CAST(dist.cv1.p2);
+	const T rq2 = qx * qx + qy * qy;
 
-	const T r2 = mx * mx + my * my;
+	T dx = (CAST(2.0) * qx * qx + rq2) * p1 + CAST(2.0) * p2 * qx * qy;
+	T dy = (CAST(2.0) * qy * qy + rq2) * p2 + CAST(2.0) * p1 * qx * qy;
 
-	const T norm = sqrt(CAST(1.0) + r2);
+	// Affine gain g = 1 + g3 rq^2 + g4 rq^4, applied to the decentering delta.
+	const T gain = CAST(1.0) + rq2 * (CAST(dist.cv1.g3) + rq2 * CAST(dist.cv1.g4));
 
-	const T norm_inv = CAST(1.0) / norm;
-
-	out_x = mx * norm_inv;
-	out_y = my * norm_inv;
-	out_z = norm_inv;
-
-	// Pinhole unprojection is always valid :)
-	return true;
+	out_dx = dx * gain;
+	out_dy = dy * gain;
 }
-#endif
+
+//! Maps a distorted image-space point (@p x, @p y) to a pinhole ray tangent (x/z, y/z).
+template <typename T>
+static inline void
+cv1_undistort(const t_camera_model_params &dist, const T &x, const T &y, T &out_x, T &out_y)
+{
+	// Normalize the distorted pixel onto the sensor plane. CV1 uses a single focal length, so
+	// fx == fy here.
+	const T px = (x - CAST(dist.cx)) / CAST(dist.fx);
+	const T py = (y - CAST(dist.cy)) / CAST(dist.fy);
+
+	const T r = sqrt(px * px + py * py);
+	const T scale = cv1_radial_undistort_scale(dist, r);
+
+	const T qx = scale * px;
+	const T qy = scale * py;
+
+	T dx, dy;
+	cv1_decentering_delta(dist, qx, qy, dx, dy);
+
+	out_x = qx + dx;
+	out_y = qy + dy;
+}
 
 // This is a very common name, so make sure to undef it.
 #undef CAST
@@ -436,11 +510,22 @@ project(const t_camera_model_params &dist, //
         T &out_y)
 {
 	switch (dist.model) {
+	case T_DISTORTION_PINHOLE: {
+		return pinhole_project(dist, x, y, z, out_x, out_y);
+	} break;
 	case T_DISTORTION_OPENCV_RADTAN_8: {
 		return rt8_project(dist, x, y, z, out_x, out_y);
 	}; break;
 	case T_DISTORTION_FISHEYE_KB4: {
 		return kb4_project(dist, x, y, z, out_x, out_y);
+	}; break;
+	case T_DISTORTION_RIFT_CV1: {
+		// Dummy value so we aren't returning uninitialized values.
+		out_x = T(dist.fx) * x / z + T(dist.cx);
+		out_y = T(dist.fy) * y / z + T(dist.cy);
+
+		// No projection path is present for CV1
+		return false;
 	}; break;
 	// Return false so we don't get warnings on Release builds.
 	default: assert(false); return false;
@@ -452,11 +537,18 @@ void
 undistort(const t_camera_model_params &dist, const T &x, const T &y, T &out_x, T &out_y)
 {
 	switch (dist.model) {
+	case T_DISTORTION_PINHOLE: {
+		out_x = x;
+		out_y = y;
+	}; break;
 	case T_DISTORTION_OPENCV_RADTAN_8: {
 		rt8_undistort(dist, x, y, out_x, out_y);
 	}; break;
 	case T_DISTORTION_FISHEYE_KB4: {
 		kb4_undistort(dist, x, y, out_x, out_y);
+	}; break;
+	case T_DISTORTION_RIFT_CV1: {
+		cv1_undistort(dist, x, y, out_x, out_y);
 	}; break;
 	// Return false so we don't get warnings on Release builds.
 	default: assert(false);

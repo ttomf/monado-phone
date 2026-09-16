@@ -644,7 +644,7 @@ crg_distortion_fast_path(struct render_gfx *render,
 {
 	const struct xrt_layer_data *data = &layer->data;
 
-	const VkSampler clamp_to_border_black = render->r->samplers.clamp_to_border_black;
+	VkSampler clamp_to_border_black = render->r->samplers.clamp_to_border_black;
 
 	struct gfx_mesh_data md = XRT_STRUCT_INIT;
 	for (uint32_t i = 0; i < d->target.view_count; i++) {
@@ -659,7 +659,7 @@ crg_distortion_fast_path(struct render_gfx *render,
 		src_pose = vds[i]->pose;
 		src_fov = vds[i]->fov;
 		src_norm_rect = vds[i]->sub.norm_rect;
-		const VkImageView src_image_view = get_image_view(image, data->flags, array_index);
+		VkImageView src_image_view = get_image_view(image, data->flags, array_index);
 
 		if (data->flip_y) {
 			src_norm_rect.y += src_norm_rect.h;

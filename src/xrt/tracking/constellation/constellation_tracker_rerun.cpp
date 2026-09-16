@@ -128,6 +128,8 @@ MakeImage(const xrt_frame &frame)
  *
  */
 
+static constexpr std::string timeline_name = "keyframes";
+
 std::string
 GetCameraEntityName(size_t mosaic_idx, size_t camera_idx)
 {
@@ -138,18 +140,6 @@ std::string
 GetWorldEntityName()
 {
 	return "world";
-}
-
-std::string
-GetTimelineName(size_t mosaic_idx, size_t camera_idx)
-{
-	return std::format("{}/tracked_pose", GetCameraEntityName(mosaic_idx, camera_idx));
-}
-
-std::string
-GetTimelineName(const CameraSample &camera_sample)
-{
-	return GetTimelineName(camera_sample.mosaic_index, camera_sample.camera_index);
 }
 
 std::string
@@ -335,8 +325,13 @@ RerunContext::logFrameDeviceMetrics(const CameraSample &camera_sample, const Dev
 void
 RerunContext::logSample(const ConstellationTracker &tracker, const CameraSample &camera_sample)
 {
-	std::string timeline_name = GetTimelineName(camera_sample);
 	std::string camera_entity = GetWorldCameraEntityName(camera_sample.mosaic_index, camera_sample.camera_index);
+
+	const auto &calibration =
+	    tracker.mosaics[camera_sample.mosaic_index]->cameras[camera_sample.camera_index]->calibration;
+
+	this->logStaticScene(camera_sample, calibration);
+	this->stream->set_time_timestamp_nanos_since_epoch(timeline_name, camera_sample.timestamp_ns);
 
 	std::optional<xrt_pose> Tcv_world_cam = std::nullopt;
 	if (camera_sample.Txr_world_cam.has_value()) {
@@ -346,12 +341,6 @@ RerunContext::logSample(const ConstellationTracker &tracker, const CameraSample 
 
 		this->stream->log(camera_entity, ToRerunTransform(Tcv_world_cam_value));
 	}
-
-	const auto &calibration =
-	    tracker.mosaics[camera_sample.mosaic_index]->cameras[camera_sample.camera_index]->calibration;
-
-	this->logStaticScene(camera_sample, calibration);
-	this->stream->set_time_timestamp_nanos_since_epoch(timeline_name, camera_sample.timestamp_ns);
 
 	for (uint32_t i = 0; i < camera_sample.device_count; i++) {
 		const auto &device_state = camera_sample.device_states[i];
@@ -412,7 +401,6 @@ RerunContext::logImageFrame(const ConstellationTracker &tracker,
                             uint32_t camera_index,
                             const xrt_frame &frame)
 {
-	std::string timeline_name = GetTimelineName(mosaic_index, camera_index);
 	std::string camera_image_entity = GetCameraImageEntityName(mosaic_index, camera_index);
 
 	this->stream->set_time_timestamp_nanos_since_epoch(timeline_name, frame.timestamp);

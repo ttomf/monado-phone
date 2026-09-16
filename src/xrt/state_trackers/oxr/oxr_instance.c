@@ -456,30 +456,35 @@ oxr_instance_create(struct oxr_logger *log,
 #pragma GCC diagnostic ignored "-Wpedantic"
 #endif // __GNUC_
 
+	pRENDERDOC_GetAPI RENDERDOC_GetAPI = NULL;
+
 #if defined(XRT_OS_LINUX) && !defined(XRT_OS_ANDROID)
 	void *mod = dlopen("librenderdoc.so", RTLD_NOW | RTLD_NOLOAD);
 	if (mod) {
-		pRENDERDOC_GetAPI RENDERDOC_GetAPI = (pRENDERDOC_GetAPI)dlsym(mod, "RENDERDOC_GetAPI");
-		XRT_MAYBE_UNUSED int ret = RENDERDOC_GetAPI(eRENDERDOC_API_Version_1_5_0, (void **)&inst->rdoc_api);
-		assert(ret == 1);
+		RENDERDOC_GetAPI = (pRENDERDOC_GetAPI)dlsym(mod, "RENDERDOC_GetAPI");
 	}
 #endif
 #ifdef XRT_OS_ANDROID
 	void *mod = dlopen("libVkLayer_GLES_RenderDoc.so", RTLD_NOW | RTLD_NOLOAD);
 	if (mod) {
-		pRENDERDOC_GetAPI RENDERDOC_GetAPI = (pRENDERDOC_GetAPI)dlsym(mod, "RENDERDOC_GetAPI");
-		int ret = RENDERDOC_GetAPI(eRENDERDOC_API_Version_1_5_0, (void **)&inst->rdoc_api);
-		assert(ret == 1);
+		RENDERDOC_GetAPI = (pRENDERDOC_GetAPI)dlsym(mod, "RENDERDOC_GetAPI");
 	}
 #endif
 #ifdef XRT_OS_WINDOWS
 	HMODULE mod = GetModuleHandleA("renderdoc.dll");
 	if (mod) {
-		pRENDERDOC_GetAPI RENDERDOC_GetAPI = (pRENDERDOC_GetAPI)GetProcAddress(mod, "RENDERDOC_GetAPI");
-		int ret = RENDERDOC_GetAPI(eRENDERDOC_API_Version_1_5_0, (void **)&inst->rdoc_api);
-		assert(ret == 1);
+		RENDERDOC_GetAPI = (pRENDERDOC_GetAPI)GetProcAddress(mod, "RENDERDOC_GetAPI");
 	}
 #endif
+
+	// If we got the symbol, try to get the API and assert it succeeds.
+	if (RENDERDOC_GetAPI) {
+		ret = RENDERDOC_GetAPI(eRENDERDOC_API_Version_1_5_0, (void **)&inst->rdoc_api);
+		assert(ret == 1);
+		if (ret != 1) {
+			oxr_log(log, "RENDERDOC_GetAPI failed, got %d.", ret);
+		}
+	}
 
 #ifdef __GNUC__
 #pragma GCC diagnostic pop

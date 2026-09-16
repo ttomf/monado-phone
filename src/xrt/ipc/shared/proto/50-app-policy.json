@@ -1,0 +1,42 @@
+{
+    "$schema": "../proto.schema.json",
+    "app_instance_create": {
+        "in": [],
+        "out": [
+            {
+                "name": "id",
+                "type": "uint32_t"
+            }
+        ]
+    },
+    "app_instance_destroy": {
+        "in": [
+            {
+                "name": "id",
+                "type": "uint32_t"
+            }
+        ]
+    },
+    "app_instance_create_app_system": {
+        "in": [
+            {
+                "name": "xainst_id",
+                "type": "uint32_t"
+            }
+        ],
+        "out": [
+            {
+                "name": "xasys_id",
+                "type": "uint32_t"
+            }
+        ]
+    },
+    "app_system_destroy": {
+        "in": [
+            {
+                "name": "id",
+                "type": "uint32_t"
+            }
+        ]
+    }
+}

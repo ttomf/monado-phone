@@ -78,30 +78,6 @@ oxr_input_transform_init_vec2_get_y(struct oxr_input_transform *transform, const
 }
 
 bool
-oxr_input_transform_init_vec2_dpad(struct oxr_input_transform *transform,
-                                   const struct oxr_input_transform *parent,
-                                   struct oxr_dpad_settings dpad_settings,
-                                   enum oxr_dpad_region dpad_region,
-                                   enum xrt_input_type activation_input_type,
-                                   struct xrt_input *activation_input)
-{
-	assert(transform != NULL);
-	assert(parent != NULL);
-	assert(parent->result_type == XRT_INPUT_TYPE_VEC2_MINUS_ONE_TO_ONE);
-
-	U_ZERO(transform);
-	transform->type = INPUT_TRANSFORM_DPAD;
-	transform->result_type = XRT_INPUT_TYPE_BOOLEAN;
-	transform->data.dpad_state.settings = dpad_settings;
-	transform->data.dpad_state.bound_region = dpad_region;
-	transform->data.dpad_state.activation_input_type = activation_input_type;
-	transform->data.dpad_state.activation_input = activation_input;
-	transform->data.dpad_state.already_active = activation_input == NULL;
-
-	return true;
-}
-
-bool
 oxr_input_transform_init_threshold(struct oxr_input_transform *transform,
                                    const struct oxr_input_transform *parent,
                                    float threshold,
@@ -425,9 +401,19 @@ oxr_input_transform_create_chain_dpad(struct oxr_logger *log,
                                       struct oxr_input_transform **out_transforms,
                                       size_t *out_transform_count)
 {
-	struct oxr_input_transform chain[OXR_MAX_INPUT_TRANSFORMS] = {0};
+	oxr_slog(slog, "\t\tAdding dpad transform from '%s' to '%s'\n", xr_action_type_to_str(result_type),
+	         xrt_input_type_to_str(input_type));
 
-	// these default settings are specified by OpenXR and thus must not be changed
+	if (input_type != XRT_INPUT_TYPE_VEC2_MINUS_ONE_TO_ONE) {
+		oxr_slog(slog, "\t\t\tUnexpected input type for dpad binding %s\n", bound_path_string);
+		return false;
+	}
+	if (result_type != XR_ACTION_TYPE_BOOLEAN_INPUT) {
+		oxr_slog(slog, "\t\t\tUnexpected output type for dpad binding %s\n", bound_path_string);
+		return false;
+	}
+
+	// Default settings from the OpenXR spec
 	struct oxr_dpad_settings dpad_settings = {
 	    .forceThreshold = 0.5f,
 	    .forceThresholdReleased = 0.4f,
@@ -440,43 +426,24 @@ oxr_input_transform_create_chain_dpad(struct oxr_logger *log,
 		dpad_settings = dpad_binding_modification->settings;
 	}
 
-	oxr_slog(slog, "\t\tAdding dpad transform from '%s' to '%s'\n", xr_action_type_to_str(result_type),
-	         xrt_input_type_to_str(input_type));
+	struct oxr_input_transform transform = {
+	    .type = INPUT_TRANSFORM_DPAD,
+	    .result_type = XRT_INPUT_TYPE_BOOLEAN,
+	    .data =
+	        {
+	            .dpad_state =
+	                {
+	                    .bound_region = dpad_region,
+	                    .settings = dpad_settings,
+	                    .activation_input_type = activation_input_type,
+	                    .activation_input = activation_input,
+	                    .already_active = (activation_input == NULL),
+	                },
+	        },
+	};
 
-	struct oxr_input_transform *current_xform = &(chain[0]);
-	if (!oxr_input_transform_init_root(current_xform, input_type)) {
-		*out_transform_count = 0;
-		*out_transforms = NULL;
-		return false;
-	}
-
-	// We start over here.
-	size_t transform_count = 0;
-	input_type = current_xform->result_type;
-	if (input_type != XRT_INPUT_TYPE_VEC2_MINUS_ONE_TO_ONE) {
-		oxr_slog(slog, "\t\t\tUnexpected input type for dpad binding %s\n", bound_path_string);
-		return false;
-	}
-	if (result_type != XR_ACTION_TYPE_BOOLEAN_INPUT) {
-		oxr_slog(slog, "\t\t\tUnexpected output type for dpad binding %s\n", bound_path_string);
-		return false;
-	}
-
-	struct oxr_input_transform *new_xform = &(chain[transform_count]);
-	if (!oxr_input_transform_init_vec2_dpad(new_xform, current_xform, dpad_settings, dpad_region,
-	                                        activation_input_type, activation_input)) {
-		// Error has already been logged.
-
-		*out_transform_count = 0;
-		*out_transforms = NULL;
-		return false;
-	}
-
-	current_xform = new_xform;
-	transform_count++;
-
-	*out_transform_count = transform_count;
-	*out_transforms = oxr_input_transform_clone_chain(chain, transform_count);
+	*out_transform_count = 1;
+	*out_transforms = oxr_input_transform_clone_chain(&transform, 1);
 
 	return true;
 }

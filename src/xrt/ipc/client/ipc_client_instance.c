@@ -250,6 +250,21 @@ ipc_client_instance_get_prober(struct xrt_instance *xinst, struct xrt_prober **o
 	return XRT_ERROR_PROBER_NOT_SUPPORTED;
 }
 
+static xrt_result_t
+ipc_client_instance_create_app_instance(struct xrt_instance *xinst, struct xrt_app_instance **out_xainst)
+{
+	struct ipc_client_instance *ii = ipc_client_instance(xinst);
+
+	struct xrt_app_instance *xainst = ipc_client_create_app_instance(&ii->ipc_c);
+	if (xainst == NULL) {
+		return XRT_ERROR_IPC_FAILURE;
+	}
+
+	(*out_xainst) = xainst;
+
+	return XRT_SUCCESS;
+}
+
 static void
 ipc_client_instance_destroy(struct xrt_instance *xinst)
 {
@@ -291,6 +306,7 @@ ipc_instance_create(const struct xrt_instance_info *i_info, struct xrt_instance 
 	ii->base.is_system_available = ipc_client_instance_is_system_available;
 	ii->base.create_system = ipc_client_instance_create_system;
 	ii->base.get_prober = ipc_client_instance_get_prober;
+	ii->base.create_app_instance = ipc_client_instance_create_app_instance;
 	ii->base.destroy = ipc_client_instance_destroy;
 
 #ifdef XRT_OS_WINDOWS

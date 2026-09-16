@@ -62,10 +62,13 @@ target_link_libraries(
 		aux_os
 		aux_ogl
 		base
-		constellation
 		st_gui_base
 	)
 target_include_directories(st_gui INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/..)
+
+if(XRT_MODULE_CONSTELLATION_TRACKING)
+	target_link_libraries(st_gui PRIVATE constellation)
+endif()
 
 if(XRT_HAVE_GST)
 	target_link_libraries(st_gui_base PRIVATE aux_gstreamer)
