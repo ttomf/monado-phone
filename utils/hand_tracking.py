@@ -13,9 +13,11 @@ Usage:
 """
 
 import argparse
+import os
 import socket
 import struct
 import time
+from urllib.request import urlretrieve
 
 import cv2
 import mediapipe as mp
@@ -207,6 +209,14 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     SMOOTH_ALPHA = args.smooth
+
+    if not os.path.exists("holistic_landmarker.task"):
+        print("HolisticLandmarker model not found, downloading...")
+        urlretrieve(
+            "https://storage.googleapis.com/mediapipe-models/holistic_landmarker/holistic_landmarker/float16/latest/holistic_landmarker.task",
+            "holistic_landmarker.task",
+        )
+        print("holistic_landmarker.task downloaded")
 
     cap = cv2.VideoCapture(args.video)
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
