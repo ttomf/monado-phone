@@ -1,17 +1,18 @@
 # Monado Phone Driver
 
 This is a Monado driver and Android app that allows you to play advanced VR games just with your phone.
-Currently, it implements **UDP HEVC streaming** to phone, **6DOF tracking** with ARCore and **hand tracking** with MediaPipe.
+Currently, it implements **UDP HEVC streaming** to phone, **6DOF tracking** with ARCore and **hand tracking** with MediaPipe (both PC and phone side)
 
 > [!NOTE]
 > This repo is a fork of the original Monado.
 > The original Monado is available at https://gitlab.freedesktop.org/monado/monado/
 
-> [!WARNING]  
+> [!WARNING]
 > Like other VR applications, this software may cause motion sickness, dizziness, nausea, or discomfort. Stop using it immediately if you experience any of these symptoms.
 
 > [!WARNING]
 > This driver is still in development and may not work as expected.
+> Because of that, games are not very playable yet (especially those with hand tracking).
 > Tested only on Moto G85 with Android 16 and Arch Linux with RTX 5060.
 
 ## Table of Contents
@@ -29,6 +30,7 @@ Currently, it implements **UDP HEVC streaming** to phone, **6DOF tracking** with
   - [Steam](#steam)
   - [Configuration file](#configuration-file)
   - [PC camera hand tracking](#pc-camera-hand-tracking)
+- [Contributing](#contributing)
 - [Architecture](#architecture)
   - [Phone](#phone)
   - [Driver](#driver-1)
@@ -40,6 +42,9 @@ Currently, it implements **UDP HEVC streaming** to phone, **6DOF tracking** with
 - Android phone with minimal API level 29 (Android 10)
 - Linux PC
 - HMD to put your phone in, something like [Google Cardboard](https://arvr.google.com/cardboard/). It needs to have hole for back camera.
+
+> [!NOTE]
+> Google stopped production of Cardboards, so you need to make your own, or buy different phone VR headset (don't forget it needs to have hole for the phone camera, otherwise ARCore won't work).
 
 ## Getting Started
 
@@ -200,6 +205,12 @@ Then, run `python hand_tracking.py` in the `utils` directory. Here are all possi
 
 > [!IMPORTANT]
 > You must first disable hand tracking on the phone in the Android app settings; otherwise, packets from the phone will collide with packets from the PC, causing random flickering.
+
+## Contributing
+
+All contributions are welcome! This is really a hobby project, so I would like to know how to improve it. If you have suggestions, feature requests, or find any bugs, feel free to open an issue or submit a pull request.
+
+Also, if you test this project on a different setup (OS, hardware, headset), let me know how it performs! You can report your setup details and test results in new issue.
 
 ## Architecture
 
