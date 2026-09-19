@@ -25,7 +25,7 @@ phone_hmd_get_tracked_pose(struct xrt_device *xdev,
                            int64_t at_timestamp_ns,
                            struct xrt_space_relation *out_relation)
 {
-	struct phone_hmd *hmd = (struct phone_hmd *)(xdev);
+	struct phone_hmd *hmd = (struct phone_hmd *)xdev;
 
 	if (name != XRT_INPUT_GENERIC_HEAD_POSE) {
 		// Only supported is head pose
@@ -123,7 +123,7 @@ phone_hmd_get_hand_tracking(struct xrt_device *xdev,
                             struct xrt_hand_joint_set *out_value,
                             int64_t *out_timestamp_ns)
 {
-	struct phone_hmd *hmd = (struct phone_hmd *)(xdev);
+	struct phone_hmd *hmd = (struct phone_hmd *)xdev;
 
 	if (name != XRT_INPUT_HT_UNOBSTRUCTED_LEFT && name != XRT_INPUT_HT_UNOBSTRUCTED_RIGHT) {
 		return XRT_ERROR_INPUT_UNSUPPORTED;
@@ -170,7 +170,7 @@ phone_hmd_get_hand_tracking(struct xrt_device *xdev,
 		joint->relation.pose.position.y += relation.pose.position.y / 2.f;
 		joint->relation.pose.position.z += relation.pose.position.z / 2.f;
 
-		joint->relation.relation_flags = (enum xrt_space_relation_flags)(XRT_SPACE_RELATION_POSITION_VALID_BIT);
+		joint->relation.relation_flags = (enum xrt_space_relation_flags)XRT_SPACE_RELATION_POSITION_VALID_BIT;
 	}
 
 	// Anatomic joints width
@@ -191,7 +191,7 @@ phone_hmd_get_hand_tracking(struct xrt_device *xdev,
 static void
 phone_hmd_destroy(struct xrt_device *xdev)
 {
-	struct phone_hmd *hmd = (struct phone_hmd *)(xdev);
+	struct phone_hmd *hmd = (struct phone_hmd *)xdev;
 
 	// Stop the pose receiver thread before it can write to a freed history
 	net_pose_destroy();
